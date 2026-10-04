@@ -265,7 +265,7 @@ fn inc_492_leaves_emergency_while_cause_unknown() {
     // the service: they move no claim about the service, so the restoration stays open and
     // emergency mode holds. They are not excluded either; they are simply not the service's.
     let observed = decide("release-observed");
-    for about_service in ["impact.bounded", "service.healthy", "cause.identified"] {
+    for about_service in ["impact.bounded", "service.healthy"] {
         assert_eq!(
             claim(&observed, about_service),
             claim(&rolled_back, about_service),

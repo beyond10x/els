@@ -29,13 +29,13 @@
     {
       "from": "evidence:impact_assessment",
       "kind": "establishes",
-      "qualifier": "bounded",
+      "qualifier": "bounded about service",
       "to": "claim:impact.bounded"
     },
     {
       "from": "evidence:operational_observation",
       "kind": "establishes",
-      "qualifier": "healthy",
+      "qualifier": "healthy about service",
       "to": "claim:service.healthy"
     },
     {

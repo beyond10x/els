@@ -3,13 +3,12 @@
 //! Invariant under check: `incident.response/1` never discharges `restore_service`, and never
 //! admits `emergency.leave`, while the state of the *service* is unknown.
 //!
-//! `service.healthy` is `true_when: {evidence: {kind: operational_observation, result: healthy}}`
-//! (`protocols/incident-response/1.yaml:33-37`). A Canon evidence match names a kind and a result,
-//! not a subject (`b10x_canon::model::EvidenceMatch`), and revision binding keeps every record
-//! whose subject is at its current revision. The protocol declares two artifacts, `service` and
-//! `release`. So a healthy `operational_observation` about the release, which the rollback does
-//! not move (`inc-492` keeps `release: r42` throughout), applies to `service.healthy` once the
-//! service's own records are excluded by the rollback.
+//! The protocol declares two artifacts, `service` and `release`, and the rollback does not move
+//! the release (`inc-492` keeps `release: r42` throughout). A match that names no subject reads a
+//! record about any declared artifact at its current revision, so a healthy
+//! `operational_observation` about the release would decide `service.healthy` once the service's
+//! own records are excluded by the rollback. `service.healthy` and `impact.bounded` match only
+//! evidence about the service (`subject: service`, story:incident-response-subject-binding).
 //!
 //! The scenario is `inc-492` as shipped, with one change: in `rolled-back`, where nothing of the
 //! service's new revision s2 has been observed, the evidence is a healthy observation and a bounded
@@ -18,8 +17,7 @@
 #[allow(dead_code)] // uses part of the harness; fixture_harness.rs uses all of it
 mod support;
 
-// Independent review F1: the decision helpers and their Canon types went with the decision the
-// test no longer reaches; Canon refuses the scenario before deciding anything.
+use b10x_canon::model::{ClaimId, Truth};
 use support::Fixture;
 
 const INC_492: &str = "fixtures/incident-response/inc-492.fixture.yaml";
@@ -69,16 +67,31 @@ fn restore_service_is_not_discharged_by_an_observation_of_the_release() {
     let compiled = fixture
         .compile()
         .unwrap_or_else(|error| panic!("the protocol compiles: {error}"));
-    // Independent review F1: the protocol declares only the service, so Canon refuses a record
-    // about the release as `undeclared-artifact` instead of letting it decide `service.healthy`,
-    // `restore_service` or `emergency.leave`.
-    let refusal = fixture
+    // Canon admits the records about the release and decides; matches bound to the service do
+    // not read them, so the service's health and impact stay UNKNOWN, the restoration stays open
+    // and emergency mode holds.
+    let decision = fixture
         .evaluate(&compiled, "rolled-back")
-        .expect_err("Canon refuses an observation of the release");
-    assert_eq!(refusal.code(), "undeclared-artifact", "{refusal}");
-    assert_eq!(
-        refusal.to_string(),
-        "evidence `release-health-1` is about artifact `release`, which the protocol does not \
-         declare"
-    );
+        .unwrap_or_else(|refusal| panic!("Canon decides the state: {refusal}"));
+    for about_service in ["service.healthy", "impact.bounded"] {
+        assert_eq!(
+            decision
+                .claims
+                .get(&ClaimId::new(about_service))
+                .expect("the claim is decided")
+                .value,
+            Truth::Unknown,
+            "a record about the release decided `{about_service}`"
+        );
+    }
+    let obligations = decision.obligations.as_ref().expect("obligations");
+    let restore = obligations
+        .as_array()
+        .expect("obligations is an array")
+        .iter()
+        .find(|entry| entry["id"] == "restore_service")
+        .expect("restore_service");
+    assert_eq!(restore["status"], "open", "{obligations}");
+    let actions = decision.actions.as_ref().expect("actions");
+    assert_eq!(actions["emergency.leave"]["status"], "blocked", "{actions}");
 }

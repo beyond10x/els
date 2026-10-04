@@ -28,12 +28,14 @@ claims:
       evidence:
         kind: impact_assessment
         result: bounded
+        subject: service
   service.healthy:
     description: the service is running healthily
     true_when:
       evidence:
         kind: operational_observation
         result: healthy
+        subject: service
   cause.identified:
     description: the incident's cause is known
     true_when:
