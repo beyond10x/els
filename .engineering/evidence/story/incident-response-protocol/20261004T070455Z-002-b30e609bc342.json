@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-04T07:04:55Z",
+  "actor": "human:timo",
+  "artifact": "story:incident-response-protocol",
+  "kind": "story",
+  "revision": 15,
+  "change": {
+    "change": "evidence",
+    "kind": "verification",
+    "source": "inc_492 acceptance: phase-1 commit 3bc4e68 vs treatment 0d4eccc and ef43d05",
+    "reference": "ga-wave-2026-10-04-w8/els-incident-response-protocol/scratch/phase1-red.log: the fixture did not load (unknown field add_authority: the harness did not read authority decisions); treatment passes; VERIFIED"
+  }
+}

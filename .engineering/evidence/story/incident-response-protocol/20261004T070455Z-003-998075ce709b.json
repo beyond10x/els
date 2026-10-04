@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-04T07:04:55Z",
+  "actor": "human:timo",
+  "artifact": "story:incident-response-protocol",
+  "kind": "story",
+  "revision": 15,
+  "change": {
+    "change": "evidence",
+    "kind": "test_result",
+    "source": "whole gate on wave/2026-10-04-w8 at d7d32d9 (independent-review fixes merged): fmt, clippy -D warnings, test (80 passed, 0 failed), els-docs --check; every step exit 0",
+    "reference": "ga-wave-2026-10-04-w8/els-integration-gate.log"
+  }
+}

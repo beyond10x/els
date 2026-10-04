@@ -2,7 +2,7 @@
 format: aep.planning-md/3
 id: story:incident-response-protocol
 kind: story
-status: draft
+status: implemented
 title: Define incident.response/1 on Canon
 summary: Incident protocol on the same kernel; leaves emergency mode while the cause is still UNKNOWN.
 refs:
@@ -30,6 +30,8 @@ relations:
 - depends_on: story:fixture-harness
 scope:
 - confidence: cited
+  path: crates/els-docs/
+- confidence: cited
   path: crates/els/tests/incident_response_protocol.rs
 - confidence: cited
   path: crates/els/tests/support/mod.rs
@@ -37,7 +39,13 @@ scope:
   path: fixtures/incident-response/
 - confidence: cited
   path: protocols/incident-response/1.yaml
-revision: 8
+- confidence: cited
+  path: website/
+revision: 16
+transitions:
+- {from: "draft", to: "proposed", at: "2026-10-04T06:15:14Z", actor: "human:timo", revision: 9, decided_on: {"recorded":{"review_outcome":2}}}
+- {from: "proposed", to: "active", at: "2026-10-04T06:15:14Z", actor: "human:timo", revision: 10, decided_on: {"recorded":{"review_outcome":2}}}
+- {from: "active", to: "implemented", at: "2026-10-04T07:04:55Z", actor: "human:timo", revision: 16, decided_on: {"recorded":{"test_result":1,"review_outcome":4,"verification":1}}}
 ---
 ## Outcome
 
@@ -111,3 +119,50 @@ passes `observed_at` to Canon. This story's acceptance items on actions, obligat
 newer-observation-wins need the harness extended, so `crates/els/tests/support/mod.rs` is in its
 scope, and it needs the Canon capabilities behind them (canon story:obligations, story:action-admissibility,
 story:outcomes, story:evidence-freshness) on canon `main` before it starts.
+
+## Coordinator decisions (wave 2026-10-04-w8)
+
+- Canon is pinned at 8fc260a (wave 7: obligations, action admissibility with `--authority`,
+  outcomes, revision binding, freshness).
+- Phase 1 showed Canon has no "newer observation wins" rule: two observations of one kind that
+  disagree leave the claim UNKNOWN. Option C is taken: the rollback produces a new revision of the
+  service; the healthy observation is bound to it and the unhealthy observation of the old revision
+  is excluded by revision binding. The fixture carries per-state case artifact revisions.
+- Acceptance item 4, reworded: starting from the state of 3, the rollback produces a new revision
+  of the service, and a healthy `operational_observation` and an `impact_assessment` reporting
+  impact bounded, both of that revision, arrive (still no `cause_analysis`). Evaluation reports
+  `service.healthy = TRUE`, `impact.bounded = TRUE` and `cause.identified = UNKNOWN`;
+  `restore_service` discharged; `emergency.leave` admissible. The unhealthy observation and the
+  impact assessment of the old revision are each listed as excluded (`revision_mismatch`) under the
+  claim they bear on. The impact is re-assessed because the assessment of the old revision is
+  excluded with it.
+- Canon spells obligation statuses `open`/`discharged`; `emergency.leave` requires the claims that
+  discharge `restore_service` (Canon cannot reference an obligation from a precondition);
+  capabilities `traffic.shift` and `release.rollback`; urgency only in the obligation description.
+
+### Adversary pass 1 decisions (wave 2026-10-04-w8)
+
+inc-492 now has five states, in this order: `initial` (unhealthy, impact bounded), `cause-identified`
+(cause identified while still unhealthy; the emergency stays), `rollback-approved` (`release.rollback`
+granted), `rolled-back` (service at s2, no s2 evidence: every claim UNKNOWN, `restore_service` open,
+the three s1 records excluded) and `service-restored` (healthy and bounded on s2; `restore_service`
+discharged, `emergency.leave` admissible).
+
+- F1 (fixed): the independence check follows the precondition through every claim to the evidence
+  kinds it reaches; an `emergency.leave` that rests on cause analysis fails it.
+- F2 (fixed): the `rolled-back` state pins that unknown health keeps the obligation open.
+- F3 (fixed): the protocol page shows what discharges each obligation; the graph reuses the
+  `requires` edge kind, as the pinned docs-system schema has no `discharges` kind.
+- Consequence: the cause analysis is bound to service s1, so after the rollback `cause.identified`
+  returns to UNKNOWN; item 4's "no cause_analysis" means none of the new revision.
+
+### Adversary pass 2 and independent review (wave 2026-10-04-w8)
+
+- Pass 2 (all fixed): a record's own `observed_at` is refused unless it matches; graph edges keep
+  `not` polarity; each action's effect is asserted; the index counts obligations; the harness docs say a
+  grant cannot be revoked; two page wordings corrected. The effects adversary case was removed as
+  vacuous: Canon never reads `effect`, and the acceptance now asserts it (mutant shown red).
+- Independent review (all fixed): the protocol declared `release`, so an observation of the
+  unchanged release discharged `restore_service`; the protocol now declares only `service`. Canon
+  story:subject-bound-evidence-match is drafted for subject-bound matches. The harness refuses an
+  unwritable authority entry; the library protocol id matches the shipped protocol.
