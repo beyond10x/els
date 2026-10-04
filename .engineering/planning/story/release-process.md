@@ -2,12 +2,24 @@
 format: aep.planning-md/3
 id: story:release-process
 kind: story
-status: draft
+status: active
 title: els has a tag-driven release process and a first tag
 relations:
 - decomposes: epic:engineering-protocols-rename
 - serves: vision:O2
-revision: 1
+scope:
+- confidence: inferred
+  path: AGENTS.md
+- confidence: inferred
+  path: CHANGELOG.md
+- confidence: inferred
+  path: Cargo.lock
+- confidence: inferred
+  path: Cargo.toml
+revision: 7
+transitions:
+- {from: "draft", to: "proposed", at: "2026-10-04T23:30:28Z", actor: "human:timo", revision: 2}
+- {from: "proposed", to: "active", at: "2026-10-04T23:30:28Z", actor: "human:timo", revision: 3}
 ---
 ## Outcome
 
