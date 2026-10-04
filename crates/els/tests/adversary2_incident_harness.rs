@@ -144,9 +144,42 @@ fn the_order_of_authority_entries_does_not_matter() {
 /// every state at `check` (`missing-artifact`); `set_revisions` on it is refused at load.
 #[test]
 fn an_artifact_the_case_omits() {
-    let without = inc_492_with("    release: {revision: r42}\n", "");
+    // Independent review F1: `incident.response/1` declares only the service, which inc-492's
+    // case lists. The probe runs on a copy of the protocol that also declares `release`, written
+    // under the repository's ignored `target/` and removed afterwards; inc-492's case omits it.
+    struct Scratch(std::path::PathBuf);
+    impl Drop for Scratch {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+    let name = format!("adversary2-incident-omits-{}", std::process::id());
+    let scratch = Scratch(support::repo_root().join("target").join(&name));
+    std::fs::create_dir_all(&scratch.0).expect("scratch directory under the ignored target/");
+    let shipped = std::fs::read_to_string(
+        support::repo_root().join(support::protocol_path("incident-response", 1)),
+    )
+    .expect("the protocol reads");
+    let declared = "artifacts:\n  service:\n";
+    assert!(
+        shipped.contains(declared),
+        "the protocol declares the service"
+    );
+    let copy = shipped.replacen(
+        declared,
+        "artifacts:\n  release:\n    description: a versioned, deployable unit of the system\n  service:\n",
+        1,
+    );
+    std::fs::write(scratch.0.join("protocol.yaml"), copy).expect("the copied protocol");
+    let protocol_path = format!("target/{name}/protocol.yaml");
+    let without = inc_492_with(
+        "protocol: protocols/incident-response/1.yaml\n",
+        &format!("protocol: {protocol_path}\n"),
+    );
     let fixture = Fixture::from_yaml(&without).expect("loads");
-    let differences = fixture.check(&compiled()).expect_err("differs");
+    let compiled =
+        support::compile_protocol(&protocol_path).unwrap_or_else(|error| panic!("{error}"));
+    let differences = fixture.check(&compiled).expect_err("differs");
     assert_eq!(differences.len(), 5, "{differences:?}");
     assert!(
         differences

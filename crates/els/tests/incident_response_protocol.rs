@@ -134,6 +134,14 @@ fn inc_492_leaves_emergency_while_cause_unknown() {
         ir.actions.keys().map(|id| id.as_str()).collect(),
     );
     let names = |ids: Vec<&str>| ids.into_iter().map(str::to_owned).collect::<Vec<_>>();
+    // A Canon evidence match names a kind and a result, not a subject, so every claim is about
+    // whatever artifact its evidence is about. The service is the one artifact declared: Canon
+    // refuses a record about anything else, and no other artifact's evidence can stand in for
+    // the service's.
+    assert_eq!(
+        names(ir.artifacts.keys().map(|id| id.as_str()).collect()),
+        ["service"]
+    );
     assert_eq!(
         names(ir.claims.keys().map(|id| id.as_str()).collect()),
         ["cause.identified", "impact.bounded", "service.healthy"]
