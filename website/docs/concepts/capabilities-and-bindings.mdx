@@ -1,0 +1,93 @@
+---
+title: Capabilities and bindings
+sidebar_position: 5
+description: Protocol actions are tool-agnostic. Capabilities carry authority; bindings reach real systems.
+---
+
+An action such as `metrics.inspect` must reach one concrete system (one cluster, one namespace,
+through one tool) without the protocol ever naming that tool. Decision record 0083 splits the path
+into four layers, each named once.
+
+<StatusStrip items={[
+  {label: 'Tool-agnostic action ids', status: 'shipped', detail: 'incident.response/1 declares metrics.inspect, logs.search, release.rollback; no tool appears in it.', href: '/docs/protocols/incident-response/1'},
+  {label: 'An action declares the capabilities it needs', status: 'shipped', detail: 'Canon evaluation admits an action only when every capability it requires is granted.'},
+  {label: 'Scoped capabilities and grants', status: 'decided', detail: 'metrics.read{cluster, namespace}. Canon\'s capability requirement holds no scope yet.'},
+  {label: 'Precedence deny > require_approval > allow, default deny', status: 'decided', detail: 'Canon\'s authority input decides granted or denied today.'},
+  {label: 'Connection catalog in Connectors', status: 'decided', detail: 'The catalog entry format is open.'},
+  {label: 'Runtime binding in Commission', status: 'decided', detail: 'Resolved per invocation, narrowed by the case\'s current grant.'},
+  {label: 'scope.widen as an action that needs authority', status: 'decided', detail: 'The case records every widening.'},
+  {label: 'Narrowed credentials', status: 'planned', detail: 'A per-case credential that cannot reach beyond the scope.'},
+]} />
+
+## Four layers
+
+| Layer | Example | Owner | Changes per deployment? |
+|---|---|---|---|
+| Action (protocol, tool-agnostic) | `metrics.inspect`, `logs.search` | ELS | no |
+| Capability (semantic, scoped) | `metrics.read{cluster: prod-eu, namespace: foo}` | the protocol declares it; the case grants it | no |
+| Data contract | `series/v1alpha1`, `logs/v1alpha1` | Connectors | no |
+| Connection | one metrics store, one log store | the operator, in the Connectors catalog | yes |
+
+The rule: no layer above the connection names a tool.
+
+## Capabilities
+
+A protocol action declares the capability it needs. Today that is a name:
+
+```yaml title="protocols/incident-response/1.yaml (excerpt)"
+actions:
+  release.rollback:
+    effect: write
+    requires:
+      - capability: release.rollback
+```
+
+Canon decides nothing about who holds it: whoever runs an evaluation passes in which capabilities are
+granted or denied, and an action is admissible only when every capability it requires is granted.
+Decided but not yet built: capabilities carry a scope, a case holds scoped grants derived from its
+subject, and the precedence is deny over require-approval over allow, with nothing granted by
+default.
+
+## Bindings
+
+For each invocation, right before it acts, Commission resolves capability → data contract →
+connection from the operator's catalog, narrowed by the case's current grant. The catalog entry
+format is still open; a sketch:
+
+```yaml title="catalog sketch (illustrative, format open)"
+deployment: prod-eu
+capabilities:
+  metrics.read:
+    contract: series/v1alpha1
+    connection: metrics-prod-eu
+    scope_keys: [cluster, namespace]     # what a grant may narrow on
+  logs.read:
+    contract: logs/v1alpha1
+    connection: logs-prod                # another deployment binds another log store
+    scope_keys: [cluster, namespace]
+  topology.read:
+    contract: resource_discovery/v1alpha1
+    connection: cluster-prod-eu
+    scope_keys: [cluster]
+```
+
+## Where scope comes from
+
+<Flow steps={[
+  {label: 'Subject', title: 'the request', description: 'The intent router proposes a subject: cluster, namespace, symptoms.'},
+  {label: 'Grant', title: 'the case', description: 'The case grants metrics.read and logs.read on that subject only.'},
+  {label: 'Discover', title: 'topology.read', description: 'Names of services, no metrics or logs, to find what serves the symptom.'},
+  {label: 'Widen', title: 'scope.widen', description: 'Reading another namespace is an action that needs authority, and is recorded.'},
+]} />
+
+## Enforcement, top to bottom
+
+| Check | Where |
+|---|---|
+| The action is admissible now | Canon |
+| The granted capability covers the requested scope | Commission, before it invokes |
+| The query stays inside the scope | the Connectors adapter, by native query containment |
+| The credential cannot reach beyond the scope | narrowed credentials, later |
+
+The model never sees connection names or credentials. It sees `metrics.inspect` with arguments whose
+schema carries no scope fields it could change.

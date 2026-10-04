@@ -1,0 +1,113 @@
+---
+title: Composing cases
+sidebar_position: 2
+description: A case opens child cases at run time, and their outcomes become evidence in the parent.
+---
+
+Work that one case cannot hold opens further cases. An audit opens one change per finding; an epic
+opens one change per story; an incident opens an investigation and, once the cause is known, a
+remediation change. The parent's conclusion depends on how its children end.
+
+ELS protocols express this with two primitives Canon will provide (decision record 0081): an action
+that opens a child case, and an evidence kind that carries a child's terminal outcome back to the
+parent. Execution strategy (scheduling, retries) stays outside the protocol.
+
+<StatusStrip items={[
+  {label: 'case.open(protocol, subject)', status: 'decided', detail: 'An action that opens a child case; its authority is declared by the parent protocol. Not in Canon protocol/1 yet.'},
+  {label: 'case_outcome evidence', status: 'decided', detail: 'A child\'s terminal outcome is evidence for a parent claim. Not in Canon protocol/1 yet.'},
+  {label: 'Parent–child links stored by AEP', status: 'decided', detail: 'The planning view becomes a rendering of the case graph.'},
+  {label: 'Fan-out with for_each', status: 'planned', detail: 'Design proposal; no decision record yet.'},
+  {label: 'Fan-in quantifiers every / some / none', status: 'planned', detail: 'Design proposal; no decision record yet.'},
+  {label: 'Cancellation with parent.closed', status: 'planned', detail: 'Design proposal.'},
+]} />
+
+<Flow steps={[
+  {label: 'Parent', title: 'case.open', description: 'An action of the parent protocol opens one child case per item.'},
+  {label: 'Children', title: 'their own protocol', description: 'Each child runs under its own protocol and its own commission.'},
+  {label: 'Evidence', title: 'case_outcome', description: 'Each terminal outcome returns to the parent as evidence.'},
+  {label: 'Fan-in', title: 'every / some / none', description: 'A parent claim quantifies over the children; UNKNOWN while any is open.'},
+]} />
+
+## Opening children: fan-out
+
+The number of children is often known only at run time: an audit finds seven issues, an epic has
+twelve stories. The children come from evidence the parent already holds. In the proposed syntax,
+`for_each` makes an action admissible once per evidence record that has no child yet, so the
+frontier lists concrete instances, `remediation.open[finding-3]`, `remediation.open[finding-5]`, and
+each one is checked on its own.
+
+```yaml title="proposed syntax, not in Canon protocol/1"
+evidence_kinds:
+  finding:
+    description: One issue the audit found; carries a subject (repository, path, revision).
+actions:
+  remediation.open:
+    for_each: {evidence: finding}        # one admissible instance per finding not yet opened
+    opens:
+      protocol: software.change
+      subject: finding.subject
+    requires:
+      - capability: case.open
+```
+
+Because `case.open` needs a capability, a composition policy can cap how many children one case may
+open, instead of a protocol hard-coding a number.
+
+## Deciding on the children: fan-in
+
+A parent claim quantifies over the children opened by one action, by outcome:
+
+```yaml title="proposed syntax, not in Canon protocol/1"
+claims:
+  findings.resolved:
+    true_when:
+      children:
+        protocol: software.change
+        opened_by: remediation.open
+        every:
+          outcome: [accepted, declined]
+```
+
+The quantifiers are three-valued, like every Canon claim:
+
+| Quantifier | TRUE when | FALSE when | UNKNOWN when |
+|---|---|---|---|
+| `every` | every child is closed with a matching outcome | some child is closed with a non-matching outcome | no mismatch yet, but some child is still open |
+| `some` | some child is closed with a matching outcome | every child is closed and none matches | no match yet, but some child is still open |
+| `none` | every child is closed and none matches | some child is closed with a matching outcome | no match yet, but some child is still open |
+
+With no children opened, `every` and `none` are TRUE and `some` is FALSE; a protocol that needs at
+least one child says so with a separate claim. UNKNOWN while any child is open is what makes the
+parent wait, without a scheduler and without a state machine.
+
+## Cancellation and failure
+
+| Situation | Proposed rule |
+|---|---|
+| A child ends `abandoned` | It counts as a non-matching outcome, so an `every` claim becomes FALSE. The parent protocol decides whether that blocks it or whether it may open a replacement. |
+| The parent reaches a terminal outcome while children are open | Each open child receives a `parent.closed` evidence record, and its own protocol declares what that means; for most, outcome `abandoned`. |
+| The parent is abandoned | The same. No child is left running silently. |
+
+Still open: whether several commissions may work one case at once, how cycles are prevented (a case
+must not open an ancestor), and whether a child may read its parent's evidence.
+
+## Three shapes
+
+```text
+assessment.audit/1
+  action    review.dimension  → evidence finding (0..n)
+  action    remediation.open  for_each finding → software.change/1
+  claim     findings.resolved every child outcome in [accepted, declined]
+  outcome   remediated        assessed + findings.resolved
+
+delivery.wave/1
+  action    story.open        for_each story_selected → software.change/1
+  claim     stories.done      every child outcome in [accepted, declined]
+  action    integration.merge precondition stories.done, needs repository.merge
+
+incident.response/1
+  action    investigation.open → investigation (one child)
+  action    remediation.open   → software.change/1 (one child, after cause.identified)
+```
+
+The shipped `incident.response/1` does not open children yet; these lines show where it would.

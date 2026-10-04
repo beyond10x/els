@@ -1,0 +1,106 @@
+---
+title: Protocols and compositions
+sidebar_position: 1
+description: A protocol says what must be true. A composition says who, when and with which tools.
+---
+
+import incident from '@site/data/protocol-graphs/incident-response-1.json';
+
+Governing engineering work takes two kinds of statement, and ELS keeps them apart.
+
+- A **protocol** says what must be true before work counts, which evidence establishes it, which
+  actions exist and which of them need authority. It never names a person, a model, a tool or a
+  schedule. ELS protocols are Canon `protocol/1` documents.
+- A **composition** says, for one organization, who does the work, when a case opens and with which
+  tools: agents, triggers, policy, runtime bindings and projections. It never decides what counts as
+  done. A composition is its own document family, `composition/1` (decision record 0087).
+
+The split is what lets the same protocol run in another organization, with other people, other
+agents and other tools.
+
+<StatusStrip items={[
+  {label: 'Protocols as Canon protocol/1 data', status: 'shipped', detail: 'Canon validates, compiles and evaluates them; incident.response/1 is the first ELS protocol.', href: '/docs/protocols'},
+  {label: 'Two layers: protocol and composition', status: 'decided', detail: 'Decision record 0087.'},
+  {label: 'composition/1 as its own document family', status: 'decided', detail: 'Read by Commission, the intent router and the projector; none of them owns it. No format exists yet: its ESS domain comes first.'},
+  {label: 'Triggers in the composition', status: 'planned', detail: 'Open: they may move to the intent router\'s own configuration.'},
+  {label: 'Composition validation and protocol pinning', status: 'planned', detail: 'Open: a composition may only reference capabilities its pinned protocols declare.'},
+]} />
+
+## A protocol
+
+`incident.response/1` ships with ELS. An excerpt: two claims, an urgent obligation, and the action
+that leaves emergency mode once the service is healthy and the impact bounded, whatever is known of
+the cause.
+
+```yaml title="protocols/incident-response/1.yaml (excerpt)"
+claims:
+  service.healthy:
+    true_when:
+      evidence: {kind: operational_observation, result: healthy}
+  cause.identified:
+    true_when:
+      evidence: {kind: cause_analysis, result: identified}
+
+obligations:
+  restore_service:
+    description: urgent; bring the affected service back to health
+    discharged_when: {claim: service.healthy, is: true}
+
+actions:
+  release.rollback:
+    effect: write
+    requires:
+      - capability: release.rollback
+  emergency.leave:
+    precondition:
+      all:
+        - {claim: service.healthy, is: true}
+        - {claim: impact.bounded, is: true}
+```
+
+Nothing in it says who rolls back, which deployment tool does it, or who approves. The protocol only
+says that `release.rollback` needs the capability `release.rollback`.
+
+<ProtocolGraph data={incident} />
+
+## A composition
+
+There is no `composition/1` format yet. The sketch below is illustrative: it shows the five sections
+decision record 0087 names, for an organization running `incident.response/1`.
+
+```yaml title="composition sketch (illustrative, no format yet)"
+format: composition/1
+id: example-operations
+protocols:                      # pinned protocol sources
+  - els/incident.response@1
+triggers:                       # what opens a case
+  - on: {event: alert.fired, where: {severity: page}}
+    open: {protocol: incident.response, subject: {service: $event.service}}
+agents:                         # who takes which cases
+  responder:
+    executor: harness
+    model: example-model
+    takes: [incident.response]
+policy:                         # capability → who, and how
+  release.rollback: {require_approval: [human:operator]}
+  traffic.shift:    {require_approval: [human:operator]}
+  metrics.read:     {allow: [agent:responder]}
+bindings:                       # capability → data contract → connection
+  metrics.read: {contract: series/v1alpha1, connection: metrics-prod}
+  logs.read:    {contract: logs/v1alpha1,   connection: logs-prod}
+projections:                    # where case state is mirrored
+  - from: incident.response
+    to: {connection: chat, channel: incidents}
+```
+
+| Section | Answers | Read by |
+|---|---|---|
+| `triggers` | A schedule or an event opens a case of protocol X | the intent router |
+| `agents` | Executor, model, budget, and which protocols each takes | Commission |
+| `policy` | For each capability: allow, require approval or deny, per principal, plus limits | Commission |
+| `bindings` | Which connection implements a capability ([Capabilities and bindings](./capabilities-and-bindings.mdx)) | Commission |
+| `projections` | Where case state is mirrored, such as a tracker or a chat channel | the projector |
+
+A rule that today lives in prose, such as "only the operator decides" or "never force-push", lands
+in exactly one place: a protocol claim or outcome when it is about what counts, or a composition
+policy line when it is about who may act.

@@ -7,7 +7,7 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{Context, Result, anyhow, bail, ensure};
-use b10x_canon::ir::compile;
+use b10x_canon::ir::{Ir, compile};
 use b10x_canon::model::{one_line, parse};
 use b10x_els::vocabulary::{Category, Marking, Vocabulary};
 
@@ -21,11 +21,19 @@ pub const SITE: &str = "website";
 
 /// The generated graph documents, relative to the site. Every file here is generated.
 const GRAPHS: &str = "data/protocol-graphs";
+/// The example protocols, relative to the repository root: previews the site renders as graphs in
+/// its concept pages. They are not shipped protocols.
+pub const EXAMPLES: &str = "website/examples/protocols";
+
+/// The generated example graph documents, relative to the site. Every file here is generated.
+const EXAMPLE_GRAPHS: &str = "data/example-graphs";
 
 /// What generation reads from the repository.
 pub struct Inputs {
     pub vocabulary: String,
     pub protocols: Vec<Source>,
+    /// Preview protocols under [`EXAMPLES`]; each yields a graph document and nothing else.
+    pub examples: Vec<Source>,
 }
 
 fn is_name(name: &str) -> bool {
@@ -35,58 +43,72 @@ fn is_name(name: &str) -> bool {
             .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
 }
 
-impl Inputs {
-    /// Reads `protocols/vocabulary.yaml` and every `protocols/<name>/<major>.yaml` under `root`.
-    pub fn read(root: &Path) -> Result<Self> {
-        let dir = root.join("protocols");
-        let vocabulary = fs::read_to_string(dir.join("vocabulary.yaml"))
-            .with_context(|| format!("reading {}", dir.join("vocabulary.yaml").display()))?;
-        let mut protocols = Vec::new();
-        for entry in fs::read_dir(&dir).with_context(|| format!("reading {}", dir.display()))? {
-            let entry = entry?;
-            if !entry.file_type()?.is_dir() {
-                continue;
-            }
-            let name = entry
+/// Every `<relative>/<name>/<major>.yaml` under `root`, sorted by name and major.
+fn sources(root: &Path, relative: &str) -> Result<Vec<Source>> {
+    let dir = root.join(relative);
+    let mut found = Vec::new();
+    for entry in fs::read_dir(&dir).with_context(|| format!("reading {}", dir.display()))? {
+        let entry = entry?;
+        if !entry.file_type()?.is_dir() {
+            continue;
+        }
+        let name = entry
+            .file_name()
+            .into_string()
+            .map_err(|name| anyhow!("protocol directory {name:?} is not UTF-8"))?;
+        ensure!(
+            is_name(&name),
+            "protocol directory `{}` must be lowercase letters, digits and hyphens",
+            one_line(&name)
+        );
+        for file in fs::read_dir(entry.path())? {
+            let file = file?;
+            let file_name = file
                 .file_name()
                 .into_string()
-                .map_err(|name| anyhow!("protocol directory {name:?} is not UTF-8"))?;
-            ensure!(
-                is_name(&name),
-                "protocol directory `{}` must be lowercase letters, digits and hyphens",
-                one_line(&name)
-            );
-            for file in fs::read_dir(entry.path())? {
-                let file = file?;
-                let file_name = file
-                    .file_name()
-                    .into_string()
-                    .map_err(|name| anyhow!("protocol file {name:?} is not UTF-8"))?;
-                let Some(stem) = file_name.strip_suffix(".yaml") else {
-                    continue;
-                };
-                let path = format!("protocols/{name}/{file_name}");
-                let major = stem
-                    .parse::<u64>()
-                    .ok()
-                    .filter(|major| *major > 0 && major.to_string() == stem)
-                    .with_context(|| {
-                        format!("{}: a protocol file is named <major>.yaml", one_line(&path))
-                    })?;
-                let text =
-                    fs::read_to_string(file.path()).with_context(|| format!("reading {path}"))?;
-                protocols.push(Source {
-                    name: name.clone(),
-                    major,
-                    path,
-                    text,
-                });
-            }
+                .map_err(|name| anyhow!("protocol file {name:?} is not UTF-8"))?;
+            let Some(stem) = file_name.strip_suffix(".yaml") else {
+                continue;
+            };
+            let path = format!("{relative}/{name}/{file_name}");
+            let major = stem
+                .parse::<u64>()
+                .ok()
+                .filter(|major| *major > 0 && major.to_string() == stem)
+                .with_context(|| {
+                    format!("{}: a protocol file is named <major>.yaml", one_line(&path))
+                })?;
+            let text =
+                fs::read_to_string(file.path()).with_context(|| format!("reading {path}"))?;
+            found.push(Source {
+                name: name.clone(),
+                major,
+                path,
+                text,
+            });
         }
-        protocols.sort_by(|a, b| (&a.name, a.major).cmp(&(&b.name, b.major)));
+    }
+    found.sort_by(|a, b| (&a.name, a.major).cmp(&(&b.name, b.major)));
+    Ok(found)
+}
+
+impl Inputs {
+    /// Reads `protocols/vocabulary.yaml`, every `protocols/<name>/<major>.yaml` and, when the
+    /// directory exists, every example under [`EXAMPLES`].
+    pub fn read(root: &Path) -> Result<Self> {
+        let vocabulary_path = root.join("protocols/vocabulary.yaml");
+        let vocabulary = fs::read_to_string(&vocabulary_path)
+            .with_context(|| format!("reading {}", vocabulary_path.display()))?;
+        let protocols = sources(root, "protocols")?;
+        let examples = if root.join(EXAMPLES).is_dir() {
+            sources(root, EXAMPLES)?
+        } else {
+            Vec::new()
+        };
         Ok(Self {
             vocabulary,
             protocols,
+            examples,
         })
     }
 }
@@ -179,6 +201,15 @@ fn index_page(shipped: &[Shipped]) -> String {
     out
 }
 
+/// Parses and compiles one protocol document with Canon; any problem names the document.
+fn compiled(source: &Source) -> Result<Ir> {
+    let document = parse(&source.text).map_err(|error| anyhow!("{}: {error}", source.path))?;
+    compile(&document).map_err(|problems| {
+        let problems: Vec<String> = problems.iter().map(ToString::to_string).collect();
+        anyhow!("{}: {}", source.path, problems.join("; "))
+    })
+}
+
 /// Every generated file, by path below `website/`.
 pub fn render(inputs: &Inputs) -> Result<BTreeMap<String, String>> {
     let vocabulary = Vocabulary::from_yaml(&inputs.vocabulary)
@@ -186,11 +217,7 @@ pub fn render(inputs: &Inputs) -> Result<BTreeMap<String, String>> {
     let mut files = BTreeMap::new();
     let mut shipped = Vec::new();
     for source in &inputs.protocols {
-        let document = parse(&source.text).map_err(|error| anyhow!("{}: {error}", source.path))?;
-        let ir = compile(&document).map_err(|problems| {
-            let problems: Vec<String> = problems.iter().map(ToString::to_string).collect();
-            anyhow!("{}: {}", source.path, problems.join("; "))
-        })?;
+        let ir = compiled(source)?;
         files.insert(
             format!("docs/{}", source.file()),
             protocol::page(&ir, source),
@@ -231,13 +258,22 @@ pub fn render(inputs: &Inputs) -> Result<BTreeMap<String, String>> {
         "docs/vocabulary.md".to_owned(),
         vocabulary_page(&vocabulary),
     );
+    for example in &inputs.examples {
+        let graph = graph::document(&compiled(example)?, &example.path);
+        files.insert(
+            format!("{EXAMPLE_GRAPHS}/{}-{}.json", example.name, example.major),
+            serde_json::to_string_pretty(&graph)? + "\n",
+        );
+    }
     Ok(files)
 }
 
 /// Whether a file at `path` (relative to the site) is one this generator writes: every file under
-/// the graph directory, and any other file headed with [`HEADER`].
+/// the two graph directories, and any other file headed with [`HEADER`].
 fn is_generated(path: &str, content: &str) -> bool {
-    path.starts_with(&format!("{GRAPHS}/")) || content.lines().take(2).any(|line| line == HEADER)
+    path.starts_with(&format!("{GRAPHS}/"))
+        || path.starts_with(&format!("{EXAMPLE_GRAPHS}/"))
+        || content.lines().take(2).any(|line| line == HEADER)
 }
 
 /// Writes `files` into the site and removes generated files that are no longer produced; with
@@ -258,7 +294,7 @@ pub fn apply(site: &Path, files: &BTreeMap<String, String>, check: bool) -> Resu
             fs::write(&target, content).with_context(|| format!("writing {}", target.display()))?;
         }
     }
-    let roots = ["docs/protocols", GRAPHS];
+    let roots = ["docs/protocols", GRAPHS, EXAMPLE_GRAPHS];
     let mut pending: Vec<String> = roots.iter().map(|root| (*root).to_owned()).collect();
     while let Some(dir) = pending.pop() {
         let Ok(entries) = fs::read_dir(site.join(&dir)) else {
@@ -315,6 +351,7 @@ mod tests {
         render(&Inputs {
             vocabulary: VOCABULARY.to_owned(),
             protocols,
+            examples: Vec::new(),
         })
     }
 
@@ -408,6 +445,42 @@ mod tests {
                 .iter()
                 .all(|(path, content)| is_generated(path, content))
         );
+    }
+
+    #[test]
+    fn an_example_yields_only_a_graph_document_and_drift_in_it_is_caught() {
+        let mut example = source("investigation", INVESTIGATION);
+        example.path = format!("{EXAMPLES}/investigation/1.yaml");
+        let files = render(&Inputs {
+            vocabulary: VOCABULARY.to_owned(),
+            protocols: Vec::new(),
+            examples: vec![example],
+        })
+        .expect("renders");
+        let graph: Value =
+            serde_json::from_str(&files["data/example-graphs/investigation-1.json"]).expect("json");
+        assert_eq!(
+            graph["protocol"]["source"],
+            "website/examples/protocols/investigation/1.yaml"
+        );
+        assert!(
+            !files
+                .keys()
+                .any(|path| path.starts_with("docs/protocols/investigation"))
+        );
+        assert!(files["docs/protocols/index.md"].contains("**No protocol is shipped yet.**"));
+
+        let site = scratch("examples");
+        apply(&site, &files, false).expect("writes");
+        let without = with(Vec::new()).expect("renders");
+        let error = apply(&site, &without, true).expect_err("stale").to_string();
+        assert!(
+            error.contains(
+                "data/example-graphs/investigation-1.json is generated but no longer produced"
+            ),
+            "{error}"
+        );
+        let _ = fs::remove_dir_all(&site);
     }
 
     #[test]
