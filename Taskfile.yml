@@ -8,13 +8,26 @@ tasks:
     cmds: [{task: check}]
 
   check:
-    desc: Format, lint, test.
+    desc: Format, lint, test, and check the generated documentation for drift.
     cmds:
       - cargo fmt --all --check
       - cargo clippy --workspace --all-targets --locked -- -D warnings
       - cargo test --workspace --locked
+      - cargo run --locked -p els-docs -- generate --check
 
   plan:
     desc: Validate the AEP planning store.
     cmds:
       - aep plan artifact validate
+
+  docs:
+    desc: Regenerate the derived documentation pages in website/docs from protocols/.
+    cmds:
+      - cargo run --locked -p els-docs -- generate
+
+  site-build:
+    desc: Build the Docusaurus documentation site into website/build.
+    cmds:
+      - cargo run --locked -p els-docs -- generate --check
+      - npm --prefix website ci
+      - npm --prefix website run build
