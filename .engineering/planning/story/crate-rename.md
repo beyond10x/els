@@ -2,11 +2,36 @@
 format: aep.planning-md/3
 id: story:crate-rename
 kind: story
-status: draft
+status: active
 title: The crate is b10x-canon-engineering and the project text says engineering protocols
 relations:
 - decomposes: epic:engineering-protocols-rename
-revision: 1
+- serves: vision:O2
+scope:
+- confidence: inferred
+  path: .github/workflows/pages.yml
+- confidence: inferred
+  path: AGENTS.md
+- confidence: inferred
+  path: Cargo.lock
+- confidence: inferred
+  path: Cargo.toml
+- confidence: inferred
+  path: README.md
+- confidence: inferred
+  path: Taskfile.yml
+- confidence: inferred
+  path: crates/els
+- confidence: inferred
+  path: crates/els-docs
+- confidence: inferred
+  path: docs
+- confidence: inferred
+  path: website/docs
+revision: 13
+transitions:
+- {from: "draft", to: "proposed", at: "2026-10-04T23:13:07Z", actor: "human:timo", revision: 2}
+- {from: "proposed", to: "active", at: "2026-10-04T23:13:07Z", actor: "human:timo", revision: 3}
 ---
 ## Outcome
 
