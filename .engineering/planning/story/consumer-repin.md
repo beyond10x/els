@@ -8,21 +8,29 @@ relations:
 - decomposes: epic:engineering-protocols-rename
 - depends_on: story:crate-rename
 - depends_on: story:repository-rename
-revision: 1
+revision: 2
 ---
 ## Outcome
 
-Governor and intake depend on `b10x-canon-engineering` from `beyond10x/engineering-protocols` by
+Every consumer depends on `b10x-canon-engineering` from `beyond10x/engineering-protocols` by
 release tag, and nothing in the chain resolves `b10x-els`.
+
+## Consumers
+
+Today (els `ac7dd03`): `governor/crates/governor/Cargo.toml:16`,
+`intake/crates/intake-router/Cargo.toml:14`, `intake/crates/intake-slice/Cargo.toml:15`.
+
+Atlas ADR 0090 (operator, 2026-10-05) moves governor and intake into `beyond10x/loom`
+(loom `epic:runtime-consolidation`). This story repins wherever those crates live when it runs:
+Loom once loom `story:import-intake` has landed, otherwise governor and intake.
 
 ## Acceptance
 
-- `governor/crates/governor/Cargo.toml`, `intake/crates/intake-router/Cargo.toml` and
-  `intake/crates/intake-slice/Cargo.toml` name `b10x-canon-engineering` from
+- Each consumer crate names `b10x-canon-engineering` from
   `https://github.com/beyond10x/engineering-protocols` by the tag `story:crate-rename` released.
-- `cargo tree --locked -i b10x-els` fails with "package ID specification … did not match" in
-  governor and intake; `cargo tree -i b10x-canon-engineering` shows exactly one copy.
-- `task check` exits 0 in both repositories, and intake's offline slice test still ends
+- `cargo tree --locked -i b10x-els` fails with "did not match" in every consuming workspace;
+  `cargo tree -i b10x-canon-engineering` shows exactly one copy.
+- `task check` exits 0 in every consuming repository, and intake's offline slice test still ends
   `ApprovalRequired (repository.merge)`.
 
 ## Depends on
@@ -31,5 +39,4 @@ release tag, and nothing in the chain resolves `b10x-els`.
 
 ## Scope (inferred)
 
-governor: `crates/governor/Cargo.toml`, `src` imports of `els::`, `Cargo.lock`. intake:
-`crates/intake-router`, `crates/intake-slice`, `Cargo.lock`.
+The consuming crates' `Cargo.toml`, their `els::` imports, `Cargo.lock`.
