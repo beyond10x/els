@@ -80,8 +80,9 @@
 //! as a number or a boolean is refused with Canon's `malformed-input` refusal. Each state's case
 //! snapshot is the fixture's `case` with the revisions set so far, read by Canon again. The
 //! authority decisions so far are passed to Canon as one `canon-authority/1` list, the input
-//! `canon evaluate --authority` reads, and Canon reads and refuses them; a fixture in which no
-//! state so far gives `add_authority` passes none. Decisions only accumulate: a later state that
+//! `canon evaluate --authority` reads, and Canon reads and refuses them (an entry that cannot be
+//! written as YAML at all is refused at load, naming its state and position); a fixture in which
+//! no state so far gives `add_authority` passes none. Decisions only accumulate: a later state that
 //! decides a capability an earlier state already decided (a denial after a grant, say) makes the
 //! list decide it twice, which Canon refuses as `duplicate-identifier` for that state and every
 //! later one, so a fixture cannot revoke a grant.
@@ -507,13 +508,31 @@ impl Fixture {
                 })?;
             }
             if let Some(decisions) = &state.add_authority {
+                for (index, decision) in decisions.iter().enumerate() {
+                    if let Err(error) = serde_yaml_ng::to_string(decision) {
+                        return refuse(format!(
+                            "state `{}`: authority decision {} cannot be written as \
+                             canon-authority/1: {error}",
+                            state.id,
+                            index + 1
+                        ));
+                    }
+                }
                 authority
                     .get_or_insert_with(Vec::new)
                     .extend(decisions.iter().cloned());
             }
-            let authority_text = authority.as_ref().map(|decisions| {
-                serde_yaml_ng::to_string(decisions).expect("YAML values serialize")
-            });
+            let authority_text = match authority.as_ref().map(serde_yaml_ng::to_string) {
+                None => None,
+                Some(Ok(text)) => Some(text),
+                Some(Err(error)) => {
+                    return refuse(format!(
+                        "state `{}`: the authority decisions so far cannot be written as \
+                         canon-authority/1: {error}",
+                        state.id
+                    ));
+                }
+            };
             let mut add_evidence = Vec::with_capacity(state.add_evidence.len());
             for (index, observation) in state.add_evidence.iter().enumerate() {
                 let mut record =

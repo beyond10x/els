@@ -179,10 +179,11 @@ fn evidence(id: &str, kind: &str, result: &str, revision: &str) -> EvidenceRecor
     eval::evidence_from_value(&value).unwrap_or_else(|refusal| panic!("{refusal}"))
 }
 
+/// Independent review F1: the protocol declares only the service, so the case lists only it.
 fn case(service: &str) -> Value {
     serde_yaml_ng::from_str(&format!(
         "{{format: canon-case/1, id: INC-492, protocol: incident.response, artifacts: \
-         {{service: {{revision: {service}}}, release: {{revision: r42}}}}}}"
+         {{service: {{revision: {service}}}}}}}"
     ))
     .unwrap()
 }

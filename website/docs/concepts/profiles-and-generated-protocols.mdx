@@ -1,0 +1,98 @@
+---
+title: Profiles and generated protocols
+sidebar_position: 4
+description: Specialising a protocol for a kind of work, and producing new protocols under governance.
+---
+
+import softwareChange from '@site/data/example-graphs/software-change-1.json';
+
+One protocol does not fit every change. A bug fix should prove red before green; a refactor should
+not have to. Some requests fit no library protocol at all. ELS answers both with the same rule:
+specialise only by composing vetted parts, never by relaxing what an organization requires.
+
+<StatusStrip items={[
+  {label: 'Profiles of software.change/1 (bugfix, refactor)', status: 'decided', detail: 'Decision record 0084. Canon has no profile construct yet; the bugfix preview is written as its own protocol.'},
+  {label: 'Generated protocols compose vetted parts only', status: 'decided', detail: 'Decision record 0086: no invented evidence kinds, claims or capabilities.'},
+  {label: 'Organization floor', status: 'decided', detail: 'The floor construct is not built.'},
+  {label: 'canon diff: no relaxation against the floor', status: 'decided', detail: 'The command exists in Canon and reports that it is not built yet.'},
+  {label: 'canon check: reachability, authority, bounded state space', status: 'planned', detail: 'Planned in Canon; not built.'},
+  {label: 'imports of library parts', status: 'planned', detail: 'Canon\'s design says likely yes; no story yet.'},
+  {label: 'Adoption as a case, protocol.adopt/1', status: 'decided', detail: 'Whether it lives in ELS or Canon is open.'},
+]} />
+
+## Profiles
+
+A profile is a named specialisation of a protocol for one kind of work. The `bugfix` profile of
+`software.change/1` adds the red-first rule ([Step order](./step-order.mdx)); the `refactor` profile
+omits it. Below is a preview of `software.change/1` itself, the protocol the profiles specialise. It
+is an example on this site; the shipped protocols are listed under [Protocols](../protocols/index.md).
+
+<ProtocolGraph data={softwareChange} />
+
+## Generated protocols
+
+When a request fits no library protocol, a generator may write one, under four constraints:
+
+<Flow steps={[
+  {label: 'Compose', title: 'imports only', description: 'Vetted library protocols and fragments, tightened, never extended with new names.'},
+  {label: 'Floor', title: 'canon diff', description: 'Against the organization\'s floor: tightening and expansion pass; relaxation and breaking changes are refused.'},
+  {label: 'Check', title: 'canon check', description: 'Every outcome reachable, no authority bypass, the state space within its bound.'},
+  {label: 'Adopt', title: 'protocol.adopt/1', description: 'Adoption is its own case and needs the capability protocol.adopt.'},
+]} />
+
+A request such as "upgrade the database driver in a service; the schema migration must be
+reversible and the public API must not change" fits no single library protocol. The generator
+combines `software.change/1` with a reversible-migration fragment and a contract-frozen fragment, and
+tightens two claims:
+
+```yaml title="proposed syntax: imports and floor are not in Canon protocol/1"
+protocol:
+  id: generated.example-service.driver-upgrade
+  revision: 1
+imports:
+  - software.change/1
+  - fragment.reversible-migration/1
+  - fragment.contract-frozen/1
+floor: floor.code-change/1          # what this protocol must not relax
+claims:
+  implementation.verified:          # tightened: two more conditions
+    true_when:
+      all:
+        - claim: tests.pass
+        - claim: implementation.reviewed
+        - claim: coverage.not_degraded
+        - claim: migration.rehearsed
+        - claim: contract.unchanged
+  release.proven:                   # tightened: rollback proven before release
+    true_when:
+      all:
+        - claim: implementation.verified
+        - claim: rollback.verified
+        - evidence: {kind: build_provenance, result: reproducible}
+```
+
+The diff against the floor shows only tightening and expansion, so it passes. A generation that
+drops `implementation.reviewed` to make the request easier is refused:
+
+```text title="illustrative output: canon diff is not built yet"
+$ canon diff --from floor.code-change/1 --to generated.example-service.driver-upgrade/2
+RELAXATION   claim implementation.verified   − implementation.reviewed
+→ refused: a generated protocol may not relax its floor
+```
+
+## Adoption is a case
+
+Adopting a generated protocol runs under its own protocol, so the decision is evidence, not a chat
+message:
+
+```text
+protocol.adopt/1  (subject: the generated protocol, at one revision)
+  evidence  diff_report    from canon diff     result: within_floor
+  evidence  check_report   from canon check    result: passed
+  action    protocol.approve   requires capability protocol.adopt
+  outcome   adopted        requires within_floor + passed + approved
+```
+
+Who holds `protocol.adopt` is composition policy: a human by default, or an allow rule for
+generations built only from trusted fragments. The adopting case pins the generated revision. When
+the same shape is generated repeatedly, it becomes a candidate for the library as a profile.

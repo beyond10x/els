@@ -1,0 +1,77 @@
+---
+title: Step order
+sidebar_position: 3
+description: Order between steps comes from preconditions now, and from evidence order and revision order later.
+---
+
+import bugfix from '@site/data/example-graphs/software-change-bugfix-1.json';
+
+A protocol has no workflow states. Order between steps comes from what each action and outcome
+needs. A bug fix should show red before the fix and green after it; decision record 0084 settles how
+protocols say so, in three steps.
+
+<StatusStrip items={[
+  {label: 'Ordering by action precondition', status: 'shipped', detail: 'Canon evaluation reports an action blocked while its precondition is not TRUE.'},
+  {label: 'Evidence bound to the current revision', status: 'shipped', detail: 'Canon excludes evidence recorded for another revision of its subject.'},
+  {label: 'Evidence-order predicate', status: 'decided', detail: 'One kind\'s first record before another\'s, or the first result of a kind. Syntax open; not in Canon yet.'},
+  {label: 'Revision-order relation', status: 'decided', detail: 'Red on R1, green on R2 descended from R1, same test. Later; needs a revision-relation construct.'},
+  {label: 'Path scope on capabilities', status: 'decided', detail: 'Tells test edits from code edits. The scope field of decision record 0083; not in Canon yet.'},
+]} />
+
+## Now: preconditions
+
+With today's `protocol/1`, editing the repository splits into two actions. Writing tests is always
+admissible; changing the implementation needs the claim `regression.reproduced`, which a failing
+test result establishes. An agent asking for `implementation.edit` before red exists gets "blocked",
+with the claim that blocks it as the reason.
+
+```yaml
+actions:
+  tests.write:
+    requires: [{capability: tests.write}]               # always admissible
+  implementation.edit:
+    precondition: {claim: regression.reproduced}         # blocked until a failing test exists
+    requires: [{capability: implementation.write}]
+  repository.merge:
+    precondition: {claim: implementation.verified}
+    requires: [{capability: repository.merge}]
+claims:
+  regression.reproduced:
+    true_when: {evidence: {kind: test_result, result: failed}}
+  tests.pass:
+    true_when: {evidence: {kind: test_result, result: passed}}
+  implementation.verified:
+    true_when:
+      all:
+        - claim: regression.reproduced
+        - claim: tests.pass
+        - claim: implementation.reviewed
+```
+
+The graph is of a preview bugfix protocol, written as its own protocol because Canon has no profiles
+yet. It is an example on this site, not a shipped ELS protocol. Hover `implementation.edit` to see
+the precondition that gates it.
+
+<ProtocolGraph data={bugfix} />
+
+## What preconditions cannot say
+
+The protocol above admits a history it should not. `implementation.verified` asks for a failed and a
+passed test result, but not that the failure came first, and not that the failing test is a test of
+the change. A suite that passed and then failed on an unrelated flake can satisfy both claims.
+
+| Gap | Closed by | Status |
+|---|---|---|
+| The failing result must come before the fix | an evidence-order predicate: the first `test_result` is `failed`, and it precedes the first implementation diff | decided, not built |
+| Red and green must be about the same test, across the fix | revision order: red on revision R1 (test added, fix absent), green on R2 descended from R1, same test id | decided, later |
+| A test edit must not touch the implementation | a path scope on the `tests.write` and `implementation.write` capabilities | decided, not built |
+| The red result must come from the test runner, not the agent | evidence independence, declared on the evidence kind or the requirement | decided, syntax open |
+
+Until those land, the order is enforced at the moment an action is invoked (the agent cannot edit the
+implementation before red exists), and the rest is reviewed.
+
+## Profiles
+
+The red-first rule belongs to bug fixes, not to every change. It becomes the `bugfix` profile of
+`software.change/1`, and a `refactor` profile omits it. See
+[Profiles and generated protocols](./profiles-and-generated-protocols.mdx).

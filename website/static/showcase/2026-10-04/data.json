@@ -1,0 +1,122 @@
+{
+  "format": "session-composition-instance/0-dummy",
+  "composition": "beyond10x-engineering@1 (process-spec-dummy)",
+  "window": {"start": "2026-10-04T00:56:45Z", "end": "2026-10-04T04:30:00Z"},
+  "sources": [
+    "the agent host's session record: user, tool-call and peer-message timestamps",
+    "gh pr view: createdAt / mergedAt",
+    "peer times are arrival times in this session, not the peer's working time"
+  ],
+  "protocols": [
+    {"id": "design.decision", "slot": 1, "label": "design.decision/1"},
+    {"id": "software.change", "slot": 2, "label": "software.change/1"},
+    {"id": "ci.repair", "slot": 3, "label": "ci.repair/1"},
+    {"id": "release.source", "slot": 4, "label": "release.source/1 (site publish)"}
+  ],
+  "lanes": [
+    {"id": "operator", "label": "Operator", "principal": "human:operator"},
+    {"id": "design", "label": "Design session", "principal": "agent:designer"},
+    {"id": "orchestrator", "label": "Orchestrator (orchestrator session)", "principal": "agent:orchestrator"},
+    {"id": "sub-maint", "label": "Sub-agent · maintenance", "principal": "agent:implementor"},
+    {"id": "sub-canon", "label": "Sub-agent · canon site", "principal": "agent:implementor"},
+    {"id": "sub-commission", "label": "Sub-agent · commission site", "principal": "agent:implementor"},
+    {"id": "sub-loom", "label": "Sub-agent · loom site", "principal": "agent:implementor"},
+    {"id": "sub-els", "label": "Sub-agent · els site", "principal": "agent:implementor"},
+    {"id": "sub-template", "label": "Sub-agent · site template", "principal": "agent:implementor"},
+    {"id": "ci", "label": "Pull requests (CI)", "principal": "agent:orchestrator"}
+  ],
+  "episodes": [
+    {"lane": "design", "protocol": "ci.repair", "start": "01:03:21", "end": "01:16:12", "label": "PR #57/#47 security failure, investigated in the design session"},
+    {"lane": "orchestrator", "protocol": "ci.repair", "start": "01:17:26", "end": "01:38:40", "label": "Policy secrets: refresh, split, restore"},
+    {"lane": "sub-maint", "protocol": "ci.repair", "start": "01:16:29", "end": "01:20:56", "label": "Find PR #57 scan-limit cause"},
+    {"lane": "sub-maint", "protocol": "ci.repair", "start": "01:26:46", "end": "01:39:52", "label": "Re-run and merge atlas#47"},
+    {"lane": "ci", "protocol": "ci.repair", "start": "01:14:30", "end": "01:39:44", "label": "atlas#47 (start approximate)", "approximate": true},
+
+    {"lane": "sub-canon", "protocol": "software.change", "start": "03:06:46", "end": "03:16:44", "label": "Canon site, static builder", "discarded": true},
+    {"lane": "sub-commission", "protocol": "software.change", "start": "03:06:54", "end": "03:12:14", "label": "Commission site, static builder", "discarded": true},
+    {"lane": "sub-loom", "protocol": "software.change", "start": "03:07:02", "end": "03:11:08", "label": "Loom site, static builder", "discarded": true},
+    {"lane": "sub-els", "protocol": "software.change", "start": "03:07:15", "end": "03:18:00", "label": "ELS site, static builder (end approximate)", "discarded": true, "approximate": true},
+    {"lane": "sub-canon", "protocol": "software.change", "start": "03:42:56", "end": "04:11:43", "label": "Canon site, Docusaurus + ship (blocked by red main)"},
+    {"lane": "sub-canon", "protocol": "release.source", "start": "04:14:24", "end": "04:18:02", "label": "Canon site merged and published"},
+    {"lane": "sub-commission", "protocol": "software.change", "start": "03:43:03", "end": "03:50:20", "label": "Commission site, Docusaurus"},
+    {"lane": "sub-commission", "protocol": "software.change", "start": "03:55:14", "end": "03:59:29", "label": "Commission site, rebase + gates; stopped: relayed approval"},
+    {"lane": "sub-loom", "protocol": "software.change", "start": "03:43:09", "end": "03:49:16", "label": "Loom site, Docusaurus"},
+    {"lane": "sub-loom", "protocol": "release.source", "start": "03:55:20", "end": "04:08:16", "label": "Loom site shipped and published"},
+    {"lane": "sub-els", "protocol": "software.change", "start": "03:43:17", "end": "03:52:32", "label": "ELS site, Docusaurus"},
+    {"lane": "sub-els", "protocol": "release.source", "start": "03:55:06", "end": "04:01:53", "label": "ELS site shipped and published"},
+    {"lane": "sub-template", "protocol": "software.change", "start": "04:15:56", "end": "04:30:00", "label": "Product site template (still running)", "open": true},
+
+    {"lane": "ci", "protocol": "design.decision", "start": "02:14:01", "end": "02:24:24", "label": "atlas#59 · ADRs 0077–0080"},
+    {"lane": "ci", "protocol": "design.decision", "start": "02:54:49", "end": "03:14:50", "label": "atlas#61 · ADRs 0081–0083"},
+    {"lane": "ci", "protocol": "design.decision", "start": "03:43:08", "end": "03:55:17", "label": "atlas#62 · ADRs 0084–0085"},
+    {"lane": "ci", "protocol": "design.decision", "start": "04:06:33", "end": "04:18:45", "label": "atlas#63 · ADR 0086"},
+    {"lane": "ci", "protocol": "software.change", "start": "02:55:22", "end": "03:05:21", "label": "loom#1 · effect invocation moved"},
+    {"lane": "ci", "protocol": "software.change", "start": "02:55:24", "end": "03:05:24", "label": "commission#1 · effect invocation story"},
+    {"lane": "ci", "protocol": "release.source", "start": "03:56:59", "end": "03:58:30", "label": "loom#2 · docs site"},
+    {"lane": "ci", "protocol": "release.source", "start": "03:58:08", "end": "03:59:46", "label": "els#1 · docs site"},
+    {"lane": "ci", "protocol": "release.source", "start": "04:08:08", "end": "04:16:13", "label": "canon#1 · docs site"},
+    {"lane": "orchestrator", "protocol": "ci.repair", "start": "04:11:50", "end": "04:14:20", "label": "canon main red: CARGO_TERM_COLOR fix"}
+  ],
+  "decisions": [
+    {"n": 1,  "title": "Canon replaces the AEP engine", "adr": "0077", "question": "01:16:37", "decided": "01:20:24", "relayed": "01:20:41", "drafted": "01:21:17"},
+    {"n": 2,  "title": "Trace checker → Metaharness", "adr": "0078", "question": "01:27:26", "decided": "01:36:31", "relayed": "01:36:44", "drafted": "01:37:11"},
+    {"n": 3,  "title": "AEP after the extractions", "adr": "0079", "question": "01:37:16", "decided": "01:54:38", "relayed": "01:55:08", "drafted": "01:55:34"},
+    {"n": 4,  "title": "ELS protocols are YAML data", "adr": "0077 amend", "question": "01:59:03", "decided": "02:00:50", "relayed": "02:01:01", "drafted": "02:01:51"},
+    {"n": 5,  "title": "Intent router (open item)", "adr": "epic", "question": "02:16:19", "decided": "02:24:32", "relayed": "02:24:42", "drafted": "02:25:38"},
+    {"n": 6,  "title": "Cases compose at run time", "adr": "0081", "question": "02:26:32", "decided": "02:28:43", "relayed": "02:28:52", "drafted": "02:29:13"},
+    {"n": 7,  "title": "Commission invokes effects", "adr": "0082", "question": "02:32:35", "decided": "02:38:35", "relayed": "02:38:46", "drafted": "02:44:34"},
+    {"n": 8,  "title": "Capabilities + runtime binding", "adr": "0083", "question": "02:43:31", "decided": "02:50:51", "relayed": "02:51:12", "drafted": "02:51:37"},
+    {"n": 9,  "title": "Protocol analysis epic", "adr": "epic", "question": "03:05:32", "decided": "03:08:07", "relayed": "03:08:16", "drafted": "03:08:34"},
+    {"n": 10, "title": "Step order (red → green)", "adr": "0084", "question": "03:24:46", "decided": "03:28:18", "relayed": "03:28:32", "drafted": "03:29:07"},
+    {"n": 11, "title": "Tracker sync A+C", "adr": "0085", "question": "03:31:22", "decided": "03:40:46", "relayed": "03:40:58", "drafted": "03:41:26"},
+    {"n": 12, "title": "Generated protocols", "adr": "0086", "question": "04:02:07", "decided": "04:03:37", "relayed": "04:04:10", "drafted": "04:04:32"},
+    {"n": 13, "title": "Composition, own family", "adr": "0087", "question": "04:18:05", "decided": "04:23:41", "relayed": "04:23:51", "drafted": "04:26:03"}
+  ],
+  "operator_marks": [
+    {"t": "02:53:03", "kind": "approval", "label": "\"tell it\" → commit 0081–0083"},
+    {"t": "03:42:16", "kind": "approval", "label": "\"all others approved\""},
+    {"t": "03:55:00", "kind": "approval", "label": "\"B\" → ship sites standalone"}
+  ],
+  "graph": {
+    "columns": ["Triggers", "Protocols", "Agents & principals", "Capabilities", "Connections"],
+    "nodes": [
+      {"id": "t.daily", "col": 0, "label": "daily-cycle", "detail": "schedule 17 6 * * 1-5"},
+      {"id": "t.ci", "col": 0, "label": "ci-red", "detail": "event ci.check_failed on main"},
+      {"id": "t.fork", "col": 0, "label": "design-fork", "detail": "chat message, intent decision"},
+      {"id": "t.landed", "col": 0, "label": "decision-landed", "detail": "design.decision → recorded"},
+
+      {"id": "p.cycle", "col": 1, "label": "delivery.cycle/1", "observed": 0, "slot": 0},
+      {"id": "p.decision", "col": 1, "label": "design.decision/1", "observed": 13, "slot": 1},
+      {"id": "p.wave", "col": 1, "label": "delivery.wave/1", "observed": 1, "slot": 0},
+      {"id": "p.change", "col": 1, "label": "software.change/1", "observed": 6, "slot": 2},
+      {"id": "p.repair", "col": 1, "label": "ci.repair/1", "observed": 3, "slot": 3},
+      {"id": "p.release", "col": 1, "label": "release.source/1", "observed": 3, "slot": 4},
+
+      {"id": "a.operator", "col": 2, "label": "human:operator", "detail": "designer; approves"},
+      {"id": "a.orch", "col": 2, "label": "orchestrator", "detail": "loom · opus · hybrid selector"},
+      {"id": "a.impl", "col": 2, "label": "implementor", "detail": "loom · opus"},
+      {"id": "a.adv", "col": 2, "label": "adversary", "detail": "loom · opus · independent of implementor"},
+
+      {"id": "c.decide", "col": 3, "label": "design.decide", "policy": "allow human:operator"},
+      {"id": "c.adrcommit", "col": 3, "label": "adr.commit", "policy": "proposed: allow orchestrator, same case"},
+      {"id": "c.merge", "col": 3, "label": "repository.merge", "policy": "allow orchestrator when verified"},
+      {"id": "c.release", "col": 3, "label": "release.tag", "policy": "allow orchestrator"},
+      {"id": "c.rerun", "col": 3, "label": "ci.rerun", "policy": "allow orchestrator"},
+      {"id": "c.secret", "col": 3, "label": "secret.write", "policy": "require approval: human:operator"},
+      {"id": "c.plan", "col": 3, "label": "plan.write", "policy": "allow orchestrator"},
+      {"id": "c.consult", "col": 3, "label": "operator.consult", "policy": "allow all agents"},
+
+      {"id": "k.github", "col": 4, "label": "github-bot", "detail": "b10x-bot[bot]"},
+      {"id": "k.admin", "col": 4, "label": "github-admin", "detail": "secrets; human only"},
+      {"id": "k.aep", "col": 4, "label": "aep-local", "detail": "planning store"},
+      {"id": "k.chat", "col": 4, "label": "chat", "detail": "operator channel"}
+    ],
+    "edges": [
+      ["t.daily", "p.cycle"], ["t.ci", "p.repair"], ["t.fork", "p.decision"], ["t.landed", "p.cycle"],
+      ["p.cycle", "p.wave"], ["p.wave", "p.change"], ["p.cycle", "p.release"], ["p.decision", "p.change"], ["p.repair", "p.change"],
+      ["p.decision", "a.operator"], ["p.cycle", "a.orch"], ["p.repair", "a.orch"], ["p.change", "a.impl"], ["p.change", "a.adv"], ["p.release", "a.orch"],
+      ["a.operator", "c.decide"], ["a.operator", "c.secret"], ["a.orch", "c.adrcommit"], ["a.orch", "c.merge"], ["a.orch", "c.release"], ["a.orch", "c.rerun"], ["a.orch", "c.plan"], ["a.impl", "c.consult"], ["a.orch", "c.consult"],
+      ["c.decide", "k.chat"], ["c.consult", "k.chat"], ["c.adrcommit", "k.github"], ["c.merge", "k.github"], ["c.release", "k.github"], ["c.rerun", "k.github"], ["c.secret", "k.admin"], ["c.plan", "k.aep"]
+    ]
+  }
+}
