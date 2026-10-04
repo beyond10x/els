@@ -1,13 +1,13 @@
 {
   "format": "b10x-product-landing/1",
   "product": {
-    "name": "ELS",
+    "name": "Engineering protocols",
     "mark": "El",
     "eyebrow": "Engineering protocols · bootstrap",
     "promise": ["Engineering protocols on Canon.", "UNKNOWN is not FALSE."],
-    "lede": "ELS, the Engineering Lifecycle Specification, states what makes engineering work legitimate: which claims must hold, which evidence counts and for which revision, which actions need authority, and which outcomes a case can end in.",
+    "lede": "Engineering protocols state what makes engineering work legitimate: which claims must hold, which evidence counts and for which revision, which actions need authority, and which outcomes a case can end in.",
     "actions": [
-      {"label": "What ELS is", "href": "/docs/", "kind": "primary"},
+      {"label": "What engineering protocols are", "href": "/docs/", "kind": "primary"},
       {"label": "Protocols", "href": "/docs/protocols"},
       {"label": "One night, replayed", "href": "/docs/showcase"}
     ],
@@ -15,7 +15,7 @@
     "art": {
       "kind": "protocol-graph",
       "data": "data/protocol-graphs/incident-response-1.json",
-      "caption": "incident.response/1 as Canon compiled it, drawn from the graph els-docs generates from protocols/incident-response/1.yaml."
+      "caption": "incident.response/1 as Canon compiled it, drawn from the graph canon-engineering-docs generates from protocols/incident-response/1.yaml."
     },
     "kpis": [{"count": "claims", "label": "claims in incident.response/1"}, "evidence", "actions", "obligations", "shipped"]
   },
@@ -24,9 +24,9 @@
       "kind": "features",
       "eyebrow": "What it does",
       "title": "Engineering method, declared as data.",
-      "lede": "ELS owns the engineering vocabulary and the protocols written in it. What a claim, a piece of evidence or an obligation is, and how one is decided, belongs to Canon.",
+      "lede": "This project owns the engineering vocabulary and the protocols written in it. What a claim, a piece of evidence or an obligation is, and how one is decided, belongs to Canon.",
       "items": [
-        {"title": "Protocols are data", "description": "Each protocol is a Canon protocol/1 document at protocols/<name>/<major>.yaml. Canon validates it, compiles it and evaluates it; ELS adds no hidden clock, network or model call."},
+        {"title": "Protocols are data", "description": "Each protocol is a Canon protocol/1 document at protocols/<name>/<major>.yaml. Canon validates it, compiles it and evaluates it; engineering protocols add no hidden clock, network or model call."},
         {"title": "UNKNOWN is not FALSE", "description": "Tests that passed on revision R1 say nothing about R2: tests.pass is UNKNOWN and merge stays blocked until evidence for R2 exists. Missing or stale evidence never makes a claim FALSE."},
         {"title": "Delivery and incidents", "description": "Every rule is pressure-tested against software delivery and incident response. An incident can leave emergency mode while its cause is still UNKNOWN."}
       ]
@@ -37,10 +37,10 @@
       "title": "From a protocol to a page.",
       "lede": "A protocol is written once as data. Canon checks and compiles it, and every page on this site is generated from that compiled form.",
       "steps": [
-        {"label": "Author", "title": "protocol/1", "description": "Artifacts, evidence kinds, claims, obligations, actions and outcomes, named from the ELS vocabulary."},
+        {"label": "Author", "title": "protocol/1", "description": "Artifacts, evidence kinds, claims, obligations, actions and outcomes, named from the engineering vocabulary."},
         {"label": "Compile", "title": "canon-ir/1", "description": "Canon validates every reference and compiles the document to its normalized form."},
         {"label": "Evaluate", "title": "Canon", "description": "Claims for one case and one evidence set, each TRUE, FALSE or UNKNOWN."},
-        {"label": "Render", "title": "els-docs", "description": "One page and one graph per protocol, checked for drift on every change."}
+        {"label": "Render", "title": "canon-engineering-docs", "description": "One page and one graph per protocol, checked for drift on every change."}
       ]
     },
     {

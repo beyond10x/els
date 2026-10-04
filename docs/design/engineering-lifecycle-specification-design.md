@@ -1,5 +1,9 @@
 # Engineering Lifecycle Specification (ELS)
 
+> **Note, 2026-10-05:** this proposal predates the rename. The project is now *engineering
+> protocols*: the crate `b10x-canon-engineering`, the command line `canon-engineering`. The text
+> below keeps the name it was written under, and stories cite it by section.
+
 **Codename:** Canon  
 **Proposed repository:** `beyond10x/els`  
 **Proposed CLI:** `els`  

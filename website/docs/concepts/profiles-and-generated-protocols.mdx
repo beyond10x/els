@@ -3,14 +3,15 @@ title: Profiles and generated protocols
 sidebar_position: 4
 description: Specialising a protocol for a kind of work, and producing new protocols under governance.
 lede: Specialising a protocol for a kind of work, and producing new protocols under governance.
-source: Decision records 0084 and 0086, with each status checked against Canon and ELS code
+source: Decision records 0084 and 0086, with each status checked against Canon and engineering protocols code
 ---
 
 import softwareChange from '@site/data/protocol-graphs/software-change-1.json';
 
 One protocol does not fit every change. A bug fix should prove red before green; a refactor should
-not have to. Some requests fit no library protocol at all. ELS answers both with the same rule:
-specialise only by composing vetted parts, never by relaxing what an organization requires.
+not have to. Some requests fit no library protocol at all. Engineering protocols answer both with
+the same rule: specialise only by composing vetted parts, never by relaxing what an organization
+requires.
 
 <StatusStrip items={[
   {label: 'Profiles of software.change/1 (bugfix, refactor)', status: 'decided', detail: 'Decision record 0084. Canon has no profile construct yet; the bugfix preview is written as its own protocol.'},
@@ -19,7 +20,7 @@ specialise only by composing vetted parts, never by relaxing what an organizatio
   {label: 'canon diff: no relaxation against the floor', status: 'decided', detail: 'The command exists in Canon and reports that it is not built yet.'},
   {label: 'canon check: reachability, authority, bounded state space', status: 'planned', detail: 'Planned in Canon; not built.'},
   {label: 'imports of library parts', status: 'planned', detail: 'Canon\'s design says likely yes; no story yet.'},
-  {label: 'Adoption as a case, protocol.adopt/1', status: 'decided', detail: 'Whether it lives in ELS or Canon is open.'},
+  {label: 'Adoption as a case, protocol.adopt/1', status: 'decided', detail: 'Whether it lives in engineering protocols or Canon is open.'},
 ]} />
 
 ## Profiles

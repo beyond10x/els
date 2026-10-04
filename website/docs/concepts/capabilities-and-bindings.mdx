@@ -3,7 +3,7 @@ title: Capabilities and bindings
 sidebar_position: 5
 description: Protocol actions are tool-agnostic. Capabilities carry authority; bindings reach real systems.
 lede: Protocol actions are tool-agnostic. Capabilities carry authority; bindings reach real systems.
-source: Decision record 0083, with each status checked against Canon and ELS code
+source: Decision record 0083, with each status checked against Canon and engineering protocols code
 ---
 
 An action such as `metrics.inspect` must reach one concrete system (one cluster, one namespace,
@@ -25,7 +25,7 @@ into four layers, each named once.
 
 | Layer | Example | Owner | Changes per deployment? |
 |---|---|---|---|
-| Action (protocol, tool-agnostic) | `metrics.inspect`, `logs.search` | ELS | no |
+| Action (protocol, tool-agnostic) | `metrics.inspect`, `logs.search` | engineering protocols | no |
 | Capability (semantic, scoped) | `metrics.read{cluster: prod-eu, namespace: foo}` | the protocol declares it; the case grants it | no |
 | Data contract | `series/v1alpha1`, `logs/v1alpha1` | Connectors | no |
 | Connection | one metrics store, one log store | the operator, in the Connectors catalog | yes |

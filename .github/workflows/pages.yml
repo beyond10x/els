@@ -32,13 +32,13 @@ jobs:
           toolchain: stable
       - name: Check the generated pages and build the site
         run: |
-          cargo test --locked -p els-docs
-          cargo run --locked -p els-docs -- generate --check
+          cargo test --locked -p canon-engineering-docs
+          cargo run --locked -p canon-engineering-docs -- generate --check
           npm --prefix website ci
           npm --prefix website run build
       - name: Declare what was built
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: cargo run --locked -p els-docs -- site-manifest --site website/build --commit "$GITHUB_SHA"
+        run: cargo run --locked -p canon-engineering-docs -- site-manifest --site website/build --commit "$GITHUB_SHA"
       - name: Upload the exact built site
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
