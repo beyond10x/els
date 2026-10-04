@@ -38,7 +38,7 @@ fn adversary_yaml_reader_refuses_ids_the_vocabulary_cannot_spell() {
             read.map(|v| v
                 .terms()
                 .iter()
-                .map(|t| (t.id.to_owned(), t.claim_id().map(|c| c.0)))
+                .map(|t| (t.id.to_owned(), t.claim_id().map(|c| c.as_str().to_owned())))
                 .collect::<Vec<_>>())
         );
     }

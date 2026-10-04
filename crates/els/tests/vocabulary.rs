@@ -140,11 +140,11 @@ fn vocabulary_spells_ids_by_category_and_maps_to_canon_identifiers() {
             );
         }
         assert_eq!(
-            term.claim_id().map(|c| c.0),
+            term.claim_id().map(|c| c.as_str().to_owned()),
             (term.category == Category::ClaimId).then(|| term.id.to_owned())
         );
         assert_eq!(
-            term.action_id().map(|a| a.0),
+            term.action_id().map(|a| a.as_str().to_owned()),
             (term.category == Category::ActionId).then(|| term.id.to_owned())
         );
         assert!(!term.meaning.is_empty(), "`{}` has no meaning", term.id);

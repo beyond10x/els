@@ -1,0 +1,32 @@
+format: els-fixture/1
+id: smoke
+protocol: fixtures/smoke/protocol.yaml
+at: "2026-10-04T00:00:00Z"
+
+case:
+  format: canon-case/1
+  id: SMOKE-1
+  protocol: smoke
+  artifacts:
+    service: {revision: r1}
+
+states:
+  - id: initial
+    add_evidence: []
+    expect:
+      claims:
+        service.healthy: unknown
+
+  - id: healthy-observed
+    add_evidence:
+      - observed_at: "2026-10-03T23:00:00Z"
+        record:
+          format: canon-evidence/1
+          id: observation-1
+          kind: operational_observation
+          result: healthy
+          subject: service
+          subject_revision: r1
+    expect:
+      claims:
+        service.healthy: true

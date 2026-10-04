@@ -18,7 +18,7 @@ use std::collections::BTreeSet;
 use std::fmt;
 use std::sync::LazyLock;
 
-use b10x_canon::{ActionId, ClaimId};
+use b10x_canon::model::{ActionId, ClaimId};
 use serde::{Deserialize, Deserializer, Serialize};
 
 /// The format a vocabulary document declares.
@@ -110,12 +110,12 @@ pub struct Term<'a> {
 impl Term<'_> {
     /// The Canon claim id this term names, if it is a claim id.
     pub fn claim_id(&self) -> Option<ClaimId> {
-        (self.category == Category::ClaimId).then(|| ClaimId(self.id.to_owned()))
+        (self.category == Category::ClaimId).then(|| ClaimId::new(self.id))
     }
 
     /// The Canon action id this term names, if it is an action id.
     pub fn action_id(&self) -> Option<ActionId> {
-        (self.category == Category::ActionId).then(|| ActionId(self.id.to_owned()))
+        (self.category == Category::ActionId).then(|| ActionId::new(self.id))
     }
 }
 
