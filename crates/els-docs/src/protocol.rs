@@ -6,7 +6,6 @@ use std::fmt::Write as _;
 use b10x_canon::ir::Ir;
 use b10x_canon::model::{Predicate, Truth};
 
-use crate::graph::{self, Column};
 use crate::markdown::{HEADER, code, text, yaml_string};
 
 /// A protocol document found under `protocols/<name>/<major>.yaml`.
@@ -18,9 +17,14 @@ pub struct Source {
 }
 
 impl Source {
-    /// The generated file, relative to `website/docs/`.
+    /// The generated page, relative to `website/docs/`.
     pub fn file(&self) -> String {
-        format!("protocols/{}/{}.md", self.name, self.major)
+        format!("protocols/{}/{}.mdx", self.name, self.major)
+    }
+
+    /// The generated graph document, relative to `website/`.
+    pub fn graph_file(&self) -> String {
+        format!("data/protocol-graphs/{}-{}.json", self.name, self.major)
     }
 
     /// The page's route below the site base.
@@ -95,19 +99,26 @@ fn table(out: &mut String, title: &str, lede: &str, head: &[&str], rows: Vec<Vec
 /// The page for one compiled protocol.
 pub fn page(ir: &Ir, source: &Source) -> String {
     let header = &ir.protocol;
-    let edges = graph::edges(ir);
-    let linked = |from: Column, to: Column, id: &str, forward: bool| -> Vec<String> {
-        edges
+    let producers = |kind: &str| -> Vec<String> {
+        ir.actions
             .iter()
-            .filter(|edge| edge.from.0 == from && edge.to.0 == to)
-            .filter(|edge| {
-                if forward {
-                    edge.from.1 == id
-                } else {
-                    edge.to.1 == id
-                }
+            .filter(|(_, action)| action.may_produce.iter().any(|k| k.as_str() == kind))
+            .map(|(id, _)| code(id.as_str()))
+            .collect()
+    };
+    let readers = |kind: &str| -> Vec<String> {
+        ir.claims
+            .iter()
+            .filter(|(_, claim)| {
+                let mut found = false;
+                claim.true_when.visit(&mut |inner| {
+                    if let Predicate::Evidence(matching) = inner {
+                        found |= matching.kind.as_str() == kind;
+                    }
+                });
+                found
             })
-            .map(|edge| code(if forward { &edge.to.1 } else { &edge.from.1 }))
+            .map(|(id, _)| code(id.as_str()))
             .collect()
     };
     let title = format!("{}/{}", header.id, source.major);
@@ -125,7 +136,8 @@ pub fn page(ir: &Ir, source: &Source) -> String {
     let _ = writeln!(out, "sidebar_label: {}", yaml_string(&title));
     let _ = writeln!(out, "description: {}", yaml_string(&summary));
     let _ = writeln!(out, "slug: {}", source.slug());
-    out.push_str("custom_edit_url: null\n---\n\n");
+    out.push_str("hide_table_of_contents: true\ncustom_edit_url: null\n---\n\n");
+    let _ = writeln!(out, "import graph from '@site/{}';\n", source.graph_file());
 
     if let Some(description) = &header.description {
         let _ = writeln!(out, "{}\n", text(description.trim()));
@@ -141,8 +153,7 @@ pub fn page(ir: &Ir, source: &Source) -> String {
 
     let _ = write!(
         out,
-        "\n## Dependency graph\n\nWhich actions may produce which evidence, which claims that evidence establishes, and which outcomes rest on those claims. A dashed arrow is a claim whose predicate tests another claim. Action preconditions are in the actions table, not drawn.\n\n```mermaid\n{}```\n",
-        graph::mermaid(ir)
+        "\n## Dependency graph\n\nWhich actions may produce which evidence, which claims that evidence establishes, and which outcomes rest on those claims. Hover or focus a node to trace what it rests on.\n\n<ProtocolGraph data={{graph}} />\n"
     );
 
     table(
@@ -206,14 +217,8 @@ pub fn page(ir: &Ir, source: &Source) -> String {
                 vec![
                     code(id.as_str()),
                     description(&kind.description),
-                    joined(
-                        linked(Column::Action, Column::Evidence, id.as_str(), false),
-                        "no action",
-                    ),
-                    joined(
-                        linked(Column::Evidence, Column::Claim, id.as_str(), true),
-                        "no claim",
-                    ),
+                    joined(producers(id.as_str()), "no action"),
+                    joined(readers(id.as_str()), "no claim"),
                 ]
             })
             .collect(),

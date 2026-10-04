@@ -70,20 +70,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "b10x-canon"
-version = "0.0.0"
-source = "git+https://github.com/beyond10x/canon?rev=32ae0d05ce0f7f8c894dd9fe9416f6528425cd5c#32ae0d05ce0f7f8c894dd9fe9416f6528425cd5c"
-dependencies = [
- "serde",
- "serde_yaml_ng",
- "unicode-properties",
-]
-
-[[package]]
 name = "b10x-els"
 version = "0.0.0"
 dependencies = [
- "b10x-canon 0.0.0 (git+https://github.com/beyond10x/canon?branch=main)",
+ "b10x-canon",
  "serde",
  "serde_yaml_ng",
 ]
@@ -139,7 +129,7 @@ name = "els-docs"
 version = "0.0.0"
 dependencies = [
  "anyhow",
- "b10x-canon 0.0.0 (git+https://github.com/beyond10x/canon?rev=32ae0d05ce0f7f8c894dd9fe9416f6528425cd5c)",
+ "b10x-canon",
  "b10x-els",
  "clap",
  "serde_json",
