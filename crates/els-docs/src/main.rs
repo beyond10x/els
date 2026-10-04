@@ -6,13 +6,14 @@
 
 mod generate;
 mod graph;
+mod lint;
 mod manifest;
 mod markdown;
 mod protocol;
 
 use std::path::PathBuf;
 
-use anyhow::Result;
+use anyhow::{Result, ensure};
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -50,6 +51,12 @@ fn main() -> Result<()> {
             let inputs = generate::Inputs::read(&root)?;
             let files = generate::render(&inputs)?;
             let drift = generate::apply(&root.join(generate::SITE), &files, check)?;
+            let raw = lint::check_tree(&root.join(generate::SITE).join("docs"))?;
+            ensure!(
+                raw.is_empty(),
+                "raw admonition openers (`:::kind Title` renders as text; write `:::kind[Title]`):\n  {}",
+                raw.join("\n  ")
+            );
             if check {
                 println!(
                     "els-docs: {} generated files fresh ({} protocols)",

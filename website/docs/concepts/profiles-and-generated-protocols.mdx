@@ -4,7 +4,7 @@ sidebar_position: 4
 description: Specialising a protocol for a kind of work, and producing new protocols under governance.
 ---
 
-import softwareChange from '@site/data/example-graphs/software-change-1.json';
+import softwareChange from '@site/data/protocol-graphs/software-change-1.json';
 
 One protocol does not fit every change. A bug fix should prove red before green; a refactor should
 not have to. Some requests fit no library protocol at all. ELS answers both with the same rule:
@@ -24,8 +24,8 @@ specialise only by composing vetted parts, never by relaxing what an organizatio
 
 A profile is a named specialisation of a protocol for one kind of work. The `bugfix` profile of
 `software.change/1` adds the red-first rule ([Step order](./step-order.mdx)); the `refactor` profile
-omits it. Below is a preview of `software.change/1` itself, the protocol the profiles specialise. It
-is an example on this site; the shipped protocols are listed under [Protocols](../protocols/index.md).
+omits it. Below is `software.change/1` itself, the shipped protocol the profiles specialise; its
+full page is under [Protocols](../protocols/software-change/1.mdx).
 
 <ProtocolGraph data={softwareChange} />
 

@@ -104,4 +104,4 @@ const config: Config = {
   } satisfies Preset.ThemeConfig,
 };
 
-export default withProductSite(config, {landing: './product.json', mark: 'E'});
+export default withProductSite(config, {landing: './product.json', product: 'els', mark: 'El'});
