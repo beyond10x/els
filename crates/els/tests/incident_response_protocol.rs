@@ -10,7 +10,10 @@
 
 mod support;
 
-use b10x_canon::model::{ActionId, ClaimId, Decision, ExclusionReason, Truth};
+use std::collections::BTreeSet;
+
+use b10x_canon::ir::Ir;
+use b10x_canon::model::{ActionId, ClaimId, Decision, ExclusionReason, Predicate, Truth};
 use b10x_els::vocabulary::{self, Category};
 use support::Fixture;
 
@@ -36,6 +39,29 @@ fn excluded(decision: &Decision, claim: &str) -> Vec<(String, ExclusionReason)> 
         .iter()
         .map(|exclusion| (exclusion.evidence.as_str().to_owned(), exclusion.reason))
         .collect()
+}
+
+/// Every claim and every evidence kind `predicate` rests on, each sorted: the claims it tests and
+/// the kinds it matches, and, through any number of claim tests, those of each tested claim's
+/// `true_when`.
+fn reached(ir: &Ir, predicate: &Predicate) -> (Vec<String>, Vec<String>) {
+    let mut claims = BTreeSet::new();
+    let mut kinds = BTreeSet::new();
+    let mut pending = vec![predicate];
+    while let Some(next) = pending.pop() {
+        next.visit(&mut |node| match node {
+            Predicate::Claim(test) => {
+                if claims.insert(test.claim.as_str().to_owned()) {
+                    pending.push(&ir.claims[&test.claim].true_when);
+                }
+            }
+            Predicate::Evidence(matching) => {
+                kinds.insert(matching.kind.as_str().to_owned());
+            }
+            Predicate::All(_) | Predicate::Any(_) | Predicate::Not(_) => {}
+        });
+    }
+    (claims.into_iter().collect(), kinds.into_iter().collect())
 }
 
 /// The status Canon's decision gives obligation `id`: `open` or `discharged`.
@@ -128,17 +154,30 @@ fn inc_492_leaves_emergency_while_cause_unknown() {
         ]
     );
 
+    // The read actions are declared as reads, the authority-gated ones as writes; leaving
+    // emergency mode declares no effect class.
+    let effect = |action: &str| {
+        ir.actions[&ActionId::new(action)]
+            .effect
+            .as_ref()
+            .map(|effect| effect.as_str().to_owned())
+    };
+    for read in ["metrics.inspect", "logs.search", "release.inspect"] {
+        assert_eq!(effect(read).as_deref(), Some("read"), "{read}");
+    }
+    for gated in ["traffic.shift", "release.rollback"] {
+        assert_eq!(effect(gated).as_deref(), Some("write"), "{gated}");
+    }
+    assert_eq!(effect("emergency.leave"), None);
+
     // Restoration and investigation progress independently: leaving emergency mode rests on
-    // restoration claims and never on `cause.identified`.
+    // restoration claims and never on `cause.identified`, nor on the cause analysis that
+    // establishes it, whether tested as a claim or matched as evidence, directly or through the
+    // claims the precondition tests.
     let leave = &ir.actions[&ActionId::new("emergency.leave")];
-    let mut tested: Vec<&str> = leave
-        .precondition
-        .claim_references()
-        .into_iter()
-        .map(|id| id.as_str())
-        .collect();
-    tested.sort_unstable();
-    assert_eq!(tested, ["impact.bounded", "service.healthy"]);
+    let (claims, kinds) = reached(ir, &leave.precondition);
+    assert_eq!(claims, ["impact.bounded", "service.healthy"]);
+    assert_eq!(kinds, ["impact_assessment", "operational_observation"]);
     assert!(leave.requires.is_empty());
 
     let fixture = Fixture::load(INC_492).unwrap_or_else(|error| panic!("{INC_492}: {error}"));
@@ -150,7 +189,13 @@ fn inc_492_leaves_emergency_while_cause_unknown() {
     assert_eq!(compiled_again.canon_ir(), compiled.canon_ir());
     assert_eq!(
         fixture.states(),
-        ["initial", "rollback-approved", "service-restored"]
+        [
+            "initial",
+            "cause-identified",
+            "rollback-approved",
+            "rolled-back",
+            "service-restored",
+        ]
     );
     let decide = |state: &str| {
         fixture
@@ -172,33 +217,164 @@ fn inc_492_leaves_emergency_while_cause_unknown() {
     }
     assert_eq!(action(&initial, "emergency.leave"), "blocked");
 
+    // The cause is identified while the service is still unhealthy: the investigation's progress
+    // does not leave emergency mode or discharge the restoration.
+    let cause = decide("cause-identified");
+    assert_eq!(claim(&cause, "cause.identified"), Truth::True);
+    assert_eq!(claim(&cause, "service.healthy"), Truth::False);
+    assert_eq!(obligation(&cause, "restore_service"), "open");
+    assert_eq!(action(&cause, "emergency.leave"), "blocked");
+
     // 3. The rollback is approved; the service is still unhealthy and emergency mode holds.
     let approved = decide("rollback-approved");
     assert_eq!(action(&approved, "release.rollback"), "admissible");
     assert_eq!(claim(&approved, "service.healthy"), Truth::False);
     assert_eq!(action(&approved, "emergency.leave"), "blocked");
 
-    // 4. The rollback produces a new revision of the service, and a healthy observation of that
-    //    revision arrives, with the impact assessed again on it and still no cause analysis.
-    //    The records of the old revision no longer apply: Canon lists them as excluded.
+    // The rollback produces a new revision of the service, of which nothing is observed yet. The
+    // records of the old revision no longer apply, so the service's health is UNKNOWN, not FALSE
+    // and not TRUE: the restoration stays open and emergency mode holds.
+    let rolled_back = decide("rolled-back");
+    assert_eq!(claim(&rolled_back, "service.healthy"), Truth::Unknown);
+    assert_eq!(obligation(&rolled_back, "restore_service"), "open");
+    assert_eq!(action(&rolled_back, "emergency.leave"), "blocked");
+    let old_revision = [
+        ("cause.identified", "cause-1"),
+        ("impact.bounded", "impact-1"),
+        ("service.healthy", "health-1"),
+    ];
+    for (claim, evidence) in old_revision {
+        assert_eq!(
+            excluded(&rolled_back, claim),
+            [(evidence.to_owned(), ExclusionReason::RevisionMismatch)],
+            "{claim}"
+        );
+    }
+
+    // 4. A healthy observation of the new revision arrives, with the impact assessed again on it
+    //    and no cause analysis of it. The records of the old revision stay excluded.
     let restored = decide("service-restored");
     assert_eq!(claim(&restored, "service.healthy"), Truth::True);
     assert_eq!(claim(&restored, "impact.bounded"), Truth::True);
     assert_eq!(claim(&restored, "cause.identified"), Truth::Unknown);
     assert_eq!(obligation(&restored, "restore_service"), "discharged");
     assert_eq!(action(&restored, "emergency.leave"), "admissible");
-    for (claim, evidence) in [
-        ("service.healthy", "health-1"),
-        ("impact.bounded", "impact-1"),
-    ] {
+    for (claim, evidence) in old_revision {
         assert_eq!(
             excluded(&restored, claim),
             [(evidence.to_owned(), ExclusionReason::RevisionMismatch)],
             "{claim}"
         );
     }
-    assert_eq!(excluded(&restored, "cause.identified"), []);
 
     // The fixture's own expectations are the ones above.
     assert_eq!(fixture.check(&compiled), Ok(()));
+}
+
+/// The fixture's text with `from` replaced by `to` once; `from` must occur in it.
+fn inc_492_with(from: &str, to: &str) -> String {
+    let text = std::fs::read_to_string(support::repo_root().join(INC_492)).expect("inc-492 reads");
+    assert!(text.contains(from), "inc-492 contains `{from}`");
+    text.replacen(from, to, 1)
+}
+
+/// The harness compares the obligations and actions a state expects with Canon's decision, both
+/// ways, and passes the authority decisions to Canon, which refuses one it cannot read.
+#[test]
+fn inc_492_harness_reports_obligation_and_action_differences() {
+    let compiled = support::compile_protocol(&support::protocol_path("incident-response", 1))
+        .unwrap_or_else(|error| panic!("{error}"));
+    for (from, to, expected) in [
+        (
+            "        restore_service: discharged\n",
+            "        restore_service: open\n",
+            vec![
+                "state `service-restored`: obligation `restore_service` is discharged, expected open",
+            ],
+        ),
+        (
+            "        release.rollback: admissible\n",
+            "        release.rollback: approval-required\n",
+            vec![
+                "state `rollback-approved`: action `release.rollback` is admissible, expected \
+                 approval-required",
+            ],
+        ),
+        (
+            "        traffic.shift: approval-required\n",
+            "",
+            vec!["state `initial`: action `traffic.shift` is approval-required, expected nothing"],
+        ),
+        (
+            "        emergency.leave: blocked\n",
+            "        emergency.leave: blocked\n        emergency.enter: blocked\n",
+            vec!["state `initial`: action `emergency.enter` is not declared, expected blocked"],
+        ),
+        (
+            "decision: granted",
+            "decision: maybe",
+            vec![
+                "state `rollback-approved`: evaluation refused: malformed-input: ",
+                "state `rolled-back`: evaluation refused: malformed-input: ",
+                "state `service-restored`: evaluation refused: malformed-input: ",
+            ],
+        ),
+    ] {
+        let fixture =
+            Fixture::from_yaml(&inc_492_with(from, to)).unwrap_or_else(|error| panic!("{error}"));
+        let found = fixture
+            .check(&compiled)
+            .expect_err(&format!("a fixture with `{to}` differs"));
+        assert_eq!(found.len(), expected.len(), "{found:?}");
+        for (line, prefix) in found.iter().zip(&expected) {
+            assert!(line.starts_with(prefix), "`{line}`, expected `{prefix}`");
+        }
+    }
+}
+
+/// `set_revisions` and `add_authority` are refused, not dropped, when they cannot be applied.
+#[test]
+fn inc_492_harness_refuses_state_inputs_it_cannot_apply() {
+    for (from, to, refusal) in [
+        (
+            "      service: s2\n",
+            "      incident: s2\n",
+            "state `rolled-back`: sets the revision of artifact `incident`, which the case \
+             does not list",
+        ),
+        (
+            "      service: s2\n",
+            "      service: 2\n",
+            "state `rolled-back`: case: malformed-input: ",
+        ),
+        (
+            "      service: s2\n",
+            "      service: s2\n      service: s3\n",
+            "artifact `service` is set more than once",
+        ),
+        (
+            "    set_revisions:\n      service: s2\n",
+            "    set_revisions:\n",
+            "a key is written with no value",
+        ),
+        (
+            "    add_authority: []\n",
+            "    add_authority:\n",
+            "a key is written with no value",
+        ),
+        (
+            "        restore_service: open\n",
+            "        restore_service: open\n        restore_service: open\n",
+            "`restore_service` is expected more than once",
+        ),
+    ] {
+        let error = match Fixture::from_yaml(&inc_492_with(from, to)) {
+            Ok(_) => panic!("a fixture with `{to}` loads; expected `{refusal}`"),
+            Err(error) => error.to_string(),
+        };
+        assert!(
+            error.contains(refusal),
+            "a fixture with `{to}` is refused as `{error}`, expected `{refusal}`"
+        );
+    }
 }

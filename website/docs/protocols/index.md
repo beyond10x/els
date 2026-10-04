@@ -9,4 +9,4 @@ Every protocol ELS ships is a Canon `protocol/1` document at `protocols/<name>/<
 
 | Protocol | Revision | Description | Declares |
 |---|---|---|---|
-| [`incident.response/1`](./incident-response/1.mdx) | 1 | Respond to an incident: restore the service and leave emergency mode on restoration evidence, while the investigation of its cause progresses on its own. | 3 claims, 6 actions, 0 outcomes |
+| [`incident.response/1`](./incident-response/1.mdx) | 1 | Respond to an incident: restore the service and leave emergency mode on restoration evidence, while the investigation of its cause progresses on its own. | 3 claims, 6 actions, 1 obligations, 0 outcomes |

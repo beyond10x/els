@@ -19,7 +19,7 @@ Respond to an incident: restore the service and leave emergency mode on restorat
 
 ## Dependency graph
 
-Which actions may produce which evidence, which claims that evidence establishes, and which outcomes rest on those claims. Hover or focus a node to trace what it rests on.
+Which actions may produce which evidence, which claims that evidence establishes, and which outcomes and obligations rest on those claims. Hover or focus a node to trace what it rests on.
 
 <ProtocolGraph data={graph} />
 
@@ -58,11 +58,11 @@ Each claim is TRUE, FALSE or UNKNOWN, established from evidence by its predicate
 
 ## Obligations
 
-What must be done before a case can be complete.
+What must be done before a case can be complete, and what discharges it. An obligation stays open until its predicate is TRUE; its predicate being UNKNOWN does not discharge it.
 
-| Obligation | Description |
-|---|---|
-| `restore_service` | urgent; bring the affected service back to health |
+| Obligation | Description | Discharged when |
+|---|---|---|
+| `restore_service` | urgent; bring the affected service back to health | `service.healthy` is **TRUE** |
 
 ## Outcomes
 

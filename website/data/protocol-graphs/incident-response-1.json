@@ -39,6 +39,11 @@
       "to": "claim:service.healthy"
     },
     {
+      "from": "claim:service.healthy",
+      "kind": "requires",
+      "to": "obligation:restore_service"
+    },
+    {
       "from": "claim:impact.bounded",
       "kind": "gates",
       "to": "action:emergency.leave"
@@ -170,7 +175,12 @@
       "description": "urgent; bring the affected service back to health",
       "id": "obligation:restore_service",
       "kind": "obligation",
-      "name": "restore_service"
+      "name": "restore_service",
+      "predicate": {
+        "claim": {
+          "id": "service.healthy"
+        }
+      }
     }
   ],
   "protocol": {

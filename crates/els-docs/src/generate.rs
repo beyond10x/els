@@ -214,9 +214,10 @@ pub fn render(inputs: &Inputs) -> Result<BTreeMap<String, String>> {
             revision: ir.protocol.revision,
             description: ir.protocol.description.clone(),
             counts: format!(
-                "{} claims, {} actions, {} outcomes",
+                "{} claims, {} actions, {} obligations, {} outcomes",
                 ir.claims.len(),
                 ir.actions.len(),
+                ir.obligations.len(),
                 ir.outcomes.len()
             ),
         });

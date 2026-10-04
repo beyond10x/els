@@ -48,27 +48,57 @@
 //!         service.healthy: true
 //! ```
 //!
-//! States are cumulative: a state is evaluated over its own `add_evidence` and that of every
-//! state before it. A fixture cannot carry an input the harness would drop or read as something
-//! else: an unknown key is refused, a key written with no value (`add_evidence:`) is refused as
-//! Canon refuses one rather than read as its default, and a claim written twice in
-//! `expect.claims` is refused, naming the claim. [`Fixture::load`] refuses a file not named
-//! `<id>.fixture.yaml` after the id it declares, so two files cannot declare one fixture.
+//! A state may also carry, each optional:
+//!
+//! ```yaml
+//!   - id: rolled-back
+//!     set_revisions:                     # the case snapshot's current revision of an artifact
+//!       service: r2                      # the case lists, from this state on
+//!     add_authority:                     # canon-authority/1 decisions added to those of the
+//!       - {capability: release.rollback, decision: granted}   # states before it
+//!     add_evidence: []
+//!     expect:
+//!       claims: {service.healthy: true}
+//!       obligations:                     # every obligation the protocol declares, and its
+//!         restore_service: discharged    # status: open or discharged
+//!       actions:                         # every action the protocol declares, and its status:
+//!         release.rollback: admissible   # admissible, approval-required or blocked
+//! ```
+//!
+//! States are cumulative: a state is evaluated over its own `add_evidence`, `add_authority` and
+//! `set_revisions` and those of every state before it. A fixture cannot carry an input the
+//! harness would drop or read as something else: an unknown key is refused, a key written with no
+//! value (`add_evidence:`) is refused as Canon refuses one rather than read as its default, a
+//! claim, obligation, action or artifact written twice in one map is refused, naming it, and
+//! `set_revisions` naming an artifact the case does not list is refused. [`Fixture::load`]
+//! refuses a file not named `<id>.fixture.yaml` after the id it declares, so two files cannot
+//! declare one fixture.
 //!
 //! The case and every evidence record are read with Canon's own readers
 //! (`b10x_canon::eval::case_from_value` and `evidence_from_value`, the path `canon evaluate`
 //! takes), so a document Canon refuses does not load: an identifier, revision or result written
-//! as a number or a boolean is refused with Canon's `malformed-input` refusal.
+//! as a number or a boolean is refused with Canon's `malformed-input` refusal. Each state's case
+//! snapshot is the fixture's `case` with the revisions set so far, read by Canon again. The
+//! authority decisions so far are passed to Canon as one `canon-authority/1` list, the input
+//! `canon evaluate --authority` reads, and Canon reads and refuses them; a fixture in which no
+//! state so far gives `add_authority` passes none. Decisions only accumulate: a later state that
+//! decides a capability an earlier state already decided (a denial after a grant, say) makes the
+//! list decide it twice, which Canon refuses as `duplicate-identifier` for that state and every
+//! later one, so a fixture cannot revoke a grant.
 //!
-//! The evaluation instant is an input of the fixture, never read from a clock. Canon's evaluator
-//! does not take an instant or an observation time yet, so the harness cannot pass either to it.
-//! It refuses, when loading, a fixture holding evidence observed after its instant, instead of
-//! evaluating evidence the instant excludes. Instants are written in the one form above and name
-//! a day that exists in its month (leap years counted), so they compare as text.
+//! The evaluation instant is an input of the fixture, never read from a clock. The harness does
+//! not pass the instant or an observation time to Canon yet, so nothing expires; observation
+//! times reach Canon with story:stale-evidence-fixtures. It refuses, when loading, a fixture
+//! holding evidence observed after its instant, instead of evaluating evidence the instant
+//! excludes. A record may also write its own `observed_at`, which `canon-evidence/1` reads: it
+//! must be an instant, not after the fixture's, and the same as its entry's `observed_at`, or the
+//! fixture is refused; the harness then drops it from the record, so the evidence it passes to
+//! Canon carries no observation time. Instants are written in the one form above and name a day
+//! that exists in its month (leap years counted), so they compare as text.
 //!
-//! Authority and independence decisions are not part of the format yet: Canon does not evaluate
-//! them, and a fixture that gives them (`authority:`, `independence:`) is refused as having an
-//! unknown key. They join the format with the Canon capability that reads them.
+//! Independence decisions are not part of the format yet: Canon does not evaluate them, and a
+//! fixture that gives them (`independence:`) is refused as having an unknown key. They join the
+//! format with the Canon capability that reads them.
 //!
 //! The items only later protocol stories call carry `#[allow(dead_code)]`, each marked as
 //! later-story API; everything else is used by this story's tests.
@@ -189,11 +219,17 @@ pub struct Fixture {
     states: Vec<State>,
 }
 
-/// One state as loaded: the evidence it adds, read by Canon, and its expectation.
+/// One state as loaded: the evidence it adds, read by Canon, the case snapshot and authority
+/// decisions it is evaluated with, and its expectation.
 #[derive(Debug, Clone)]
 struct State {
     id: String,
     add_evidence: Vec<EvidenceRecord>,
+    /// The fixture's case with every revision set by this state and the states before it.
+    case: Case,
+    /// The `canon-authority/1` list of every decision added by this state and the states before
+    /// it, or `None` when none of them gives `add_authority`.
+    authority: Option<String>,
     expect: Expectation,
 }
 
@@ -202,6 +238,10 @@ struct State {
 struct Expectation {
     #[serde(deserialize_with = "claims_once")]
     claims: BTreeMap<String, Truth>,
+    #[serde(default, deserialize_with = "statuses_once")]
+    obligations: Option<BTreeMap<String, String>>,
+    #[serde(default, deserialize_with = "statuses_once")]
+    actions: Option<BTreeMap<String, String>>,
 }
 
 /// The document as written. The case and the evidence records stay YAML values until Canon's
@@ -228,6 +268,10 @@ struct Written {
 struct WrittenState {
     #[serde(deserialize_with = "required")]
     id: String,
+    #[serde(default, deserialize_with = "revisions_once")]
+    set_revisions: Option<BTreeMap<String, Value>>,
+    #[serde(default, deserialize_with = "present")]
+    add_authority: Option<Vec<Value>>,
     #[serde(deserialize_with = "required")]
     add_evidence: Vec<WrittenObservation>,
     #[serde(deserialize_with = "required")]
@@ -252,34 +296,131 @@ fn required<'de, D: Deserializer<'de>, T: Deserialize<'de>>(
         .ok_or_else(|| D::Error::custom("a key is written with no value"))
 }
 
+/// Reads an optional key's value: absent is `None`, and a key written with no value is refused as
+/// [`required`] refuses it.
+fn present<'de, D: Deserializer<'de>, T: Deserialize<'de>>(
+    deserializer: D,
+) -> Result<Option<T>, D::Error> {
+    required(deserializer).map(Some)
+}
+
+/// A map read by [`Once`]: each key at most once, the repetition refused as `repeated` words it.
+struct Once<V> {
+    expecting: &'static str,
+    repeated: fn(&str) -> String,
+    value: std::marker::PhantomData<V>,
+}
+
+impl<'de, V: Deserialize<'de>> Visitor<'de> for Once<V> {
+    type Value = BTreeMap<String, V>;
+
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.expecting)
+    }
+
+    fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
+        let mut entries = BTreeMap::new();
+        while let Some((key, value)) = map.next_entry::<String, V>()? {
+            if entries.contains_key(&key) {
+                return Err(A::Error::custom((self.repeated)(&key)));
+            }
+            entries.insert(key, value);
+        }
+        Ok(entries)
+    }
+}
+
+/// Reads a map with [`Once`], refusing a key written with no value as [`required`] refuses it.
+fn map_once<'de, D: Deserializer<'de>, V: Deserialize<'de>>(
+    deserializer: D,
+    visitor: Once<V>,
+) -> Result<BTreeMap<String, V>, D::Error> {
+    struct Wrapped<V>(Once<V>);
+
+    impl<'de, V: Deserialize<'de>> serde::de::DeserializeSeed<'de> for Wrapped<V> {
+        type Value = BTreeMap<String, V>;
+
+        fn deserialize<D: Deserializer<'de>>(
+            self,
+            deserializer: D,
+        ) -> Result<Self::Value, D::Error> {
+            deserializer.deserialize_map(self.0)
+        }
+    }
+
+    struct Optional<V>(Once<V>);
+
+    impl<'de, V: Deserialize<'de>> Visitor<'de> for Optional<V> {
+        type Value = Option<BTreeMap<String, V>>;
+
+        fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            f.write_str(self.0.expecting)
+        }
+
+        fn visit_none<E: serde::de::Error>(self) -> Result<Self::Value, E> {
+            Ok(None)
+        }
+
+        fn visit_unit<E: serde::de::Error>(self) -> Result<Self::Value, E> {
+            Ok(None)
+        }
+
+        fn visit_some<D: Deserializer<'de>>(
+            self,
+            deserializer: D,
+        ) -> Result<Self::Value, D::Error> {
+            serde::de::DeserializeSeed::deserialize(Wrapped(self.0), deserializer).map(Some)
+        }
+    }
+
+    deserializer
+        .deserialize_option(Optional(visitor))?
+        .ok_or_else(|| D::Error::custom("a key is written with no value"))
+}
+
 /// Reads `expect.claims`, refusing a claim written more than once instead of keeping the last.
 fn claims_once<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> Result<BTreeMap<String, Truth>, D::Error> {
-    struct Claims;
+    map_once(
+        deserializer,
+        Once {
+            expecting: "a map of claim ids to true, false or unknown",
+            repeated: |claim| format!("claim `{claim}` is expected more than once"),
+            value: std::marker::PhantomData,
+        },
+    )
+}
 
-    impl<'de> Visitor<'de> for Claims {
-        type Value = BTreeMap<String, Truth>;
+/// Reads `expect.obligations` or `expect.actions`, refusing an id written more than once.
+fn statuses_once<'de, D: Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Option<BTreeMap<String, String>>, D::Error> {
+    map_once(
+        deserializer,
+        Once {
+            expecting: "a map of obligation or action ids to their status",
+            repeated: |id| format!("`{id}` is expected more than once"),
+            value: std::marker::PhantomData,
+        },
+    )
+    .map(Some)
+}
 
-        fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            f.write_str("a map of claim ids to true, false or unknown")
-        }
-
-        fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
-            let mut claims = BTreeMap::new();
-            while let Some((claim, value)) = map.next_entry::<String, Truth>()? {
-                if claims.contains_key(&claim) {
-                    return Err(A::Error::custom(format!(
-                        "claim `{claim}` is expected more than once"
-                    )));
-                }
-                claims.insert(claim, value);
-            }
-            Ok(claims)
-        }
-    }
-
-    deserializer.deserialize_map(Claims)
+/// Reads `set_revisions`, refusing an artifact written more than once. The revisions stay YAML
+/// values until Canon's case reader reads them.
+fn revisions_once<'de, D: Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Option<BTreeMap<String, Value>>, D::Error> {
+    map_once(
+        deserializer,
+        Once {
+            expecting: "a map of artifact ids to revisions",
+            repeated: |artifact| format!("artifact `{artifact}` is set more than once"),
+            value: std::marker::PhantomData,
+        },
+    )
+    .map(Some)
 }
 
 impl Fixture {
@@ -335,21 +476,56 @@ impl Fixture {
         }
         let mut seen = BTreeSet::new();
         let mut states = Vec::with_capacity(written.states.len());
+        let mut snapshot = written.case.clone();
+        let mut state_case = case.clone();
+        let mut authority: Option<Vec<Value>> = None;
         for state in written.states {
             if !seen.insert(state.id.clone()) {
                 return refuse(format!("state `{}` is given more than once", state.id));
             }
-            let mut add_evidence = Vec::with_capacity(state.add_evidence.len());
-            for (index, observation) in state.add_evidence.iter().enumerate() {
-                let record = eval::evidence_from_value(&observation.record).map_err(|refusal| {
+            if let Some(revisions) = &state.set_revisions {
+                for (artifact, revision) in revisions {
+                    let entry = snapshot
+                        .get_mut("artifacts")
+                        .and_then(|artifacts| artifacts.get_mut(artifact.as_str()))
+                        .and_then(|entry| entry.get_mut("revision"));
+                    let Some(entry) = entry else {
+                        return refuse(format!(
+                            "state `{}`: sets the revision of artifact `{artifact}`, which the \
+                             case does not list",
+                            state.id
+                        ));
+                    };
+                    *entry = revision.clone();
+                }
+                state_case = eval::case_from_value(&snapshot).map_err(|refusal| {
                     FixtureError::Refused(format!(
-                        "state `{}`: evidence {}: {}: {refusal}",
+                        "state `{}`: case: {}: {refusal}",
                         state.id,
-                        index + 1,
                         refusal.code()
                     ))
                 })?;
-                let evidence = record.id.as_str();
+            }
+            if let Some(decisions) = &state.add_authority {
+                authority
+                    .get_or_insert_with(Vec::new)
+                    .extend(decisions.iter().cloned());
+            }
+            let authority_text = authority.as_ref().map(|decisions| {
+                serde_yaml_ng::to_string(decisions).expect("YAML values serialize")
+            });
+            let mut add_evidence = Vec::with_capacity(state.add_evidence.len());
+            for (index, observation) in state.add_evidence.iter().enumerate() {
+                let mut record =
+                    eval::evidence_from_value(&observation.record).map_err(|refusal| {
+                        FixtureError::Refused(format!(
+                            "state `{}`: evidence {}: {}: {refusal}",
+                            state.id,
+                            index + 1,
+                            refusal.code()
+                        ))
+                    })?;
+                let evidence = record.id.as_str().to_owned();
                 if !is_instant(&observation.observed_at) {
                     return refuse(format!(
                         "state `{}`: evidence `{evidence}` observation instant `{}` is not \
@@ -364,11 +540,40 @@ impl Fixture {
                         state.id, observation.observed_at, written.at
                     ));
                 }
+                // A record may write its own `observed_at` (`canon-evidence/1` reads one). It is
+                // held to the same rules as the entry's and must agree with it; then it is dropped,
+                // so no observation time reaches Canon (story:stale-evidence-fixtures).
+                if let Some(own) = record.observed_at.take() {
+                    let own = own.as_str();
+                    if !is_instant(own) {
+                        return refuse(format!(
+                            "state `{}`: evidence `{evidence}` record observation instant \
+                             `{own}` is not written YYYY-MM-DDTHH:MM:SSZ",
+                            state.id
+                        ));
+                    }
+                    if own > written.at.as_str() {
+                        return refuse(format!(
+                            "state `{}`: evidence `{evidence}` record is observed at `{own}`, \
+                             after the evaluation instant `{}`",
+                            state.id, written.at
+                        ));
+                    }
+                    if own != observation.observed_at {
+                        return refuse(format!(
+                            "state `{}`: evidence `{evidence}` record is observed at `{own}`, its \
+                             entry at `{}`",
+                            state.id, observation.observed_at
+                        ));
+                    }
+                }
                 add_evidence.push(record);
             }
             states.push(State {
                 id: state.id,
                 add_evidence,
+                case: state_case.clone(),
+                authority: authority_text,
                 expect: state.expect,
             });
         }
@@ -397,7 +602,7 @@ impl Fixture {
         &self.at
     }
 
-    /// The case snapshot every state is evaluated for.
+    /// The fixture's case snapshot, before any state sets a revision.
     #[allow(dead_code)] // later-story API: protocol stories read the case they evaluate
     pub fn case(&self) -> &Case {
         &self.case
@@ -428,14 +633,26 @@ impl Fixture {
             .collect()
     }
 
-    /// Canon's evaluation of state `state`, unchanged. Panics when the fixture has no such state.
+    /// Canon's evaluation of state `state`, unchanged: of the state's case snapshot, its evidence
+    /// and its authority decisions. Panics when the fixture has no such state.
     pub fn evaluate(&self, compiled: &Compiled, state: &str) -> Result<Decision, Refusal> {
-        eval::evaluate(compiled.ir(), &self.case, &self.evidence(state))
+        let found = self
+            .states
+            .iter()
+            .find(|candidate| candidate.id == state)
+            .unwrap_or_else(|| panic!("fixture `{}` has no state `{state}`", self.id));
+        let supplied = eval::Supplied {
+            authority: found.authority.as_deref(),
+            ..eval::Supplied::default()
+        };
+        eval::evaluate_with(compiled.ir(), &found.case, &self.evidence(state), supplied)
     }
 
     /// Evaluates every state and compares each decision with the state's expectation: every
     /// claim the decision holds must be expected with its value, and every expected claim must
-    /// be in the decision. Returns one line per difference, in state order, then claim order.
+    /// be in the decision; the same for obligations and actions and their statuses, when the
+    /// state expects them. Returns one line per difference, in state order, then claims,
+    /// obligations and actions, each in id order.
     pub fn check(&self, compiled: &Compiled) -> Result<(), Vec<String>> {
         let mut differences = Vec::new();
         for state in &self.states {
@@ -455,17 +672,23 @@ impl Fixture {
                 .iter()
                 .map(|(id, entry)| (id.as_str().to_owned(), entry.value))
                 .collect();
-            let expected = &state.expect.claims;
-            let claims: BTreeSet<&String> = found.keys().chain(expected.keys()).collect();
-            for claim in claims {
-                let line = match (found.get(claim), expected.get(claim)) {
-                    (Some(found), Some(expected)) if found == expected => continue,
-                    (Some(found), Some(expected)) => format!("is {found}, expected {expected}"),
-                    (Some(found), None) => format!("is {found}, expected nothing"),
-                    (None, Some(expected)) => format!("is not declared, expected {expected}"),
-                    (None, None) => unreachable!("the claim comes from one of the two"),
-                };
-                differences.push(format!("state `{}`: claim `{claim}` {line}", state.id));
+            let mut report = |noun: &str,
+                              found: &BTreeMap<String, String>,
+                              expected: &BTreeMap<String, String>| {
+                compare(&state.id, noun, found, expected, &mut differences);
+            };
+            let claims = |values: &BTreeMap<String, Truth>| -> BTreeMap<String, String> {
+                values
+                    .iter()
+                    .map(|(id, value)| (id.clone(), value.to_string()))
+                    .collect()
+            };
+            report("claim", &claims(&found), &claims(&state.expect.claims));
+            if let Some(expected) = &state.expect.obligations {
+                report("obligation", &obligation_statuses(&decision), expected);
+            }
+            if let Some(expected) = &state.expect.actions {
+                report("action", &action_statuses(&decision), expected);
             }
         }
         if differences.is_empty() {
@@ -474,6 +697,67 @@ impl Fixture {
             Err(differences)
         }
     }
+}
+
+/// Adds one line to `differences` per id whose value in `found` differs from that in `expected`,
+/// in id order: every id the decision holds must be expected with its value, and every expected
+/// id must be in the decision.
+fn compare(
+    state: &str,
+    noun: &str,
+    found: &BTreeMap<String, String>,
+    expected: &BTreeMap<String, String>,
+    differences: &mut Vec<String>,
+) {
+    let ids: BTreeSet<&String> = found.keys().chain(expected.keys()).collect();
+    for id in ids {
+        let line = match (found.get(id), expected.get(id)) {
+            (Some(found), Some(expected)) if found == expected => continue,
+            (Some(found), Some(expected)) => format!("is {found}, expected {expected}"),
+            (Some(found), None) => format!("is {found}, expected nothing"),
+            (None, Some(expected)) => format!("is not declared, expected {expected}"),
+            (None, None) => unreachable!("the id comes from one of the two"),
+        };
+        differences.push(format!("state `{state}`: {noun} `{id}` {line}"));
+    }
+}
+
+/// The status of each obligation in Canon's decision, keyed by obligation id; empty when the
+/// decision has no `obligations` section.
+fn obligation_statuses(decision: &Decision) -> BTreeMap<String, String> {
+    let entries = decision
+        .obligations
+        .as_ref()
+        .and_then(|section| section.as_array())
+        .map(Vec::as_slice)
+        .unwrap_or_default();
+    entries
+        .iter()
+        .map(|entry| (text(&entry["id"]), text(&entry["status"])))
+        .collect()
+}
+
+/// The status of each action in Canon's decision, keyed by action id; empty when the decision
+/// has no `actions` section.
+fn action_statuses(decision: &Decision) -> BTreeMap<String, String> {
+    decision
+        .actions
+        .as_ref()
+        .and_then(|section| section.as_object())
+        .map(|actions| {
+            actions
+                .iter()
+                .map(|(id, entry)| (id.clone(), text(&entry["status"])))
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// A text value of Canon's decision as written, or the JSON it holds when it is not text.
+fn text(value: &b10x_canon::model::Json) -> String {
+    value
+        .as_str()
+        .map_or_else(|| value.to_string(), str::to_owned)
 }
 
 /// Reads `path`, relative to the repository root, and returns the file it resolves to and its

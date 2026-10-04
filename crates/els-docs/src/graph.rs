@@ -5,10 +5,18 @@
 //! identified as `<kind>:<name>`. Edges: `produces` (action → evidence kind it may produce),
 //! `establishes` (evidence kind → claim whose `true_when` matches it, qualified by the result),
 //! `supports` (claim → claim whose `true_when` tests it), `requires` (claim → outcome whose
-//! `requires` tests it) and `gates` (claim → action whose precondition tests it). A claim edge
-//! carries the tested value as its qualifier when that value is not `true`. An outcome or a
+//! `requires` tests it, and claim → obligation whose `discharged_when` tests it) and `gates`
+//! (claim → action whose precondition tests it). The format's edge kinds are a closed set
+//! (docs-system `schema/b10x.protocol-graph.v1.schema.json`), so an obligation's discharge reuses
+//! `requires`, and an obligation node carries its `discharged_when` as its predicate. A claim edge
+//! carries the value the predicate needs of the claim as its qualifier when that value is not
+//! `true`, with polarity carried through `not`: under an odd number of `not`s, `{claim: c}` needs
+//! `false`, `{claim: c, is: false}` needs `true` and `{claim: c, is: unknown}` needs
+//! `not unknown`; an evidence edge under an odd number of `not`s is qualified `not <result>`, or
+//! `not present` for a match without a result. An outcome or a
 //! precondition that matches evidence directly keeps that match in its predicate; the format has no
-//! edge kind for it.
+//! edge kind for it. A discharge predicate tests claims only: Canon refuses one that matches
+//! evidence.
 
 use b10x_canon::ir::Ir;
 use b10x_canon::model::{Predicate, Truth};
@@ -87,8 +95,56 @@ impl Edge {
     }
 }
 
-fn claim_qualifier(is: Truth) -> Option<String> {
-    (is != Truth::True).then(|| is.to_string())
+/// The value a claim test needs of its claim, as an edge qualifier: none for `true`. Under an odd
+/// number of `not`s the test is negated: `not {claim: c}` holds exactly when `{claim: c, is: false}`
+/// does, `not {claim: c, is: false}` when `c` is TRUE, and `not {claim: c, is: unknown}` when `c`
+/// is decided, `not unknown`.
+fn claim_qualifier(is: Truth, negated: bool) -> Option<String> {
+    match (is, negated) {
+        (Truth::True, false) | (Truth::False, true) => None,
+        (Truth::True, true) => Some(Truth::False.to_string()),
+        (Truth::Unknown, true) => Some(format!("not {}", Truth::Unknown)),
+        (is, false) => Some(is.to_string()),
+    }
+}
+
+/// The result an evidence match needs, as an edge qualifier; under an odd number of `not`s,
+/// `not <result>`, or `not present` for a match without a result.
+fn evidence_qualifier(result: &Option<String>, negated: bool) -> Option<String> {
+    match (result, negated) {
+        (result, false) => result.clone(),
+        (Some(result), true) => Some(format!("not {result}")),
+        (None, true) => Some("not present".to_owned()),
+    }
+}
+
+/// Calls `f` on every claim test and evidence match of `predicate`, in the order
+/// [`Predicate::visit`] reaches them, with whether an odd number of `not`s encloses it.
+fn leaves<'a>(predicate: &'a Predicate, negated: bool, f: &mut impl FnMut(&'a Predicate, bool)) {
+    match predicate {
+        Predicate::All(members) | Predicate::Any(members) => {
+            for member in members {
+                leaves(member, negated, f);
+            }
+        }
+        Predicate::Not(inner) => leaves(inner, !negated, f),
+        Predicate::Claim(_) | Predicate::Evidence(_) => f(predicate, negated),
+    }
+}
+
+/// One edge per claim `predicate` tests, from the claim to `to`, of kind `kind`, qualified by the
+/// value the predicate needs of the claim.
+fn claim_edges(predicate: &Predicate, to: &str, kind: &'static str, add: &mut impl FnMut(Edge)) {
+    leaves(predicate, false, &mut |leaf, negated| {
+        if let Predicate::Claim(test) = leaf {
+            add(Edge {
+                from: format!("claim:{}", test.claim),
+                to: to.to_owned(),
+                kind,
+                qualifier: claim_qualifier(test.is, negated),
+            });
+        }
+    });
 }
 
 /// The graph document for one compiled protocol; `source` names the document it came from.
@@ -126,11 +182,9 @@ pub fn document(ir: &Ir, source: &str) -> Value {
         nodes.push(Value::Object(value));
     }
     for (id, obligation) in &ir.obligations {
-        nodes.push(Value::Object(node(
-            "obligation",
-            id.as_str(),
-            &obligation.description,
-        )));
+        let mut value = node("obligation", id.as_str(), &obligation.description);
+        value.insert("predicate".into(), predicate(&obligation.discharged_when));
+        nodes.push(Value::Object(value));
     }
 
     let mut edges: Vec<Edge> = Vec::new();
@@ -150,45 +204,45 @@ pub fn document(ir: &Ir, source: &str) -> Value {
         }
     }
     for (id, claim) in &ir.claims {
-        claim.true_when.visit(&mut |inner| match inner {
+        leaves(&claim.true_when, false, &mut |leaf, negated| match leaf {
             Predicate::Evidence(matching) => add(Edge {
                 from: format!("evidence:{}", matching.kind),
                 to: format!("claim:{id}"),
                 kind: "establishes",
-                qualifier: matching.result.clone(),
+                qualifier: evidence_qualifier(&matching.result, negated),
             }),
             Predicate::Claim(test) => add(Edge {
                 from: format!("claim:{}", test.claim),
                 to: format!("claim:{id}"),
                 kind: "supports",
-                qualifier: claim_qualifier(test.is),
+                qualifier: claim_qualifier(test.is, negated),
             }),
             Predicate::All(_) | Predicate::Any(_) | Predicate::Not(_) => {}
         });
     }
     for (id, outcome) in &ir.outcomes {
-        outcome.requires.visit(&mut |inner| {
-            if let Predicate::Claim(test) = inner {
-                add(Edge {
-                    from: format!("claim:{}", test.claim),
-                    to: format!("outcome:{id}"),
-                    kind: "requires",
-                    qualifier: claim_qualifier(test.is),
-                });
-            }
-        });
+        claim_edges(
+            &outcome.requires,
+            &format!("outcome:{id}"),
+            "requires",
+            &mut add,
+        );
+    }
+    for (id, obligation) in &ir.obligations {
+        claim_edges(
+            &obligation.discharged_when,
+            &format!("obligation:{id}"),
+            "requires",
+            &mut add,
+        );
     }
     for (id, action) in &ir.actions {
-        action.precondition.visit(&mut |inner| {
-            if let Predicate::Claim(test) = inner {
-                add(Edge {
-                    from: format!("claim:{}", test.claim),
-                    to: format!("action:{id}"),
-                    kind: "gates",
-                    qualifier: claim_qualifier(test.is),
-                });
-            }
-        });
+        claim_edges(
+            &action.precondition,
+            &format!("action:{id}"),
+            "gates",
+            &mut add,
+        );
     }
 
     let mut protocol = Map::new();
@@ -273,7 +327,7 @@ mod tests {
         let edges = sorted(&graph["edges"]);
         assert!(
             edges.contains(
-                &r#"{"from":"claim:a","kind":"supports","qualifier":"unknown","to":"claim:b"}"#
+                &r#"{"from":"claim:a","kind":"supports","qualifier":"not unknown","to":"claim:b"}"#
                     .to_owned()
             ),
             "{edges:?}"
@@ -293,5 +347,55 @@ mod tests {
         assert_eq!(action["capabilities"], json!(["c"]));
         assert_eq!(action["effect"], json!("write"));
         assert_eq!(action["predicate"], json!({"claim": {"id": "b"}}));
+    }
+
+    #[test]
+    fn an_obligation_requires_the_claims_its_discharge_tests() {
+        let source = "format: protocol/1\nprotocol: {id: p, revision: 1}\nevidence_kinds: {e: {}}\nclaims:\n  a:\n    true_when: {evidence: {kind: e}}\n  b:\n    true_when: {evidence: {kind: e, result: ok}}\nobligations:\n  settle:\n    discharged_when: {all: [{claim: a}, {claim: b, is: false}]}\n";
+        let ir = compile(&parse(source).expect("parses")).expect("compiles");
+        let graph = document(&ir, "x");
+        let edges: Vec<String> = sorted(&graph["edges"])
+            .into_iter()
+            .filter(|edge| edge.contains("obligation:settle"))
+            .collect();
+        assert_eq!(
+            edges,
+            [
+                r#"{"from":"claim:a","kind":"requires","to":"obligation:settle"}"#,
+                r#"{"from":"claim:b","kind":"requires","qualifier":"false","to":"obligation:settle"}"#,
+            ]
+        );
+        let obligation = graph["nodes"]
+            .as_array()
+            .expect("nodes")
+            .iter()
+            .find(|node| node["id"] == "obligation:settle")
+            .expect("the obligation node");
+        assert_eq!(
+            obligation["predicate"],
+            json!({"all": [{"claim": {"id": "a"}}, {"claim": {"id": "b", "is": "false"}}]})
+        );
+    }
+
+    /// Every edge drawn from a predicate carries the value the predicate needs, with polarity
+    /// carried through `not`: once negated, twice not.
+    #[test]
+    fn a_claim_or_evidence_under_not_is_qualified_by_the_value_it_needs() {
+        let source = "format: protocol/1\nprotocol: {id: p, revision: 1}\nevidence_kinds: {e: {}}\nclaims:\n  a:\n    true_when: {not: {evidence: {kind: e, result: ok}}}\n  b:\n    true_when: {any: [{not: {evidence: {kind: e}}}, {not: {not: {claim: a}}}]}\n  c:\n    true_when: {not: {claim: a, is: false}}\nobligations:\n  settle:\n    discharged_when: {not: {claim: a}}\nactions:\n  go:\n    precondition: {not: {claim: b, is: unknown}}\noutcomes:\n  done:\n    requires: {all: [{not: {claim: c}}, {claim: a}]}\n";
+        let ir = compile(&parse(source).expect("parses")).expect("compiles");
+        let mut edges = sorted(&document(&ir, "x")["edges"]);
+        edges.sort();
+        let mut expected = vec![
+            r#"{"from":"claim:a","kind":"requires","qualifier":"false","to":"obligation:settle"}"#,
+            r#"{"from":"claim:a","kind":"requires","to":"outcome:done"}"#,
+            r#"{"from":"claim:a","kind":"supports","to":"claim:b"}"#,
+            r#"{"from":"claim:a","kind":"supports","to":"claim:c"}"#,
+            r#"{"from":"claim:b","kind":"gates","qualifier":"not unknown","to":"action:go"}"#,
+            r#"{"from":"claim:c","kind":"requires","qualifier":"false","to":"outcome:done"}"#,
+            r#"{"from":"evidence:e","kind":"establishes","qualifier":"not ok","to":"claim:a"}"#,
+            r#"{"from":"evidence:e","kind":"establishes","qualifier":"not present","to":"claim:b"}"#,
+        ];
+        expected.sort();
+        assert_eq!(edges, expected);
     }
 }
