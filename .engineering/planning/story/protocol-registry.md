@@ -2,7 +2,7 @@
 format: aep.planning-md/3
 id: story:protocol-registry
 kind: story
-status: draft
+status: implemented
 title: List and fetch built-in protocols from the crate and the els command line
 summary: registry::list/get over embedded protocols/<name>/<major>.yaml, validated by Canon; els protocols list|show.
 relations:
@@ -12,12 +12,18 @@ relations:
 - serves: vision:O2
 - serves: vision:governed-autonomy
 scope:
+- confidence: cited
+  path: AGENTS.md
 - confidence: inferred
   path: Cargo.lock
+- confidence: cited
+  path: crates/els-docs/src/generate.rs
 - confidence: inferred
   path: crates/els/Cargo.toml
 - confidence: inferred
   path: crates/els/build.rs
+- confidence: cited
+  path: crates/els/src/builtin_name.rs
 - confidence: cited
   path: crates/els/src/lib.rs
 - confidence: inferred
@@ -25,8 +31,16 @@ scope:
 - confidence: cited
   path: crates/els/src/registry.rs
 - confidence: cited
+  path: crates/els/tests/adversary2_protocol_registry.rs
+- confidence: cited
+  path: crates/els/tests/adversary_protocol_registry.rs
+- confidence: cited
   path: crates/els/tests/protocol_registry.rs
-revision: 3
+revision: 9
+transitions:
+- {from: "draft", to: "proposed", at: "2026-10-04T09:00:39Z", actor: "human:timo", revision: 4}
+- {from: "proposed", to: "active", at: "2026-10-04T09:00:39Z", actor: "human:timo", revision: 5}
+- {from: "active", to: "implemented", at: "2026-10-04T09:27:43Z", actor: "human:timo", revision: 9, decided_on: {"recorded":{"test_result":1,"review_outcome":4,"verification":1}}}
 ---
 ## Outcome
 
