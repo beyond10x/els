@@ -71,7 +71,7 @@ dependencies = [
 
 [[package]]
 name = "b10x-canon-engineering"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "b10x-canon",
  "clap",
@@ -82,7 +82,7 @@ dependencies = [
 
 [[package]]
 name = "canon-engineering-docs"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "b10x-canon",
