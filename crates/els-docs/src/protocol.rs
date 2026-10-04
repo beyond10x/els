@@ -153,7 +153,7 @@ pub fn page(ir: &Ir, source: &Source) -> String {
 
     let _ = write!(
         out,
-        "\n## Dependency graph\n\nWhich actions may produce which evidence, which claims that evidence establishes, and which outcomes rest on those claims. Hover or focus a node to trace what it rests on.\n\n<ProtocolGraph data={{graph}} />\n"
+        "\n## Dependency graph\n\nWhich actions may produce which evidence, which claims that evidence establishes, and which outcomes and obligations rest on those claims. Hover or focus a node to trace what it rests on.\n\n<ProtocolGraph data={{graph}} />\n"
     );
 
     table(
@@ -244,11 +244,17 @@ pub fn page(ir: &Ir, source: &Source) -> String {
     table(
         &mut out,
         "Obligations",
-        "What must be done before a case can be complete.",
-        &["Obligation", "Description"],
+        "What must be done before a case can be complete, and what discharges it. An obligation stays open until its predicate is TRUE; its predicate being UNKNOWN does not discharge it.",
+        &["Obligation", "Description", "Discharged when"],
         ir.obligations
             .iter()
-            .map(|(id, obligation)| vec![code(id.as_str()), description(&obligation.description)])
+            .map(|(id, obligation)| {
+                vec![
+                    code(id.as_str()),
+                    description(&obligation.description),
+                    predicate(&obligation.discharged_when),
+                ]
+            })
             .collect(),
     );
 
@@ -306,5 +312,33 @@ mod tests {
         );
         assert_eq!(claim_predicate("{claim: a}"), "`a` is **TRUE**");
         assert_eq!(claim_predicate("{any: []}"), "never true");
+    }
+
+    #[test]
+    fn the_obligations_section_says_what_discharges_each_obligation() {
+        let source = "format: protocol/1\nprotocol: {id: p, revision: 1}\nevidence_kinds: {e: {}}\nclaims:\n  a:\n    true_when: {evidence: {kind: e}}\nobligations:\n  settle:\n    description: settle it\n    discharged_when: {claim: a}\n";
+        let ir = b10x_canon::ir::compile(&parse(source).expect("parses")).expect("compiles");
+        let page = page(
+            &ir,
+            &Source {
+                name: "p".to_owned(),
+                major: 1,
+                path: "protocols/p/1.yaml".to_owned(),
+                text: source.to_owned(),
+            },
+        );
+        let start = page.find("## Obligations").expect("an Obligations section");
+        let section = &page[start..];
+        let section = &section[..section[2..]
+            .find("\n## ")
+            .map_or(section.len(), |end| end + 2)];
+        assert!(
+            section.contains("| Obligation | Description | Discharged when |"),
+            "{section}"
+        );
+        assert!(
+            section.contains("| `settle` | settle it | `a` is **TRUE** |"),
+            "{section}"
+        );
     }
 }

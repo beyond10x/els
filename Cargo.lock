@@ -61,7 +61,7 @@ checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 [[package]]
 name = "b10x-canon"
 version = "0.0.0"
-source = "git+https://github.com/beyond10x/canon?branch=main#33540b14b9ac9ae2e11c59a420296ed894f256ee"
+source = "git+https://github.com/beyond10x/canon?branch=main#8fc260a13ab767ef879e718a98b7a421b3f29d5f"
 dependencies = [
  "serde",
  "serde_json",
