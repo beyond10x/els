@@ -7,6 +7,5 @@ repository.workspace = true
 
 [dependencies]
 b10x-canon = { git = "https://github.com/beyond10x/canon", branch = "main" }
-
-[dev-dependencies]
+serde = { version = "1", features = ["derive"] }
 serde_yaml_ng = "0.10"

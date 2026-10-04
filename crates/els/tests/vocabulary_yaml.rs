@@ -230,17 +230,18 @@ fn vocabulary_yaml_is_the_source() {
         .collect();
     let text = read_to_string(&vocabulary_yaml());
 
-    // 1. The file holds exactly the 35 terms, read without the crate's reader.
+    // 1. The file's first 35 entries are the 35 terms, in order, read without the crate's
+    //    reader. Later stories append their own terms after them and assert those themselves.
     let from_file = rows_in_document(&text);
-    assert_eq!(
-        from_file.len(),
-        35,
+    assert!(
+        from_file.len() >= 35,
         "protocols/vocabulary.yaml holds {} entries",
         from_file.len()
     );
     assert_eq!(
-        from_file, expected,
-        "protocols/vocabulary.yaml differs from the 35 terms of vocabulary.rs at 13d180f"
+        from_file[..35],
+        expected[..],
+        "protocols/vocabulary.yaml does not open with the 35 terms of vocabulary.rs at 13d180f"
     );
 
     // 2. The built-in API returns exactly those entries in file order and finds each by id.
@@ -290,11 +291,11 @@ fn vocabulary_yaml_is_the_source() {
     let extended_text = format!("{text}{APPENDED}");
     assert_eq!(
         rows_in_document(&extended_text).len(),
-        36,
+        from_file.len() + 1,
         "the appended term does not land in the terms list"
     );
     let extended = Vocabulary::from_yaml(&extended_text).expect("the extended text reads");
-    assert_eq!(extended.terms().len(), 36);
+    assert_eq!(extended.terms().len(), from_file.len() + 1);
     let added = extended
         .lookup("example_term")
         .unwrap_or_else(|e| panic!("{e}"));
@@ -316,6 +317,37 @@ fn vocabulary_yaml_is_the_source() {
             "src/vocabulary.rs spells the term `{id}` itself"
         );
     }
+}
+
+/// The Rust API produces the data as well as reading it (Atlas ADR 0077 point 3): what it writes
+/// reads back to the same terms, and what it writes is checked like any other document.
+#[test]
+fn vocabulary_round_trips_through_yaml() {
+    let built_in = Vocabulary::from_yaml(&read_to_string(&vocabulary_yaml()))
+        .expect("protocols/vocabulary.yaml reads");
+    let written = built_in.to_yaml();
+    let read_back = Vocabulary::from_yaml(&written)
+        .unwrap_or_else(|e| panic!("the written vocabulary does not read back: {e}\n{written}"));
+    assert_eq!(read_back.terms(), vocabulary::terms());
+    assert_eq!(read_back, built_in);
+
+    let empty_meaning =
+        Vocabulary::default().with_term("example_term", Category::EvidenceKind, Marking::Core, "");
+    let refusal = Vocabulary::from_yaml(&empty_meaning.to_yaml())
+        .expect_err("a term built in Rust without a meaning is refused when read back");
+    assert!(
+        refusal.to_string().contains("example_term"),
+        "refusal `{refusal}` does not name the term"
+    );
+
+    let one = Vocabulary::default().with_term(
+        "example_term",
+        Category::EvidenceKind,
+        Marking::Core,
+        "a term built in Rust",
+    );
+    let one_back = Vocabulary::from_yaml(&one.to_yaml()).expect("a well-formed term reads back");
+    assert_eq!(one_back, one);
 }
 
 fn manifest_dir() -> PathBuf {

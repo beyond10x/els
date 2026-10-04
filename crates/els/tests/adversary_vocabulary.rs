@@ -92,11 +92,22 @@ const STORY_TABLE: &[(&str, Category, Marking)] = &[
     ("accepted", Category::OutcomeId, Marking::Core),
 ];
 
-/// The story declares exactly its table: no term outside it may exist in the vocabulary.
-/// Kills the mutant "add an undeclared term", which the unit's suite leaves green.
+/// The vocabulary opens with exactly the story's table, in its order; later stories append their
+/// own terms after it (`story:vocabulary-yaml-source`) and assert those themselves.
 #[test]
 fn adversary_vocabulary_is_exactly_the_story_table() {
-    let declared: BTreeSet<(&str, String, String)> = vocabulary::terms()
+    let terms = vocabulary::terms();
+    assert!(terms.len() >= 35, "{} terms", terms.len());
+    let first = &terms[..35];
+    assert_eq!(
+        first
+            .iter()
+            .map(|t| (t.id, t.category, t.marking))
+            .collect::<Vec<_>>(),
+        STORY_TABLE.to_vec(),
+        "the first 35 terms are not the story table in its order"
+    );
+    let declared: BTreeSet<(&str, String, String)> = first
         .iter()
         .map(|t| (t.id, format!("{:?}", t.category), t.marking.to_string()))
         .collect();
@@ -104,7 +115,6 @@ fn adversary_vocabulary_is_exactly_the_story_table() {
         .iter()
         .map(|(id, c, m)| (*id, format!("{c:?}"), m.to_string()))
         .collect();
-    assert_eq!(vocabulary::terms().len(), 35);
     let extra: Vec<_> = declared.difference(&table).collect();
     let missing: Vec<_> = table.difference(&declared).collect();
     assert!(
