@@ -9,6 +9,7 @@ case:
   protocol: incident.response
   artifacts:
     service: {revision: s1}
+    release: {revision: r42}
 
 states:
   - id: initial
@@ -95,6 +96,40 @@ states:
       service: s2
     add_authority: []
     add_evidence: []
+    expect:
+      claims:
+        impact.bounded: unknown
+        service.healthy: unknown
+        cause.identified: unknown
+      obligations:
+        restore_service: open
+      actions:
+        metrics.inspect: admissible
+        logs.search: admissible
+        release.inspect: admissible
+        traffic.shift: approval-required
+        release.rollback: admissible
+        emergency.leave: blocked
+
+  - id: release-observed
+    add_authority: []
+    add_evidence:
+      - observed_at: "2026-10-04T11:35:00Z"
+        record:
+          format: canon-evidence/1
+          id: release-health-1
+          kind: operational_observation
+          result: healthy
+          subject: release
+          subject_revision: r42
+      - observed_at: "2026-10-04T11:36:00Z"
+        record:
+          format: canon-evidence/1
+          id: release-impact-1
+          kind: impact_assessment
+          result: bounded
+          subject: release
+          subject_revision: r42
     expect:
       claims:
         impact.bounded: unknown

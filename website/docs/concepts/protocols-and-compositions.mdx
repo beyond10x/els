@@ -36,7 +36,7 @@ the cause.
 claims:
   service.healthy:
     true_when:
-      evidence: {kind: operational_observation, result: healthy}
+      evidence: {kind: operational_observation, result: healthy, subject: service}
   cause.identified:
     true_when:
       evidence: {kind: cause_analysis, result: identified}
