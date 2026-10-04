@@ -1,0 +1,22 @@
+format: protocol/1
+
+protocol:
+  id: smoke
+  revision: 1
+  description: the smallest protocol the fixture harness compiles and evaluates
+
+artifacts:
+  service:
+    description: the running service a case concerns
+
+evidence_kinds:
+  operational_observation:
+    description: an observation of the running system
+
+claims:
+  service.healthy:
+    description: the service is running healthily
+    true_when:
+      evidence:
+        kind: operational_observation
+        result: healthy
