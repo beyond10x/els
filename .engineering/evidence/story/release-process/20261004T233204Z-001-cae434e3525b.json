@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-04T23:32:04Z",
+  "actor": "human:timo",
+  "artifact": "story:release-process",
+  "kind": "story",
+  "revision": 8,
+  "change": {
+    "change": "evidence",
+    "kind": "verification",
+    "source": "Cargo.toml version 0.1.0; CHANGELOG.md [0.1.0]; AGENTS.md ## Releases",
+    "reference": "wave/2026-10-05-w23"
+  }
+}

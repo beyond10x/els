@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-04T23:32:04Z",
+  "actor": "human:timo",
+  "artifact": "story:release-process",
+  "kind": "story",
+  "revision": 8,
+  "change": {
+    "change": "evidence",
+    "kind": "test_result",
+    "source": "fmt 0, clippy 0, cargo test --workspace --no-fail-fast 0 (129 passed, 0 failed; --list 129), generate --check 0",
+    "reference": "impl/release-process"
+  }
+}
