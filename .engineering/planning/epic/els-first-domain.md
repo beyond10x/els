@@ -11,7 +11,7 @@ refs:
 relations:
 - serves: vision:governed-autonomy
 - serves: vision:O2
-revision: 2
+revision: 3
 transitions:
 - {from: "draft", to: "proposed", at: "2026-10-04T00:01:14Z", actor: "human:timo", revision: 2}
 ---
@@ -21,10 +21,11 @@ Engineering protocols on Canon. Covers TASKBOARD E-001 … E-009.
 
 ## Acceptance
 
-`software.change/1` and `incident.response/1` both compile and evaluate on the same Canon kernel; the
-software-change fixture reports `tests.pass = UNKNOWN` when test evidence exists only for R1 and the
-implementation is R2; the incident fixture can leave emergency mode with `cause_identified = UNKNOWN`.
+`task check` passes with the stories under this epic implemented, and the two protocol fixtures, run through the fixture harness `crates/els/tests/support/mod.rs` against one Canon crate and evaluator, report:
+
+1. Fixture `chg-1842` in `fixtures/software-change/` (the test `chg_1842_merge_waits_for_current_revision_tests_and_authority`): `software.change/1` compiles through Canon to a `canon-ir/1` document with no error, and starting from implementation revision R2 with one passing `test_result` bound to R1, evaluation reports `tests.pass = UNKNOWN`, not `FALSE`.
+2. Fixture `inc-492` in `fixtures/incident-response/` (the test `inc_492_leaves_emergency_while_cause_unknown`): `incident.response/1` compiles through the same Canon crate as item 1 to a `canon-ir/1` document with no error, and starting from an `impact_assessment` reporting impact bounded, an `operational_observation` reporting the service healthy after one reporting it unhealthy, and no `cause_analysis`, evaluation reports `cause.identified = UNKNOWN`, `restore_service` satisfied and `emergency.leave` admissible.
 
 ## Source
 
-Atlas `epic:ga-els-first-domain`; Atlas ADR 0068; `docs/design/engineering-lifecycle-specification-design.md`.
+Atlas `epic:ga-els-first-domain`; Atlas ADR 0068; `docs/design/engineering-lifecycle-specification-design.md`; round-2 review `review-result:els-first-domain-acceptance-r2`.
