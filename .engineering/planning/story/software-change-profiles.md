@@ -3,8 +3,8 @@ format: aep.planning-md/3
 id: story:software-change-profiles
 kind: story
 status: draft
-title: Define trivial, standard, elevated and critical profiles for software.change/1
-summary: Risk profiles change derived obligations and authority, not the lifecycle.
+title: Define risk profiles and bugfix/refactor change-kind profiles for software.change/1
+summary: Risk profiles change derived obligations and authority; the bugfix profile adds the red-first rule, refactor omits it; repository.edit splits into tests.write and implementation.edit.
 refs:
 - provider: canon
   reference: taskboard:C-001
@@ -22,14 +22,22 @@ scope:
 - confidence: inferred
   path: crates/els/src/vocabulary.rs
 - confidence: cited
+  path: crates/els/tests/adversary_vocabulary.rs
+- confidence: cited
   path: crates/els/tests/software_change_profiles.rs
+- confidence: cited
+  path: crates/els/tests/vocabulary.rs
+- confidence: cited
+  path: crates/els/tests/vocabulary_yaml.rs
+- confidence: cited
+  path: docs/examples/software-change.md
 - confidence: cited
   path: fixtures/software-change/
 - confidence: cited
   path: protocols/software-change/1.yaml
 - confidence: cited
   path: protocols/vocabulary.yaml
-revision: 6
+revision: 10
 ---
 ## Outcome
 
@@ -41,6 +49,18 @@ Design basis: `docs/design/engineering-lifecycle-specification-design.md` § 9 d
 
 Pressure test: the mechanism (case input → derived obligations) names no Git or pull-request concept, so `incident.response/1` could later key severity on it. Adding incident severity is not part of this story.
 
+## ADR 0084 addition: bugfix and refactor profiles
+
+Atlas ADR 0084 (accepted 2026-10-04, option C; on Atlas branch `plan/ga-adrs-0084-0085` at `38266148`, not yet on `main`) § Also needed: AEP's `applies_when: task.kind any_of [feature, bugfix]` (aep `principles/development/test-driven.yaml:18-20`) becomes a `software.change/1` profile. Same mechanism as the risk profiles: a second case input, `change_kind`, whose value selects the rule; no second lifecycle.
+
+- **`repository.edit` splits** into `tests.write` (no precondition) and `implementation.edit`, in `protocols/vocabulary.yaml` and in `protocols/software-change/1.yaml` (ADR 0084 § Decision 1). `repository.edit` leaves the vocabulary.
+- **`bugfix`** adds the red-first rule: `implementation.edit` has the precondition claim `regression.reproduced`, TRUE on a `test_result` whose result is `failed`. Commission then does not invoke `implementation.edit` before red exists (ADR 0082). Once Canon has the evidence-order predicate (canon `story:evidence-order-predicate`), the rule also requires the first `test_result` to precede the first implementation change; that tightening is a later change to this protocol, not part of this story.
+- **`refactor`** omits the rule: `implementation.edit` has no red-first precondition.
+- Not added: `feature`. AEP's principle covers it, ADR 0084 names only `bugfix` and `refactor`.
+- Telling a test edit from an implementation edit needs a path scope on capabilities (ADR 0084 § Decision 1, ADR 0083 § Open; canon `story:capability-scope`). Until then the split is by action id only.
+
+**Gap.** A precondition that holds only under one `change_kind` needs case inputs in `protocol/1`, the same gap § Canon capability names for `risk`.
+
 ## Scope
 
 - `protocols/software-change/1.yaml`
@@ -48,6 +68,8 @@ Pressure test: the mechanism (case input → derived obligations) names no Git o
 - `protocols/vocabulary.yaml`
 - `crates/els/src/vocabulary.rs` (inferred: the reader's term categories)
 - `crates/els/tests/software_change_profiles.rs` (new)
+- `crates/els/tests/vocabulary.rs`, `crates/els/tests/vocabulary_yaml.rs`, `crates/els/tests/adversary_vocabulary.rs` (each lists `repository.edit` as an expected term; the split replaces it)
+- `docs/examples/software-change.md` (names `repository.edit` in its example output)
 
 ## Shared surface
 
@@ -59,11 +81,11 @@ It is also the first story after `story:vocabulary-yaml-source` to edit `protoco
 
 Atlas ADR 0080 (draft). The first commit changes the following, and nothing else:
 
-- `protocols/software-change/1.yaml`, adding the `risk` case input and its derived obligations;
-- the fixture `profiles` in `fixtures/software-change/`, with the expectations in § Acceptance;
+- `protocols/software-change/1.yaml`, adding the `risk` and `change_kind` case inputs, the obligations derived from `risk`, the split of `repository.edit` into `tests.write` and `implementation.edit`, the claim `regression.reproduced` and the `bugfix` precondition on `implementation.edit`;
+- the fixtures `profiles` and `change-kinds` in `fixtures/software-change/`, with the expectations in § Acceptance;
 - `crates/els/tests/software_change_profiles.rs`.
 
-On that commit `profiles_nest_open_obligations` fails at item 4. `risk`, `trivial`, `standard`, `elevated` and `critical` do not yet resolve in the vocabulary, and the reader has no category for them. The implementation commit adds the terms to `protocols/vocabulary.yaml` and the categories to `crates/els/src/vocabulary.rs`, without changing the protocol YAML or the fixture.
+On that commit `profiles_nest_open_obligations` fails at items 4 and 8. `risk`, `trivial`, `standard`, `elevated`, `critical`, `change_kind`, `bugfix`, `refactor`, `tests.write`, `implementation.edit` and `regression.reproduced` do not yet resolve in the vocabulary, `repository.edit` still does, and the reader has no category for case inputs or profiles. The implementation commit adds and removes the terms in `protocols/vocabulary.yaml`, the categories in `crates/els/src/vocabulary.rs`, the expected-term lists in the three vocabulary test files and the action names in `docs/examples/software-change.md`, without changing the protocol YAML or the fixtures.
 
 ## Canon capability
 
@@ -83,7 +105,11 @@ The test `profiles_nest_open_obligations` in `crates/els/tests/software_change_p
 2. Starting from that fixture, the four open-obligation sets the evaluations report are pairwise different.
 3. Starting from that fixture, each open-obligation set strictly contains the set of the profile below it: trivial ⊂ standard ⊂ elevated ⊂ critical.
 4. Starting from `protocols/vocabulary.yaml` as this story leaves it, read through `crates/els/src/vocabulary.rs`, each of `risk`, `trivial`, `standard`, `elevated` and `critical` resolves to exactly one vocabulary entry.
+5. Starting from the fixture `change-kinds` (implementation revision R1, no authority decision, one fixed evaluation instant) with `change_kind` `bugfix` and no evidence, `tests.write` is admissible and `implementation.edit` is blocked naming `regression.reproduced`.
+6. Starting from `change-kinds` with `change_kind` `bugfix` and one `test_result` whose result is `failed`, `implementation.edit` is admissible.
+7. Starting from `change-kinds` with `change_kind` `refactor` and no evidence, `implementation.edit` is admissible.
+8. Starting from `protocols/vocabulary.yaml` as this story leaves it, each of `change_kind`, `bugfix`, `refactor`, `tests.write`, `implementation.edit` and `regression.reproduced` resolves to exactly one vocabulary entry, and `repository.edit` resolves to none.
 
 ## Source
 
-TASKBOARD E-003; Atlas ADR 0077 point 3 (draft); `docs/design/engineering-lifecycle-specification-design.md` § 6.6, § 9, § 10, § 27; round-1 review `review-result:els-first-domain-parallel-safety-r1`.
+TASKBOARD E-003; Atlas ADR 0084 § Decision 1 and § Also needed; aep `principles/development/test-driven.yaml:18-20,26`; Atlas ADR 0077 point 3 (draft); `docs/design/engineering-lifecycle-specification-design.md` § 6.6, § 9, § 10, § 27; round-1 review `review-result:els-first-domain-parallel-safety-r1`.
