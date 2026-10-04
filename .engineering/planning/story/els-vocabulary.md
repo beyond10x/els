@@ -25,7 +25,7 @@ scope:
   path: docs/examples/incident-response.md
 - confidence: cited
   path: docs/examples/software-change.md
-revision: 10
+revision: 12
 transitions:
 - {from: "draft", to: "proposed", at: "2026-10-04T01:17:40Z", actor: "human:timo", revision: 6, decided_on: {"recorded":{"review_outcome":4}}}
 - {from: "proposed", to: "active", at: "2026-10-04T01:17:41Z", actor: "human:timo", revision: 7, decided_on: {"recorded":{"review_outcome":4}}}
@@ -58,7 +58,7 @@ These are every term `story:software-change-protocol` and `story:incident-respon
 
 ### Terms later stories add
 
-Each later story adds the terms it introduces to `crates/els/src/vocabulary.rs`, adds them to the exact term table in `crates/els/tests/adversary_vocabulary.rs` (which pins the vocabulary to the declared set), and says so in its own body:
+Each later story adds the terms it introduces to `protocols/vocabulary.yaml` and says so in its own body. Since story:vocabulary-yaml-source (wave 2026-10-04-w3) the terms live in `protocols/vocabulary.yaml`; the tests pin the first 35 entries and later stories assert their own terms:
 
 | story | terms it adds |
 |---|---|
@@ -97,5 +97,7 @@ The test `vocabulary_declares_first_domain_terms` in `crates/els/tests/vocabular
 ## Source
 
 TASKBOARD E-001 (Atlas `docs/design/governed-autonomy/TASKBOARD.md` § ELS); Atlas ADR 0068; Canon `docs/design/canon-protocol-calculus-design.md` § 16.2, § 18; `docs/design/engineering-lifecycle-specification-design.md` § 9–§ 10; `docs/examples/`; round-1 reviews `review-result:els-first-domain-acceptance-r1`, `review-result:els-first-domain-design-r1`, `review-result:els-first-domain-parallel-safety-r1`; round-2 review `review-result:els-first-domain-design-r2` (harness and protocol layout moved to `story:fixture-harness`).
+
+
 
 

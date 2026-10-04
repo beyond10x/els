@@ -2,7 +2,7 @@
 format: aep.planning-md/3
 id: story:ml-protocol-shape-decision
 kind: story
-status: draft
+status: implemented
 title: Decide the shape of the ML research protocol
 summary: 'Decision record, not a build: own protocol or profile, its artifacts, claims and outcomes mapped to Canon.'
 refs:
@@ -19,7 +19,11 @@ relations:
 scope:
 - confidence: cited
   path: .engineering/planning/architecture-decision-record/ml-protocol-shape.md
-revision: 4
+revision: 7
+transitions:
+- {from: "draft", to: "proposed", at: "2026-10-04T02:18:12Z", actor: "human:timo", revision: 5, decided_on: {"recorded":{"review_outcome":1}}}
+- {from: "proposed", to: "active", at: "2026-10-04T02:18:12Z", actor: "human:timo", revision: 6, decided_on: {"recorded":{"review_outcome":1}}}
+- {from: "active", to: "implemented", at: "2026-10-04T02:41:25Z", actor: "human:timo", revision: 7, decided_on: {"recorded":{"test_result":1,"review_outcome":1,"verification":1}}}
 ---
 ## Outcome
 

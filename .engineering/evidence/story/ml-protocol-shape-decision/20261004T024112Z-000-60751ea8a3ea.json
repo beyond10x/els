@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-04T02:41:12Z",
+  "actor": "human:timo",
+  "artifact": "story:ml-protocol-shape-decision",
+  "kind": "story",
+  "revision": 6,
+  "change": {
+    "change": "evidence",
+    "kind": "verification",
+    "source": "aep plan artifact show architecture-decision-record:ml-protocol-shape",
+    "reference": "accepted; decides story:ml-protocol-shape-decision; states own protocol ml.experiment/1 at protocols/ml-experiment/1.yaml; maps artifacts, claims and outcomes to Canon C-001..C-011 or named gaps; VERIFIED"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-04T02:41:11Z",
+  "actor": "human:timo",
+  "artifact": "story:vocabulary-yaml-source",
+  "kind": "story",
+  "revision": 6,
+  "change": {
+    "change": "evidence",
+    "kind": "test_result",
+    "source": "whole gate on wave/2026-10-04-w3 at 8700b11: fmt, clippy -D warnings, test (21 passed, 0 failed); every step exit 0",
+    "reference": "ga-wave-2026-10-04-w3/els-integration-gate.log"
+  }
+}

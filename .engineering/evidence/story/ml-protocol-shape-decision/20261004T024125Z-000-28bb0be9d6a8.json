@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-04T02:41:25Z",
+  "actor": "human:timo",
+  "artifact": "story:ml-protocol-shape-decision",
+  "kind": "story",
+  "revision": 6,
+  "change": {
+    "change": "evidence",
+    "kind": "test_result",
+    "source": "aep plan artifact validate; aep plan artifact show architecture-decision-record:ml-protocol-shape",
+    "reference": "store valid (30 artifacts); record accepted and decides the story; acceptance items 1-5 checked against its body"
+  }
+}

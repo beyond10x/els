@@ -2,7 +2,7 @@
 format: aep.planning-md/3
 id: story:vocabulary-yaml-source
 kind: story
-status: draft
+status: implemented
 title: Move the engineering vocabulary to protocols/vocabulary.yaml
 summary: The 35 vocabulary terms become released YAML data; vocabulary.rs becomes its typed reader.
 refs:
@@ -24,7 +24,11 @@ scope:
   path: crates/els/tests/vocabulary_yaml.rs
 - confidence: cited
   path: protocols/vocabulary.yaml
-revision: 3
+revision: 7
+transitions:
+- {from: "draft", to: "proposed", at: "2026-10-04T02:18:12Z", actor: "human:timo", revision: 4}
+- {from: "proposed", to: "active", at: "2026-10-04T02:18:12Z", actor: "human:timo", revision: 5}
+- {from: "active", to: "implemented", at: "2026-10-04T02:41:12Z", actor: "human:timo", revision: 7, decided_on: {"recorded":{"test_result":1,"review_outcome":3,"verification":1}}}
 ---
 ## Outcome
 
@@ -45,7 +49,7 @@ The story adds the YAML parsing dependencies to `crates/els/Cargo.toml` (inferre
 
 ## Shared surface
 
-`protocols/vocabulary.yaml` is created here. Later stories add their terms to it in this order: `story:software-change-profiles` → `story:software-change-negative-outcomes` → `story:ess-conformance-evidence` → `story:security-independence-rules` → `story:rollback-verification-rule`. `crates/els/src/vocabulary.rs` is rewritten here, and later `story:software-change-profiles`, `story:software-change-negative-outcomes` and `story:security-independence-rules` add to it the term categories their terms need. `crates/els/Cargo.toml` and `Cargo.lock` are edited here and later by `story:protocol-registry`, which comes after it through `story:fixture-harness` and the protocol stories. `story:fixture-harness` depends on this story. This story does not edit `crates/els/tests/vocabulary.rs` or `crates/els/tests/adversary_vocabulary.rs`.
+`protocols/vocabulary.yaml` is created here. Later stories add their terms to it in this order: `story:software-change-profiles` → `story:software-change-negative-outcomes` → `story:ess-conformance-evidence` → `story:security-independence-rules` → `story:rollback-verification-rule`. `crates/els/src/vocabulary.rs` is rewritten here, and later `story:software-change-profiles`, `story:software-change-negative-outcomes` and `story:security-independence-rules` add to it the term categories their terms need. `crates/els/Cargo.toml` and `Cargo.lock` are edited here and later by `story:protocol-registry`, which comes after it through `story:fixture-harness` and the protocol stories. `story:fixture-harness` depends on this story. This story does not edit `crates/els/tests/vocabulary.rs`; it relaxes one assertion in `crates/els/tests/adversary_vocabulary.rs` (coordinator decision, wave 2026-10-04-w3, below).
 
 ## Protocol first
 
@@ -59,11 +63,12 @@ Atlas ADR 0080 (draft). The first commit adds `protocols/vocabulary.yaml` with t
 
 The test `vocabulary_yaml_is_the_source` in `crates/els/tests/vocabulary_yaml.rs` passes under `task check`. It expects:
 
-1. Starting from `protocols/vocabulary.yaml`, the file holds exactly 35 entries, and their (id, category, marking, meaning) equal the 35 terms of `crates/els/src/vocabulary.rs` at `13d180f`. The test carries that list as its expected value.
+1. Starting from `protocols/vocabulary.yaml`, the first 35 entries of the file, in order, have (id, category, marking, meaning) equal to the 35 terms of `crates/els/src/vocabulary.rs` at `13d180f`. The test carries that list as its expected value.
 2. Starting from the same file, `vocabulary::terms()` returns exactly those 35 entries in file order, and `vocabulary::lookup` finds each of them.
 3. Starting from the text of `protocols/vocabulary.yaml` with one term appended (`example_term`, an evidence kind, marked core), reading that text through the same typed reader returns 36 entries and `lookup("example_term")` finds the new one. No Rust source changes.
-4. Starting from this story's tree, `crates/els/tests/vocabulary.rs` and `crates/els/tests/adversary_vocabulary.rs` pass unedited.
+4. Starting from this story's tree, `crates/els/tests/vocabulary.rs` and `crates/els/tests/adversary_vocabulary.rs` pass; `adversary_vocabulary.rs` changes only in pinning the first 35 terms instead of exactly 35. Coordinator decision (wave 2026-10-04-w3): later stories append terms, so no test pins the total; each later story asserts its own terms.
 
 ## Source
 
 Operator decision 2026-10-04, Atlas ADR 0077 point 3 (draft); `story:els-vocabulary`; `crates/els/src/vocabulary.rs` at `13d180f`.
+
