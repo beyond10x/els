@@ -1,0 +1,54 @@
+---
+title: "Showcase: one night of governed design"
+sidebar_label: Showcase
+sidebar_position: 4
+description: A real night of agentic engineering work, read as cases under ELS-style protocols.
+---
+
+import session from '@site/static/showcase/2026-10-04/data.json';
+
+On the night of 4 October 2026, between 00:56 and 04:30 UTC, an operator, a design session, an
+orchestrator session and its sub-agents took a run of design decisions and shipped several product
+sites. Read afterwards, almost every piece of that work was a case under a protocol of the kind ELS
+declares: a question became a decision only once it was recorded, a change merged only after its
+checks passed on the revision being merged, a red check was repaired before anything else moved,
+and a site was published only from a merged, verified commit.
+
+The work falls into four protocols, named the way ELS names them:
+
+| Protocol | What a case of it is |
+|---|---|
+| `design.decision/1` | A question taken to a recorded decision: analysis, the operator's decision, a draft, the record. |
+| `software.change/1` | A change implemented, proven on the current revision by its checks, reviewed and merged. |
+| `ci.repair/1` | A failing check investigated and repaired, interrupting whatever the session was doing. |
+| `release.source/1` | A merged commit published, and the published result verified against that commit. |
+
+None of these protocols ships in ELS yet: `software.change/1` is planned, and the other three are
+named here for what the night shows. See [Protocols](./protocols/index.md) for what is shipped.
+
+## The night in numbers
+
+<SessionKpis data={session} />
+
+## The full replay
+
+The replay shows every lane, every case and every decision step on one timeline, with the
+composition the sessions implied.
+
+**[Open the full replay →](pathname:///showcase/2026-10-04/)**
+
+<iframe
+  src="/els/showcase/2026-10-04/"
+  title="One night of governed design, replayed"
+  loading="lazy"
+  style={{width: '100%', height: '960px', border: '1px solid var(--ifm-color-emphasis-300)', borderRadius: '8px'}}
+></iframe>
+
+## Where the data comes from
+
+The data is a hand-compiled session record: message and tool-call timestamps from the agent host's
+session record, and pull request opened and merged times. It is not the output of a shipped tool.
+The Metaharness session miner (decision record 0088) is meant to produce this record in future.
+Participants are named by role: the operator is `human:operator`, and the orchestrating session is
+the orchestrator session. The record itself is published beside the replay as
+[`data.json`](pathname:///showcase/2026-10-04/data.json).
