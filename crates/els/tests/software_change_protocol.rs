@@ -12,7 +12,9 @@ mod support;
 use std::collections::BTreeSet;
 
 use b10x_canon::ir::Ir;
-use b10x_canon::model::{ActionId, ClaimId, Decision, ExclusionReason, Predicate, Truth};
+use b10x_canon::model::{
+    ActionId, ClaimId, Decision, ExclusionReason, OutcomeId, Predicate, Truth,
+};
 use b10x_els::vocabulary::{self, Category};
 use support::Fixture;
 
@@ -85,6 +87,26 @@ fn outcome(decision: &Decision, id: &str) -> String {
         .as_str()
         .unwrap_or_else(|| panic!("the decision has no outcome `{id}`: {section}"))
         .to_owned()
+}
+
+/// The claim reasons Canon's decision gives a blocked outcome `id`, each `<claim>=<value>`.
+fn outcome_reasons(decision: &Decision, id: &str) -> Vec<String> {
+    let section = decision
+        .outcomes
+        .as_ref()
+        .expect("the decision has an outcomes section");
+    section[id]["reasons"]
+        .as_array()
+        .unwrap_or_else(|| panic!("outcome `{id}` gives no reasons: {section}"))
+        .iter()
+        .map(|reason| {
+            let claim = reason["claim"]
+                .as_str()
+                .unwrap_or_else(|| panic!("a reason that is not a claim: {reason}"));
+            let value = reason["value"].as_str().expect("a claim reason's value");
+            format!("{claim}={value}")
+        })
+        .collect()
 }
 
 /// The actions that need neither a claim nor authority.
@@ -212,6 +234,63 @@ fn chg_1842_merge_waits_for_current_revision_tests_and_authority() {
         .collect();
     assert_eq!(produces, ["test_result"]);
 
+    // Reading the repository and running the tests are reads; editing and merging are writes.
+    let effect = |action: &str| {
+        ir.actions[&ActionId::new(action)]
+            .effect
+            .as_ref()
+            .map(|effect| effect.as_str().to_owned())
+    };
+    for read in ["repository.inspect", "tests.run"] {
+        assert_eq!(effect(read).as_deref(), Some("read"), "{read}");
+    }
+    for write in ["repository.edit", "repository.merge"] {
+        assert_eq!(effect(write).as_deref(), Some("write"), "{write}");
+    }
+
+    // `accepted` needs every one of a realized objective, a healthy deployment and a release
+    // proven from the verified implementation (design § 9 reaches `accepted` only through
+    // `candidate` and `released`).
+    let accepted = &ir.outcomes[&OutcomeId::new("accepted")].requires;
+    let Predicate::All(required) = accepted else {
+        panic!("accepted requires a conjunction: {accepted:?}");
+    };
+    let mut tested: Vec<(&str, Truth)> = required
+        .iter()
+        .map(|member| match member {
+            Predicate::Claim(test) => (test.claim.as_str(), test.is),
+            other => panic!("accepted requires claim tests only: {other:?}"),
+        })
+        .collect();
+    tested.sort();
+    assert_eq!(
+        tested,
+        [
+            ("deployment.healthy", Truth::True),
+            ("objective.realized", Truth::True),
+            ("release.proven", Truth::True),
+        ]
+    );
+    let (claims, kinds) = reached(ir, accepted);
+    assert_eq!(
+        claims,
+        [
+            "deployment.healthy",
+            "implementation.verified",
+            "objective.realized",
+            "release.proven",
+        ]
+    );
+    assert_eq!(
+        kinds,
+        [
+            "build_provenance",
+            "objective_observation",
+            "operational_observation",
+            "test_result",
+        ]
+    );
+
     let fixture = Fixture::load(CHG_1842).unwrap_or_else(|error| panic!("{CHG_1842}: {error}"));
     assert_eq!(fixture.protocol_path(), path);
     assert_eq!(fixture.at(), "2026-10-04T12:00:00Z");
@@ -221,7 +300,15 @@ fn chg_1842_merge_waits_for_current_revision_tests_and_authority() {
     assert_eq!(compiled_again.canon_ir(), compiled.canon_ir());
     assert_eq!(
         fixture.states(),
-        ["initial", "tests-pass-r2", "merge-approved"]
+        [
+            "initial",
+            "tests-pass-r2",
+            "merge-approved",
+            "review-rejected",
+            "objective-unmet",
+            "deployment-unhealthy",
+            "tests-fail-r2",
+        ]
     );
     let decide = |state: &str| {
         fixture
@@ -241,6 +328,7 @@ fn chg_1842_merge_waits_for_current_revision_tests_and_authority() {
     };
 
     // 2. Implementation revision R2, one passing test result bound to R1, no authority decision.
+    //    The running deployment is observed healthy; that alone does not accept the change.
     let initial = decide("initial");
     assert_eq!(claim(&initial, "tests.pass"), Truth::Unknown);
     assert_eq!(claim(&initial, "implementation.verified"), Truth::Unknown);
@@ -249,7 +337,13 @@ fn chg_1842_merge_waits_for_current_revision_tests_and_authority() {
         assert_eq!(action(&initial, open), "admissible", "{open}");
     }
     assert_eq!(action(&initial, "repository.merge"), "blocked");
+    assert_eq!(claim(&initial, "deployment.healthy"), Truth::True);
+    assert_eq!(claim(&initial, "objective.realized"), Truth::Unknown);
     assert_eq!(outcome(&initial, "accepted"), "blocked");
+    assert_eq!(
+        outcome_reasons(&initial, "accepted"),
+        ["objective.realized=unknown", "release.proven=unknown"]
+    );
 
     // 3. A passing test result bound to R2 arrives; merging now waits only for authority.
     let tested = decide("tests-pass-r2");
@@ -266,6 +360,27 @@ fn chg_1842_merge_waits_for_current_revision_tests_and_authority() {
     assert_eq!(claim(&approved, "implementation.verified"), Truth::True);
     assert_eq!(action(&approved, "repository.merge"), "admissible");
     assert_eq!(outcome(&approved, "accepted"), "blocked");
+
+    // Each result-qualified claim is decided by its evidence's result, not by its presence: a
+    // rejecting review, an unmet objective, an unhealthy observation beside a healthy one and a
+    // failing test result beside a passing one never make their claim TRUE.
+    let rejected = decide("review-rejected");
+    assert_eq!(claim(&rejected, "implementation.reviewed"), Truth::False);
+    let unmet = decide("objective-unmet");
+    assert_eq!(claim(&unmet, "objective.realized"), Truth::False);
+    assert_eq!(claim(&unmet, "deployment.healthy"), Truth::True);
+    assert_eq!(outcome(&unmet, "accepted"), "blocked");
+    let unhealthy = decide("deployment-unhealthy");
+    assert_eq!(claim(&unhealthy, "deployment.healthy"), Truth::Unknown);
+    let failing = decide("tests-fail-r2");
+    assert_eq!(claim(&failing, "tests.pass"), Truth::Unknown);
+    assert_eq!(claim(&failing, "implementation.verified"), Truth::Unknown);
+    r1_excluded(&failing);
+    // The grant stands, but the current revision is no longer verified.
+    assert_eq!(action(&failing, "repository.merge"), "blocked");
+    for state in [&rejected, &unmet, &unhealthy, &failing] {
+        assert_eq!(outcome(state, "accepted"), "blocked");
+    }
 
     // The fixture's own expectations are the ones above.
     assert_eq!(fixture.check(&compiled), Ok(()));

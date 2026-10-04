@@ -102,8 +102,11 @@ actions:
 
 outcomes:
   accepted:
-    description: the case closed with its result accepted
+    description: >-
+      the case closed with its result accepted; needs the release proven from the verified
+      implementation, the deployment healthy and the objective realized
     requires:
       all:
         - claim: objective.realized
         - claim: deployment.healthy
+        - claim: release.proven
