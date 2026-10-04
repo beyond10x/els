@@ -53,8 +53,8 @@ Each claim is TRUE, FALSE or UNKNOWN, established from evidence by its predicate
 | Claim | Description | True when |
 |---|---|---|
 | `cause.identified` | the incident's cause is known | evidence `cause_analysis` with result `identified` |
-| `impact.bounded` | the incident's impact is known and contained | evidence `impact_assessment` with result `bounded` |
-| `service.healthy` | the service is running healthily | evidence `operational_observation` with result `healthy` |
+| `impact.bounded` | the incident's impact is known and contained | evidence `impact_assessment` with result `bounded` about `service` |
+| `service.healthy` | the service is running healthily | evidence `operational_observation` with result `healthy` about `service` |
 
 ## Obligations
 
@@ -76,4 +76,5 @@ The things whose revisions evidence is bound to.
 
 | Artifact | Description |
 |---|---|
+| `release` | a versioned, deployable unit of the system |
 | `service` | the running service a case concerns |
