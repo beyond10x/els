@@ -137,15 +137,13 @@ fn registry_lists_fetches_and_validates_every_builtin() {
 
     // 3. `get` refuses an unknown name and an unknown major, naming what was asked for.
     let unknown_name = registry::get("no-such-protocol", 1)
-        .err()
-        .expect("registry::get(\"no-such-protocol\", 1) is refused");
+        .expect_err("registry::get(\"no-such-protocol\", 1) is refused");
     assert!(
         unknown_name.to_string().contains("no-such-protocol"),
         "the refusal names no-such-protocol: {unknown_name}"
     );
     let unknown_major = registry::get("software-change", 99)
-        .err()
-        .expect("registry::get(\"software-change\", 99) is refused");
+        .expect_err("registry::get(\"software-change\", 99) is refused");
     assert!(
         unknown_major.to_string().contains("software-change@99"),
         "the refusal names software-change@99: {unknown_major}"
