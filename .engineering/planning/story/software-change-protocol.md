@@ -28,10 +28,12 @@ scope:
 - confidence: cited
   path: crates/els/tests/software_change_protocol.rs
 - confidence: cited
+  path: crates/els/tests/support/mod.rs
+- confidence: cited
   path: fixtures/software-change/
 - confidence: cited
   path: protocols/software-change/1.yaml
-revision: 6
+revision: 8
 ---
 ## Outcome
 
@@ -102,3 +104,12 @@ The test `chg_1842_merge_waits_for_current_revision_tests_and_authority` in `cra
 ## Source
 
 TASKBOARD E-002; Atlas ADR 0068; Atlas ADR 0077 point 3 (draft); `docs/design/engineering-lifecycle-specification-design.md` § 9, § 26; `docs/examples/software-change.md`; round-1 reviews `review-result:els-first-domain-design-r1`, `review-result:els-first-domain-parallel-safety-r1`.
+
+
+## From wave 2026-10-04-w6 (fixture-harness, adversary pass 1, F8)
+
+`els-fixture/1` as built expresses only claim expectations, refuses `authority:` keys, and never
+passes `observed_at` to Canon. This story's acceptance items on actions, obligations, authority and
+newer-observation-wins need the harness extended, so `crates/els/tests/support/mod.rs` is in its
+scope, and it needs the Canon capabilities behind them (canon story:obligations, story:action-admissibility,
+story:outcomes, story:evidence-freshness) on canon `main` before it starts.

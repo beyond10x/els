@@ -32,10 +32,12 @@ scope:
 - confidence: cited
   path: crates/els/tests/incident_response_protocol.rs
 - confidence: cited
+  path: crates/els/tests/support/mod.rs
+- confidence: cited
   path: fixtures/incident-response/
 - confidence: cited
   path: protocols/incident-response/1.yaml
-revision: 6
+revision: 8
 ---
 ## Outcome
 
@@ -100,3 +102,12 @@ The test `inc_492_leaves_emergency_while_cause_unknown` in `crates/els/tests/inc
 ## Source
 
 TASKBOARD E-004; Atlas ADR 0068; Atlas ADR 0077 point 3 (draft); Canon `docs/design/canon-protocol-calculus-design.md` § 18; `docs/examples/incident-response.md`; round-1 reviews `review-result:els-first-domain-acceptance-r1`, `review-result:els-first-domain-parallel-safety-r1`.
+
+
+## From wave 2026-10-04-w6 (fixture-harness, adversary pass 1, F8)
+
+`els-fixture/1` as built expresses only claim expectations, refuses `authority:` keys, and never
+passes `observed_at` to Canon. This story's acceptance items on actions, obligations, authority and
+newer-observation-wins need the harness extended, so `crates/els/tests/support/mod.rs` is in its
+scope, and it needs the Canon capabilities behind them (canon story:obligations, story:action-admissibility,
+story:outcomes, story:evidence-freshness) on canon `main` before it starts.

@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-04T04:11:39Z",
+  "actor": "human:timo",
+  "artifact": "story:fixture-harness",
+  "kind": "story",
+  "revision": 6,
+  "change": {
+    "change": "evidence",
+    "kind": "verification",
+    "source": "harness_compiles_and_evaluates_smoke_fixture: phase-1 commit d4c8970 vs treatment f53a826",
+    "reference": "ga-wave-2026-10-04-w6/els-fixture-harness/scratch/phase1-red.log: phase 1 exit 101 (no support module); treatment 5 passed; VERIFIED"
+  }
+}

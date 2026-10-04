@@ -2,7 +2,7 @@
 format: aep.planning-md/3
 id: story:fixture-harness
 kind: story
-status: draft
+status: implemented
 title: Add the compile-and-evaluate fixture harness
 summary: One harness loads a fixture, compiles a protocol through Canon and evaluates it; proven on a smoke fixture.
 refs:
@@ -23,7 +23,11 @@ scope:
   path: crates/els/tests/support/mod.rs
 - confidence: cited
   path: fixtures/smoke/
-revision: 4
+revision: 7
+transitions:
+- {from: "draft", to: "proposed", at: "2026-10-04T03:45:03Z", actor: "human:timo", revision: 5}
+- {from: "proposed", to: "active", at: "2026-10-04T03:45:03Z", actor: "human:timo", revision: 6}
+- {from: "active", to: "implemented", at: "2026-10-04T04:11:39Z", actor: "human:timo", revision: 7, decided_on: {"recorded":{"test_result":1,"review_outcome":3,"verification":1}}}
 ---
 ## Outcome
 

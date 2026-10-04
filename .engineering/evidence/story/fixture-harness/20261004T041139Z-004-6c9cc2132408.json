@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-04T04:11:39Z",
+  "actor": "human:timo",
+  "artifact": "story:fixture-harness",
+  "kind": "story",
+  "revision": 6,
+  "change": {
+    "change": "evidence",
+    "kind": "test_result",
+    "source": "whole gate on wave/2026-10-04-w6 at 16438bc: fmt, clippy -D warnings, test (54 passed, 0 failed); every step exit 0",
+    "reference": "ga-wave-2026-10-04-w6/els-integration-gate.log"
+  }
+}
