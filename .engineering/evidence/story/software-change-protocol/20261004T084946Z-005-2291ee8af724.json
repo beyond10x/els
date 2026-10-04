@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-04T08:49:46Z",
+  "actor": "human:timo",
+  "artifact": "story:software-change-protocol",
+  "kind": "story",
+  "revision": 14,
+  "change": {
+    "change": "evidence",
+    "kind": "test_result",
+    "source": "cargo test --workspace --locked: 94 passed, 0 failed",
+    "reference": "https://github.com/beyond10x/els/commit/7dfb633"
+  }
+}

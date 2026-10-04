@@ -2,7 +2,7 @@
 format: aep.planning-md/3
 id: story:software-change-protocol
 kind: story
-status: draft
+status: implemented
 title: Define software.change/1 on Canon
 summary: Delivery protocol compiled and evaluated by Canon, with revision-bound implementation evidence and merge authority.
 refs:
@@ -26,6 +26,12 @@ relations:
 - depends_on: story:fixture-harness
 scope:
 - confidence: cited
+  path: Cargo.lock
+- confidence: cited
+  path: crates/els-docs/src/graph.rs
+- confidence: cited
+  path: crates/els-docs/src/protocol.rs
+- confidence: cited
   path: crates/els/tests/software_change_protocol.rs
 - confidence: cited
   path: crates/els/tests/support/mod.rs
@@ -33,7 +39,11 @@ scope:
   path: fixtures/software-change/
 - confidence: cited
   path: protocols/software-change/1.yaml
-revision: 8
+revision: 15
+transitions:
+- {from: "draft", to: "proposed", at: "2026-10-04T06:51:23Z", actor: "human:timo", revision: 9, decided_on: {"recorded":{"review_outcome":1}}}
+- {from: "proposed", to: "active", at: "2026-10-04T06:51:23Z", actor: "human:timo", revision: 10, decided_on: {"recorded":{"review_outcome":1}}}
+- {from: "active", to: "implemented", at: "2026-10-04T08:49:46Z", actor: "human:timo", revision: 15, decided_on: {"recorded":{"test_result":1,"review_outcome":5,"verification":1}}}
 ---
 ## Outcome
 
@@ -113,3 +123,28 @@ passes `observed_at` to Canon. This story's acceptance items on actions, obligat
 newer-observation-wins need the harness extended, so `crates/els/tests/support/mod.rs` is in its
 scope, and it needs the Canon capabilities behind them (canon story:obligations, story:action-admissibility,
 story:outcomes, story:evidence-freshness) on canon `main` before it starts.
+
+## Coordinator decisions (wave 2026-10-04-w9)
+
+- Baseline under Atlas ADR 0080's data-only clause: `chg_1842_merge_waits_for_current_revision_tests_and_authority`
+  passed on its first run against Canon 8fc260a and the wave-8 harness; the spec commit is the only
+  commit and no implementation commit follows. Three mutants of the protocol and fixture each turn it
+  red (merge precondition removed; R1 evidence bound to R2; authority denied).
+- Built on the wave-8 branch (story:incident-response-protocol and its harness).
+- The protocol declares an `accepted` outcome (design § 9); the test asserts it is blocked because the
+  harness has no `expect.outcomes` yet.
+
+### Adversary pass 1 decisions (wave 2026-10-04-w9)
+
+- F1 (blocks the unit): a `test_result` about any declared artifact at its current revision makes
+  `tests.pass` and `implementation.verified` TRUE, because Canon 8fc260a cannot bind an evidence match
+  to a subject. Waits for Canon story:subject-bound-evidence-match; then the protocol binds its
+  matches to `implementation` and the canon pin moves.
+- F2: `accepted` also requires `release.proven` (design § 9).
+- F3–F6: fixture states pin `accepted`'s conjunction, `tests.pass`'s result and the results of
+  the review, deployment and objective claims; each action's effect is asserted.
+
+- Pass-1 fixes in the tree (F2–F6; F6's adversary case removed as vacuous, the acceptance asserts
+  effects); `initial` carries a healthy deployment so the any-for-all mutant dies. Parked until Canon
+  story:subject-bound-evidence-match lands (F1); then bind the matches to `implementation`, bump the canon
+  pin, merge the wave-8 review fix ef43d05, and run pass 2.
