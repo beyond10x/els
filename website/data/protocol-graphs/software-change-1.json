@@ -1,0 +1,254 @@
+{
+  "edges": [
+    {
+      "from": "action:tests.run",
+      "kind": "produces",
+      "to": "evidence:test_result"
+    },
+    {
+      "from": "evidence:operational_observation",
+      "kind": "establishes",
+      "qualifier": "healthy about deployment",
+      "to": "claim:deployment.healthy"
+    },
+    {
+      "from": "evidence:code_review",
+      "kind": "establishes",
+      "qualifier": "approved about implementation",
+      "to": "claim:implementation.reviewed"
+    },
+    {
+      "from": "evidence:test_result",
+      "kind": "establishes",
+      "qualifier": "pass about implementation",
+      "to": "claim:implementation.verified"
+    },
+    {
+      "from": "evidence:objective_observation",
+      "kind": "establishes",
+      "qualifier": "satisfied about intent",
+      "to": "claim:objective.realized"
+    },
+    {
+      "from": "claim:implementation.verified",
+      "kind": "supports",
+      "to": "claim:release.proven"
+    },
+    {
+      "from": "evidence:build_provenance",
+      "kind": "establishes",
+      "qualifier": "about release",
+      "to": "claim:release.proven"
+    },
+    {
+      "from": "evidence:test_result",
+      "kind": "establishes",
+      "qualifier": "pass about implementation",
+      "to": "claim:tests.pass"
+    },
+    {
+      "from": "claim:deployment.healthy",
+      "kind": "requires",
+      "to": "outcome:accepted"
+    },
+    {
+      "from": "claim:objective.realized",
+      "kind": "requires",
+      "to": "outcome:accepted"
+    },
+    {
+      "from": "claim:release.proven",
+      "kind": "requires",
+      "to": "outcome:accepted"
+    },
+    {
+      "from": "claim:implementation.verified",
+      "kind": "gates",
+      "to": "action:repository.merge"
+    }
+  ],
+  "format": "b10x-protocol-graph/1",
+  "nodes": [
+    {
+      "description": "change the repository's working revision",
+      "effect": "write",
+      "id": "action:repository.edit",
+      "kind": "action",
+      "name": "repository.edit"
+    },
+    {
+      "description": "read the repository",
+      "effect": "read",
+      "id": "action:repository.inspect",
+      "kind": "action",
+      "name": "repository.inspect"
+    },
+    {
+      "capabilities": [
+        "repository.merge"
+      ],
+      "description": "merge a revision into the repository's mainline; needs the current implementation revision verified and authority to merge, never only a connection to the repository host",
+      "effect": "write",
+      "id": "action:repository.merge",
+      "kind": "action",
+      "name": "repository.merge",
+      "predicate": {
+        "claim": {
+          "id": "implementation.verified"
+        }
+      }
+    },
+    {
+      "description": "run the tests against an implementation revision",
+      "effect": "read",
+      "id": "action:tests.run",
+      "kind": "action",
+      "name": "tests.run"
+    },
+    {
+      "description": "the record of how a release was built from an implementation",
+      "id": "evidence:build_provenance",
+      "kind": "evidence",
+      "name": "build_provenance"
+    },
+    {
+      "description": "a review of an implementation revision; its result is approved or rejected",
+      "id": "evidence:code_review",
+      "kind": "evidence",
+      "name": "code_review"
+    },
+    {
+      "description": "an observation of whether the intent's objective is met; its result is satisfied or unsatisfied",
+      "id": "evidence:objective_observation",
+      "kind": "evidence",
+      "name": "objective_observation"
+    },
+    {
+      "description": "an observation of the running system; its result is healthy or unhealthy",
+      "id": "evidence:operational_observation",
+      "kind": "evidence",
+      "name": "operational_observation"
+    },
+    {
+      "description": "the result of running tests against an implementation revision; its result is pass or fail",
+      "id": "evidence:test_result",
+      "kind": "evidence",
+      "name": "test_result"
+    },
+    {
+      "description": "the deployment is running healthily",
+      "id": "claim:deployment.healthy",
+      "kind": "claim",
+      "name": "deployment.healthy",
+      "predicate": {
+        "evidence": {
+          "kind": "operational_observation",
+          "result": "healthy"
+        }
+      }
+    },
+    {
+      "description": "the current implementation revision is reviewed",
+      "id": "claim:implementation.reviewed",
+      "kind": "claim",
+      "name": "implementation.reviewed",
+      "predicate": {
+        "evidence": {
+          "kind": "code_review",
+          "result": "approved"
+        }
+      }
+    },
+    {
+      "description": "the current implementation revision is verified",
+      "id": "claim:implementation.verified",
+      "kind": "claim",
+      "name": "implementation.verified",
+      "predicate": {
+        "all": [
+          {
+            "evidence": {
+              "kind": "test_result",
+              "result": "pass"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "description": "the intent's objective is met",
+      "id": "claim:objective.realized",
+      "kind": "claim",
+      "name": "objective.realized",
+      "predicate": {
+        "evidence": {
+          "kind": "objective_observation",
+          "result": "satisfied"
+        }
+      }
+    },
+    {
+      "description": "the current implementation revision is verified and the current release revision carries build provenance; nothing here ties that release to the verified implementation revision",
+      "id": "claim:release.proven",
+      "kind": "claim",
+      "name": "release.proven",
+      "predicate": {
+        "all": [
+          {
+            "claim": {
+              "id": "implementation.verified"
+            }
+          },
+          {
+            "evidence": {
+              "kind": "build_provenance"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "description": "the tests pass for the current implementation revision",
+      "id": "claim:tests.pass",
+      "kind": "claim",
+      "name": "tests.pass",
+      "predicate": {
+        "evidence": {
+          "kind": "test_result",
+          "result": "pass"
+        }
+      }
+    },
+    {
+      "description": "the case closed with its result accepted; needs the release proven, the deployment healthy and the objective realized",
+      "id": "outcome:accepted",
+      "kind": "outcome",
+      "name": "accepted",
+      "predicate": {
+        "all": [
+          {
+            "claim": {
+              "id": "deployment.healthy"
+            }
+          },
+          {
+            "claim": {
+              "id": "objective.realized"
+            }
+          },
+          {
+            "claim": {
+              "id": "release.proven"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "protocol": {
+    "description": "Deliver a change to a software system: implement it, verify the current implementation revision, merge it under authority, release and deploy it, and accept it once its objective is realized.",
+    "id": "software.change",
+    "revision": 1,
+    "source": "protocols/software-change/1.yaml"
+  }
+}
