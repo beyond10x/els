@@ -4,6 +4,7 @@
 
 use b10x_canon::model::ProtocolId;
 
+pub mod registry;
 pub mod vocabulary;
 
 pub const SOFTWARE_CHANGE_V1: &str = "software.change/1";

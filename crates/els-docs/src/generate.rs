@@ -36,12 +36,12 @@ pub struct Inputs {
     pub examples: Vec<Source>,
 }
 
-fn is_name(name: &str) -> bool {
-    name.starts_with(|c: char| c.is_ascii_lowercase())
-        && name
-            .chars()
-            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
-}
+/// The protocol name rule `crates/els/build.rs` and the `els` binary apply, from the same file.
+#[allow(dead_code)] // the generator uses the name rule only
+#[path = "../../els/src/builtin_name.rs"]
+mod builtin_name;
+
+use builtin_name::is_name;
 
 /// Every `<relative>/<name>/<major>.yaml` under `root`, sorted by name and major.
 fn sources(root: &Path, relative: &str) -> Result<Vec<Source>> {

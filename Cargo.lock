@@ -74,6 +74,7 @@ name = "b10x-els"
 version = "0.0.0"
 dependencies = [
  "b10x-canon",
+ "clap",
  "serde",
  "serde_yaml_ng",
 ]

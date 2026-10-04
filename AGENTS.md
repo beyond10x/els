@@ -62,6 +62,9 @@ published.
 - Planned in the AEP store under `.engineering/`, written only through `aep plan artifact`. Body
   drafts go in `.engineering/drafts/` (ignored).
 - Build with `CARGO_TARGET_DIR=$HOME/.cache/b10x-target/els` (the Taskfile sets it).
+  `crates/els/build.rs` embeds `protocols/`, so a target dir shared between checkouts can embed
+  another checkout's protocol files: give each worktree its own `CARGO_TARGET_DIR` before trusting
+  a gate run there.
 - Every commit and push is `b10x-bot[bot]`'s through `b10x-gates bot`; every GitHub write goes
   through `b10x-gates api`.
 - Use a managed worktree (`worktree create --repo els --purpose …`) for changes.
