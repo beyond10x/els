@@ -6,7 +6,8 @@
 //! `docs/examples/incident-response.md`: the operational incident leaves emergency mode on
 //! restoration evidence while its cause is still UNKNOWN. A state may set the case snapshot's
 //! artifact revisions: the rollback produces a new revision of the service, and the observations
-//! of the old revision no longer apply.
+//! of the old revision no longer apply. The release the rollback does not move is then observed
+//! healthy, which says nothing about the service (`story:incident-response-subject-binding`).
 
 mod support;
 
@@ -134,13 +135,12 @@ fn inc_492_leaves_emergency_while_cause_unknown() {
         ir.actions.keys().map(|id| id.as_str()).collect(),
     );
     let names = |ids: Vec<&str>| ids.into_iter().map(str::to_owned).collect::<Vec<_>>();
-    // A Canon evidence match names a kind and a result, not a subject, so every claim is about
-    // whatever artifact its evidence is about. The service is the one artifact declared: Canon
-    // refuses a record about anything else, and no other artifact's evidence can stand in for
-    // the service's.
+    // The service and the release are declared. Evidence about the release is admissible, and a
+    // match bound to the service reads none of it (Canon `EvidenceMatch::subject`); step 5 checks
+    // the bindings.
     assert_eq!(
         names(ir.artifacts.keys().map(|id| id.as_str()).collect()),
-        ["service"]
+        ["release", "service"]
     );
     assert_eq!(
         names(ir.claims.keys().map(|id| id.as_str()).collect()),
@@ -202,6 +202,7 @@ fn inc_492_leaves_emergency_while_cause_unknown() {
             "cause-identified",
             "rollback-approved",
             "rolled-back",
+            "release-observed",
             "service-restored",
         ]
     );
@@ -259,6 +260,28 @@ fn inc_492_leaves_emergency_while_cause_unknown() {
         );
     }
 
+    // The release r42, which the rollback did not move, is observed healthy and its impact
+    // assessed bounded, both at its current revision. Those records are about the release, not
+    // the service: they move no claim about the service, so the restoration stays open and
+    // emergency mode holds. They are not excluded either; they are simply not the service's.
+    let observed = decide("release-observed");
+    for about_service in ["impact.bounded", "service.healthy", "cause.identified"] {
+        assert_eq!(
+            claim(&observed, about_service),
+            claim(&rolled_back, about_service),
+            "a record about the release moved `{about_service}`"
+        );
+    }
+    assert_eq!(obligation(&observed, "restore_service"), "open");
+    assert_eq!(action(&observed, "emergency.leave"), "blocked");
+    for (claim, evidence) in old_revision {
+        assert_eq!(
+            excluded(&observed, claim),
+            [(evidence.to_owned(), ExclusionReason::RevisionMismatch)],
+            "{claim}"
+        );
+    }
+
     // 4. A healthy observation of the new revision arrives, with the impact assessed again on it
     //    and no cause analysis of it. The records of the old revision stay excluded.
     let restored = decide("service-restored");
@@ -274,6 +297,43 @@ fn inc_492_leaves_emergency_while_cause_unknown() {
             "{claim}"
         );
     }
+
+    // 5. Every evidence match names the artifact its kind is about: an impact assessment and an
+    //    operational observation are about the service. A cause analysis names no subject: the
+    //    design gives the kind none, and `release.inspect` produces one from a release.
+    let mut bindings = BTreeSet::new();
+    let mut collect = |predicate: &Predicate| {
+        predicate.visit(&mut |node| {
+            if let Predicate::Evidence(matching) = node {
+                bindings.insert((
+                    matching.kind.as_str().to_owned(),
+                    matching.subject.as_ref().map(|id| id.as_str().to_owned()),
+                ));
+            }
+        });
+    };
+    ir.claims
+        .values()
+        .for_each(|claim| collect(&claim.true_when));
+    ir.obligations
+        .values()
+        .for_each(|obligation| collect(&obligation.discharged_when));
+    ir.actions
+        .values()
+        .for_each(|action| collect(&action.precondition));
+    ir.outcomes
+        .values()
+        .filter_map(|outcome| outcome.requires.predicate())
+        .for_each(&mut collect);
+    let service = Some("service".to_owned());
+    assert_eq!(
+        bindings.into_iter().collect::<Vec<_>>(),
+        [
+            ("cause_analysis".to_owned(), None),
+            ("impact_assessment".to_owned(), service.clone()),
+            ("operational_observation".to_owned(), service),
+        ]
+    );
 
     // The fixture's own expectations are the ones above.
     assert_eq!(fixture.check(&compiled), Ok(()));
@@ -324,6 +384,7 @@ fn inc_492_harness_reports_obligation_and_action_differences() {
             vec![
                 "state `rollback-approved`: evaluation refused: malformed-input: ",
                 "state `rolled-back`: evaluation refused: malformed-input: ",
+                "state `release-observed`: evaluation refused: malformed-input: ",
                 "state `service-restored`: evaluation refused: malformed-input: ",
             ],
         ),

@@ -10,6 +10,8 @@ protocol:
 artifacts:
   service:
     description: the running service a case concerns
+  release:
+    description: a versioned, deployable unit of the system
 
 evidence_kinds:
   impact_assessment:
