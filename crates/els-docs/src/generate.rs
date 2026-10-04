@@ -1,5 +1,5 @@
-//! Every derived page of the site: one page per protocol document, the protocols index and the
-//! vocabulary, written into the Docusaurus docs tree and checked there for drift.
+//! Every derived input of the site: one page and one `b10x-protocol-graph/1` document per protocol,
+//! the protocols index and the vocabulary, written below `website/` and checked there for drift.
 
 use std::collections::BTreeMap;
 use std::fmt::Write as _;
@@ -11,11 +11,16 @@ use b10x_canon::ir::compile;
 use b10x_canon::model::{one_line, parse};
 use b10x_els::vocabulary::{Category, Marking, Vocabulary};
 
+use crate::graph;
 use crate::markdown::{HEADER, code, text, yaml_string};
 use crate::protocol::{self, Source};
 
-/// The Docusaurus docs tree, relative to the repository root.
-pub const DOCS: &str = "website/docs";
+/// The Docusaurus site, relative to the repository root. Generated files live in its `docs/protocols/`,
+/// `docs/vocabulary.md` and `data/protocol-graphs/`.
+pub const SITE: &str = "website";
+
+/// The generated graph documents, relative to the site. Every file here is generated.
+const GRAPHS: &str = "data/protocol-graphs";
 
 /// What generation reads from the repository.
 pub struct Inputs {
@@ -174,7 +179,7 @@ fn index_page(shipped: &[Shipped]) -> String {
     out
 }
 
-/// Every generated file, by path below `website/docs/`.
+/// Every generated file, by path below `website/`.
 pub fn render(inputs: &Inputs) -> Result<BTreeMap<String, String>> {
     let vocabulary = Vocabulary::from_yaml(&inputs.vocabulary)
         .map_err(|error| anyhow!("protocols/vocabulary.yaml: {error}"))?;
@@ -186,9 +191,17 @@ pub fn render(inputs: &Inputs) -> Result<BTreeMap<String, String>> {
             let problems: Vec<String> = problems.iter().map(ToString::to_string).collect();
             anyhow!("{}: {}", source.path, problems.join("; "))
         })?;
-        files.insert(source.file(), protocol::page(&ir, source));
+        files.insert(
+            format!("docs/{}", source.file()),
+            protocol::page(&ir, source),
+        );
+        let graph = graph::document(&ir, &source.path);
+        files.insert(
+            source.graph_file(),
+            serde_json::to_string_pretty(&graph)? + "\n",
+        );
         files
-            .entry(format!("protocols/{}/_category_.yml", source.name))
+            .entry(format!("docs/protocols/{}/_category_.yml", source.name))
             .or_insert_with(|| {
                 format!(
                     "{HEADER}\nlabel: {}\n",
@@ -208,25 +221,30 @@ pub fn render(inputs: &Inputs) -> Result<BTreeMap<String, String>> {
             ),
         });
     }
-    files.insert("protocols/index.md".to_owned(), index_page(&shipped));
+    files.insert("docs/protocols/index.md".to_owned(), index_page(&shipped));
     files.insert(
-        "protocols/_category_.yml".to_owned(),
+        "docs/protocols/_category_.yml".to_owned(),
         format!("{HEADER}\nlabel: Protocols\nposition: 2\n"),
     );
-    files.insert("vocabulary.md".to_owned(), vocabulary_page(&vocabulary));
+    files.insert(
+        "docs/vocabulary.md".to_owned(),
+        vocabulary_page(&vocabulary),
+    );
     Ok(files)
 }
 
-fn is_generated(content: &str) -> bool {
-    content.lines().take(2).any(|line| line == HEADER)
+/// Whether a file at `path` (relative to the site) is one this generator writes: every file under
+/// the graph directory, and any other file headed with [`HEADER`].
+fn is_generated(path: &str, content: &str) -> bool {
+    path.starts_with(&format!("{GRAPHS}/")) || content.lines().take(2).any(|line| line == HEADER)
 }
 
-/// Writes `files` into `docs` and removes generated files that are no longer produced; with
+/// Writes `files` into the site and removes generated files that are no longer produced; with
 /// `check`, changes nothing and fails when the tree differs. Returns what differed.
-pub fn apply(docs: &Path, files: &BTreeMap<String, String>, check: bool) -> Result<Vec<String>> {
+pub fn apply(site: &Path, files: &BTreeMap<String, String>, check: bool) -> Result<Vec<String>> {
     let mut drift = Vec::new();
     for (path, content) in files {
-        let target = docs.join(path);
+        let target = site.join(path);
         match fs::read_to_string(&target) {
             Ok(existing) if existing == *content => continue,
             Ok(_) => drift.push(format!("{path} differs from a fresh render")),
@@ -239,9 +257,10 @@ pub fn apply(docs: &Path, files: &BTreeMap<String, String>, check: bool) -> Resu
             fs::write(&target, content).with_context(|| format!("writing {}", target.display()))?;
         }
     }
-    let mut pending = vec!["protocols".to_owned()];
+    let roots = ["docs/protocols", GRAPHS];
+    let mut pending: Vec<String> = roots.iter().map(|root| (*root).to_owned()).collect();
     while let Some(dir) = pending.pop() {
-        let Ok(entries) = fs::read_dir(docs.join(&dir)) else {
+        let Ok(entries) = fs::read_dir(site.join(&dir)) else {
             continue;
         };
         for entry in entries {
@@ -257,15 +276,15 @@ pub fn apply(docs: &Path, files: &BTreeMap<String, String>, check: bool) -> Resu
             if files.contains_key(&path) {
                 continue;
             }
-            if fs::read_to_string(entry.path()).is_ok_and(|content| is_generated(&content)) {
+            if fs::read_to_string(entry.path()).is_ok_and(|content| is_generated(&path, &content)) {
                 drift.push(format!("{path} is generated but no longer produced"));
                 if !check {
                     fs::remove_file(entry.path())?;
                 }
             }
         }
-        if !check && dir != "protocols" {
-            let _ = fs::remove_dir(docs.join(&dir));
+        if !check && !roots.contains(&dir.as_str()) {
+            let _ = fs::remove_dir(site.join(&dir));
         }
     }
     if check && !drift.is_empty() {
@@ -280,7 +299,7 @@ pub fn apply(docs: &Path, files: &BTreeMap<String, String>, check: bool) -> Resu
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::graph;
+    use serde_json::Value;
 
     const VOCABULARY: &str = include_str!("../../../protocols/vocabulary.yaml");
     /// Canon's `fixtures/investigation/protocol.yaml` at canon `32ae0d0`, copied byte for byte.
@@ -317,63 +336,83 @@ mod tests {
     #[test]
     fn the_investigation_fixture_page_shows_every_claim_action_and_outcome() {
         let files = with(vec![source("investigation", INVESTIGATION)]).expect("renders");
-        let page = &files["protocols/investigation/1.md"];
+        let page = &files["docs/protocols/investigation/1.mdx"];
+        let graph: Value =
+            serde_json::from_str(&files["data/protocol-graphs/investigation-1.json"])
+                .expect("json");
         let ir = compile(&parse(INVESTIGATION).expect("parses")).expect("compiles");
-        let mermaid = page
-            .split("```mermaid\n")
-            .nth(1)
-            .and_then(|tail| tail.split("```").next())
-            .expect("a mermaid block");
-        let groups: [Vec<String>; 4] = [
-            ir.claims.keys().map(ToString::to_string).collect(),
-            ir.actions.keys().map(ToString::to_string).collect(),
-            ir.outcomes.keys().map(ToString::to_string).collect(),
-            ir.evidence_kinds.keys().map(ToString::to_string).collect(),
+        let groups: [(&str, Vec<String>); 4] = [
+            ("claim", ir.claims.keys().map(ToString::to_string).collect()),
+            (
+                "action",
+                ir.actions.keys().map(ToString::to_string).collect(),
+            ),
+            (
+                "outcome",
+                ir.outcomes.keys().map(ToString::to_string).collect(),
+            ),
+            (
+                "evidence",
+                ir.evidence_kinds.keys().map(ToString::to_string).collect(),
+            ),
         ];
-        assert_eq!(groups.each_ref().map(Vec::len), [1, 2, 1, 2]);
-        for id in groups.iter().flatten() {
-            assert!(
-                page.contains(&format!("\n| `{id}` |")),
-                "{id} has no table row"
+        assert_eq!(groups.each_ref().map(|(_, ids)| ids.len()), [1, 2, 1, 2]);
+        for (kind, ids) in &groups {
+            assert_eq!(
+                &graph::names(&graph, kind),
+                ids,
+                "{kind} nodes in the graph"
             );
-            assert!(
-                mermaid.contains(&format!("[\"{id}\"]")),
-                "{id} has no graph node"
-            );
+            for id in ids {
+                assert!(
+                    page.contains(&format!("\n| `{id}` |")),
+                    "{id} has no table row"
+                );
+            }
         }
         assert!(page.starts_with(&format!(
             "---\n{HEADER}\nid: \"1\"\ntitle: \"investigation/1\"\n"
         )));
         assert!(page.contains("slug: /protocols/investigation/1\n"));
+        assert!(
+            page.contains("import graph from '@site/data/protocol-graphs/investigation-1.json';\n")
+        );
+        assert!(page.contains("<ProtocolGraph data={graph} />"));
         assert!(page.contains("all of (evidence `falsification_attempt` with result `survived`; evidence `supporting_observation`)"));
-        assert_eq!(graph::edges(&ir).len(), 5);
-        assert_eq!(mermaid.matches(" --> ").count(), 5);
-        assert!(mermaid.contains("a0 --> e0") && mermaid.contains("a1 --> e1"));
+        assert_eq!(graph["edges"].as_array().map(Vec::len), Some(5));
+        assert_eq!(
+            graph["protocol"]["source"],
+            "protocols/investigation/1.yaml"
+        );
         assert!(page.contains("*This protocol declares no obligations.*"));
-        let index = &files["protocols/index.md"];
-        assert!(index.contains("[`investigation/1`](./investigation/1.md)"));
+        let index = &files["docs/protocols/index.md"];
+        assert!(index.contains("[`investigation/1`](./investigation/1.mdx)"));
         assert!(!index.contains("No protocol is shipped yet"));
     }
 
     #[test]
     fn with_no_protocol_the_index_says_none_is_shipped() {
         let files = with(Vec::new()).expect("renders");
-        assert!(files["protocols/index.md"].contains("**No protocol is shipped yet.**"));
+        assert!(files["docs/protocols/index.md"].contains("**No protocol is shipped yet.**"));
         assert_eq!(
             files.keys().map(String::as_str).collect::<Vec<_>>(),
             [
-                "protocols/_category_.yml",
-                "protocols/index.md",
-                "vocabulary.md"
+                "docs/protocols/_category_.yml",
+                "docs/protocols/index.md",
+                "docs/vocabulary.md"
             ]
         );
-        assert!(files.values().all(|content| is_generated(content)));
+        assert!(
+            files
+                .iter()
+                .all(|(path, content)| is_generated(path, content))
+        );
     }
 
     #[test]
     fn the_vocabulary_page_lists_every_term() {
         let files = with(Vec::new()).expect("renders");
-        let page = &files["vocabulary.md"];
+        let page = &files["docs/vocabulary.md"];
         let vocabulary = Vocabulary::from_yaml(VOCABULARY).expect("vocabulary");
         assert_eq!(vocabulary.terms().len(), 35);
         for term in vocabulary.terms() {
@@ -402,44 +441,56 @@ mod tests {
     fn document_text_cannot_inject_markup() {
         let hostile = INVESTIGATION.replace(
             "description: Try to refute the explanation.",
-            "description: \"<script>x</script> | [link](/elsewhere)\"",
+            "description: \"<script>x</script> {danger} | [link](/elsewhere)\"",
         );
         let files = with(vec![source("investigation", &hostile)]).expect("escaped, not refused");
-        let page = &files["protocols/investigation/1.md"];
-        assert!(page.contains("\\<script\\>x\\</script\\> \\| \\[link\\](/elsewhere)"));
+        let page = &files["docs/protocols/investigation/1.mdx"];
+        assert!(
+            page.contains("\\<script\\>x\\</script\\> \\{danger\\} \\| \\[link\\](/elsewhere)")
+        );
     }
 
     #[test]
-    fn the_committed_docs_are_fresh_renders() {
+    fn the_committed_site_inputs_are_fresh_renders() {
         let files = render(&Inputs::read(root()).expect("reads protocols/")).expect("renders");
-        apply(&root().join(DOCS), &files, true).expect("committed pages match a fresh render");
+        apply(&root().join(SITE), &files, true).expect("committed files match a fresh render");
     }
 
     #[test]
-    fn check_fails_on_a_hand_edit_or_a_stale_page_and_generate_repairs_both() {
-        let docs = scratch("drift");
+    fn check_fails_on_a_hand_edit_or_a_stale_file_and_generate_repairs_both() {
+        let site = scratch("drift");
         let files = with(vec![source("investigation", INVESTIGATION)]).expect("renders");
-        apply(&docs, &files, false).expect("writes");
-        assert!(apply(&docs, &files, true).expect("fresh").is_empty());
+        apply(&site, &files, false).expect("writes");
+        assert!(apply(&site, &files, true).expect("fresh").is_empty());
 
-        let page = docs.join("protocols/investigation/1.md");
+        let page = site.join("docs/protocols/investigation/1.mdx");
         let edited = fs::read_to_string(&page).expect("page") + "\nhand edit\n";
         fs::write(&page, edited).expect("edit");
-        let error = apply(&docs, &files, true).expect_err("drift").to_string();
+        let error = apply(&site, &files, true).expect_err("drift").to_string();
         assert!(
-            error.contains("protocols/investigation/1.md differs"),
+            error.contains("docs/protocols/investigation/1.mdx differs"),
             "{error}"
         );
 
         let without = with(Vec::new()).expect("renders");
-        let error = apply(&docs, &without, true).expect_err("stale").to_string();
-        assert!(
-            error.contains("protocols/investigation/1.md is generated but no longer produced"),
-            "{error}"
-        );
-        apply(&docs, &without, false).expect("repairs");
+        let error = apply(&site, &without, true).expect_err("stale").to_string();
+        for stale in [
+            "docs/protocols/investigation/1.mdx",
+            "data/protocol-graphs/investigation-1.json",
+        ] {
+            assert!(
+                error.contains(&format!("{stale} is generated but no longer produced")),
+                "{error}"
+            );
+        }
+        apply(&site, &without, false).expect("repairs");
         assert!(!page.exists());
-        assert!(apply(&docs, &without, true).expect("fresh").is_empty());
-        let _ = fs::remove_dir_all(&docs);
+        assert!(
+            !site
+                .join("data/protocol-graphs/investigation-1.json")
+                .exists()
+        );
+        assert!(apply(&site, &without, true).expect("fresh").is_empty());
+        let _ = fs::remove_dir_all(&site);
     }
 }

@@ -1,5 +1,5 @@
-//! Text from a document, made safe for CommonMark (the site reads `.md` files as CommonMark, not
-//! MDX) and for Mermaid labels.
+//! Text from a document, made safe for CommonMark and MDX: generated `.md` pages are read as
+//! CommonMark and `.mdx` protocol pages as MDX, and both honour backslash escapes.
 
 use b10x_canon::model::one_line;
 
@@ -58,23 +58,6 @@ pub fn yaml_string(source: &str) -> String {
     serde_json::Value::String(one_line(source)).to_string()
 }
 
-/// A Mermaid node label, written inside double quotes.
-pub fn mermaid_label(source: &str) -> String {
-    let mut out = String::new();
-    for c in one_line(source).chars() {
-        match c {
-            '#' => out.push_str("#35;"),
-            '"' => out.push_str("#quot;"),
-            '<' => out.push_str("#lt;"),
-            '>' => out.push_str("#gt;"),
-            '&' => out.push_str("#amp;"),
-            '`' => out.push_str("#96;"),
-            c => out.push(c),
-        }
-    }
-    out
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -87,6 +70,5 @@ mod tests {
         assert_eq!(code("`a"), "`` `a ``");
         assert_eq!(code("a|b"), "`a\\|b`");
         assert_eq!(yaml_string("say \"hi\""), "\"say \\\"hi\\\"\"");
-        assert_eq!(mermaid_label("a\"#<b>"), "a#quot;#35;#lt;b#gt;");
     }
 }

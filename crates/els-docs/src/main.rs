@@ -24,9 +24,9 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Action {
-    /// Render protocols and the vocabulary into `<root>/website/docs/`.
+    /// Render protocol pages, protocol graphs and the vocabulary into `<root>/website/`.
     Generate {
-        /// The repository root that holds `protocols/` and `website/docs/`.
+        /// The repository root that holds `protocols/` and `website/`.
         #[arg(long, default_value = ".")]
         root: PathBuf,
         /// Change nothing; fail when a generated page differs from a fresh render.
@@ -49,7 +49,7 @@ fn main() -> Result<()> {
         Action::Generate { root, check } => {
             let inputs = generate::Inputs::read(&root)?;
             let files = generate::render(&inputs)?;
-            let drift = generate::apply(&root.join(generate::DOCS), &files, check)?;
+            let drift = generate::apply(&root.join(generate::SITE), &files, check)?;
             if check {
                 println!(
                     "els-docs: {} generated files fresh ({} protocols)",

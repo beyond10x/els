@@ -1,9 +1,6 @@
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
-import docsSystemPlugin, {ecosystemFooterGroup, ecosystemNavbarItems} from '@beyond10x/docs-system/docusaurus';
-
-const MONO_STACK =
-  "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', 'Liberation Mono', monospace";
+import {withProductSite} from '@beyond10x/docs-system/product-site';
 
 const config: Config = {
   title: 'ELS',
@@ -22,17 +19,31 @@ const config: Config = {
   trailingSlash: false,
 
   onBrokenLinks: 'throw',
+  onBrokenAnchors: 'throw',
 
   markdown: {
     format: 'detect',
     hooks: {
       onBrokenMarkdownLinks: 'throw',
     },
-    mermaid: true,
   },
 
-  themes: ['@docusaurus/theme-mermaid'],
-  plugins: [docsSystemPlugin],
+  plugins: [
+    [
+      '@docusaurus/plugin-client-redirects',
+      {
+        // Paths are relative to baseUrl. The documentation moved under /docs/ when the landing page
+        // took /, so every earlier protocol and vocabulary URL keeps resolving.
+        createRedirects(existingPath: string) {
+          if (existingPath === '/docs/protocols' || existingPath.startsWith('/docs/protocols/')) {
+            return [existingPath.replace(/^\/docs\//, '/')];
+          }
+          if (existingPath === '/docs/vocabulary') return ['/vocabulary'];
+          return undefined;
+        },
+      },
+    ],
+  ],
 
   i18n: {
     defaultLocale: 'en',
@@ -45,63 +56,48 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          routeBasePath: '/',
+          routeBasePath: 'docs',
           editUrl: 'https://github.com/beyond10x/els/tree/main/website/',
         },
         blog: false,
-        theme: {
-          customCss: './src/css/custom.css',
-        },
       } satisfies Preset.Options,
     ],
   ],
 
   themeConfig: {
-    colorMode: {
-      respectPrefersColorScheme: true,
-    },
     navbar: {
       title: 'ELS',
       items: [
-        ...ecosystemNavbarItems(),
-        {type: 'docSidebar', sidebarId: 'docsSidebar', position: 'left', label: 'Documentation'},
-        {to: '/protocols', label: 'Protocols', position: 'left'},
-        {to: '/vocabulary', label: 'Vocabulary', position: 'left'},
-        {href: 'https://github.com/beyond10x/els', label: 'GitHub', position: 'right'},
+        {to: '/docs/', label: 'Documentation', position: 'left', activeBaseRegex: '^/els/docs/$'},
+        {to: '/docs/protocols', label: 'Protocols', position: 'left'},
+        {to: '/docs/vocabulary', label: 'Vocabulary', position: 'left'},
+        {href: 'https://github.com/beyond10x/els', label: 'GitHub ↗', position: 'right'},
       ],
     },
     footer: {
-      style: 'dark',
       links: [
-        ecosystemFooterGroup(),
         {
-          title: 'Documentation',
+          title: 'ELS',
           items: [
-            {label: 'What ELS is', to: '/'},
-            {label: 'Protocols', to: '/protocols'},
-            {label: 'Vocabulary', to: '/vocabulary'},
+            {label: 'What ELS is', to: '/docs/'},
+            {label: 'Protocols', to: '/docs/protocols'},
+            {label: 'Vocabulary', to: '/docs/vocabulary'},
+            {label: 'Source', href: 'https://github.com/beyond10x/els'},
           ],
         },
         {
-          title: 'Project',
+          title: 'Family',
           items: [
-            {label: 'Source', href: 'https://github.com/beyond10x/els'},
             {label: 'Canon', href: 'https://github.com/beyond10x/canon'},
+            {label: 'Commission', href: 'https://beyond10x.github.io/commission/'},
+            {label: 'Loom', href: 'https://beyond10x.github.io/loom/'},
+            {label: 'ESS', href: 'https://beyond10x.github.io/ess/'},
           ],
         },
       ],
-      copyright: 'ELS · Apache-2.0 · built with Docusaurus.',
-    },
-    prism: {
-      additionalLanguages: ['yaml', 'bash'],
-    },
-    mermaid: {
-      theme: {light: 'neutral', dark: 'dark'},
-      options: {
-        fontFamily: MONO_STACK,
-      },
+      copyright: 'A beyond10x project. ELS · Apache-2.0.',
     },
   } satisfies Preset.ThemeConfig,
 };
 
-export default config;
+export default withProductSite(config, {landing: './product.json', mark: 'E'});
