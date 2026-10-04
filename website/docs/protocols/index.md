@@ -10,3 +10,4 @@ Every protocol ELS ships is a Canon `protocol/1` document at `protocols/<name>/<
 | Protocol | Revision | Description | Declares |
 |---|---|---|---|
 | [`incident.response/1`](./incident-response/1.mdx) | 1 | Respond to an incident: restore the service and leave emergency mode on restoration evidence, while the investigation of its cause progresses on its own. | 3 claims, 6 actions, 1 obligations, 0 outcomes |
+| [`software.change/1`](./software-change/1.mdx) | 1 | Deliver a change to a software system: implement it, verify the current implementation revision, merge it under authority, release and deploy it, and accept it once its objective is realized. | 6 claims, 4 actions, 0 obligations, 1 outcomes |

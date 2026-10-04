@@ -1,0 +1,109 @@
+format: protocol/1
+
+protocol:
+  id: software.change
+  revision: 1
+  description: >-
+    Deliver a change to a software system: implement it, verify the current implementation
+    revision, merge it under authority, release and deploy it, and accept it once its objective is
+    realized.
+
+artifacts:
+  intent:
+    description: what the change is meant to achieve
+  system_specification:
+    description: the specified behaviour of the system concerned
+  plan:
+    description: the intended steps toward the intent
+  implementation:
+    description: a revision of the code that realizes the plan
+  release:
+    description: a versioned, deployable unit of the system
+  deployment:
+    description: a release running in an environment
+
+evidence_kinds:
+  test_result:
+    description: >-
+      the result of running tests against an implementation revision; its result is pass or fail
+  code_review:
+    description: a review of an implementation revision; its result is approved or rejected
+  operational_observation:
+    description: an observation of the running system; its result is healthy or unhealthy
+  build_provenance:
+    description: the record of how a release was built from an implementation
+  objective_observation:
+    description: >-
+      an observation of whether the intent's objective is met; its result is satisfied or
+      unsatisfied
+
+claims:
+  tests.pass:
+    description: the tests pass for the current implementation revision
+    true_when:
+      evidence:
+        kind: test_result
+        result: pass
+  implementation.reviewed:
+    description: the current implementation revision is reviewed
+    true_when:
+      evidence:
+        kind: code_review
+        result: approved
+  implementation.verified:
+    description: the current implementation revision is verified
+    true_when:
+      all:
+        - evidence:
+            kind: test_result
+            result: pass
+  release.proven:
+    description: the release comes from a verified implementation and carries current build provenance
+    true_when:
+      all:
+        - claim: implementation.verified
+        - evidence:
+            kind: build_provenance
+  deployment.healthy:
+    description: the deployment is running healthily
+    true_when:
+      evidence:
+        kind: operational_observation
+        result: healthy
+  objective.realized:
+    description: the intent's objective is met
+    true_when:
+      evidence:
+        kind: objective_observation
+        result: satisfied
+
+actions:
+  repository.inspect:
+    description: read the repository
+    effect: read
+  repository.edit:
+    description: change the repository's working revision
+    effect: write
+  tests.run:
+    description: run the tests against an implementation revision
+    effect: read
+    may_produce:
+      - evidence: test_result
+  repository.merge:
+    description: >-
+      merge a revision into the repository's mainline; needs the current implementation revision
+      verified and authority to merge, never only a connection to the repository host
+    effect: write
+    precondition:
+      claim: implementation.verified
+      is: true
+    requires:
+      - capability: repository.merge
+
+outcomes:
+  accepted:
+    description: the case closed with its result accepted
+    requires:
+      all:
+        - claim: objective.realized
+        - claim: deployment.healthy
