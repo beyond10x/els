@@ -44,12 +44,14 @@ claims:
       evidence:
         kind: test_result
         result: pass
+        subject: implementation
   implementation.reviewed:
     description: the current implementation revision is reviewed
     true_when:
       evidence:
         kind: code_review
         result: approved
+        subject: implementation
   implementation.verified:
     description: the current implementation revision is verified
     true_when:
@@ -57,25 +59,31 @@ claims:
         - evidence:
             kind: test_result
             result: pass
+            subject: implementation
   release.proven:
-    description: the release comes from a verified implementation and carries current build provenance
+    description: >-
+      the current implementation revision is verified and the current release revision carries
+      build provenance; nothing here ties that release to the verified implementation revision
     true_when:
       all:
         - claim: implementation.verified
         - evidence:
             kind: build_provenance
+            subject: release
   deployment.healthy:
     description: the deployment is running healthily
     true_when:
       evidence:
         kind: operational_observation
         result: healthy
+        subject: deployment
   objective.realized:
     description: the intent's objective is met
     true_when:
       evidence:
         kind: objective_observation
         result: satisfied
+        subject: intent
 
 actions:
   repository.inspect:
@@ -103,8 +111,8 @@ actions:
 outcomes:
   accepted:
     description: >-
-      the case closed with its result accepted; needs the release proven from the verified
-      implementation, the deployment healthy and the objective realized
+      the case closed with its result accepted; needs the release proven, the deployment healthy
+      and the objective realized
     requires:
       all:
         - claim: objective.realized

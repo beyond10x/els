@@ -295,6 +295,163 @@ fn a_test_result_about_another_artifact_does_not_verify_the_implementation() {
     );
 }
 
+/// The artifact each evidence kind is about, from design § 9 (`evidence:` section, `subject:`):
+/// `test_result` and `code_review` are about the implementation, `build_provenance` about the
+/// release, `operational_observation` about the deployment. § 9 declares no `objective_observation`
+/// evidence kind; its subject is `intent` because § 9's `intent` artifact is the only one that
+/// carries the objective (`artifacts:` section, `required: [objective, …]`).
+const ABOUT: [(&str, &str); 5] = [
+    ("test_result", "implementation"),
+    ("code_review", "implementation"),
+    ("build_provenance", "release"),
+    ("operational_observation", "deployment"),
+    ("objective_observation", "intent"),
+];
+
+/// Each declared artifact's revision in the CHG-1842 snapshot `case("R2")`.
+const CURRENT: [(&str, &str); 6] = [
+    ("intent", "i1"),
+    ("system_specification", "s1"),
+    ("plan", "p1"),
+    ("implementation", "R2"),
+    ("release", "v0"),
+    ("deployment", "d0"),
+];
+
+fn about(kind: &str) -> &'static str {
+    ABOUT
+        .iter()
+        .find(|(declared, _)| *declared == kind)
+        .unwrap_or_else(|| panic!("`ABOUT` names no subject for `{kind}`"))
+        .1
+}
+
+/// Where [`about`]'s answer for `kind` comes from.
+fn basis(kind: &str) -> &'static str {
+    match kind {
+        "objective_observation" => "the intent artifact's required objective field, design § 9",
+        _ => "the evidence kind's subject, design § 9",
+    }
+}
+
+fn current(artifact: &str) -> &'static str {
+    CURRENT
+        .iter()
+        .find(|(declared, _)| *declared == artifact)
+        .unwrap_or_else(|| panic!("the case has no artifact `{artifact}`"))
+        .1
+}
+
+/// Every evidence match the compiled protocol holds, as `(where, kind, result, subject)`, in claims,
+/// obligations, actions and outcomes.
+fn evidence_matches(ir: &Ir) -> Vec<(String, String, Option<String>, Option<String>)> {
+    let mut found = Vec::new();
+    let mut collect = |at: String, predicate: &Predicate| {
+        predicate.visit(&mut |node| {
+            if let Predicate::Evidence(matching) = node {
+                found.push((
+                    at.clone(),
+                    matching.kind.as_str().to_owned(),
+                    matching.result.clone(),
+                    matching.subject.as_ref().map(|id| id.as_str().to_owned()),
+                ));
+            }
+        });
+    };
+    for (id, claim) in &ir.claims {
+        collect(format!("claim {id}"), &claim.true_when);
+    }
+    for (id, obligation) in &ir.obligations {
+        collect(format!("obligation {id}"), &obligation.discharged_when);
+    }
+    for (id, action) in &ir.actions {
+        collect(format!("action {id}"), &action.precondition);
+    }
+    for (id, outcome) in &ir.outcomes {
+        if let Some(requires) = outcome.requires.predicate() {
+            collect(format!("outcome {id}"), requires);
+        }
+    }
+    found
+}
+
+/// F1, the class: every evidence match in `software.change/1` names, as its subject, the artifact
+/// its kind is about ([`ABOUT`]): for four kinds the subject § 9's `evidence:` section declares,
+/// for `objective_observation` the `intent` artifact, whose required `objective` field it observes
+/// (§ 9 declares no such evidence kind). A match without a subject reads a record of its kind about
+/// any declared artifact (Canon 8d1599e `EvidenceMatch::subject`).
+#[test]
+fn every_evidence_match_names_the_artifact_its_kind_is_about() {
+    let ir = shipped();
+    let matches = evidence_matches(&ir);
+    assert!(!matches.is_empty(), "the protocol matches evidence");
+    let unbound: Vec<String> = matches
+        .iter()
+        .filter(|(_, kind, _, subject)| subject.as_deref() != Some(about(kind)))
+        .map(|(at, kind, _, subject)| {
+            format!(
+                "{at}: {kind} about {subject:?}, its kind is about {} ({})",
+                about(kind),
+                basis(kind)
+            )
+        })
+        .collect();
+    assert_eq!(unbound, Vec::<String>::new());
+}
+
+/// F1, the class, by evaluation: for every claim's evidence match, a record of the matched kind and
+/// result about any other declared artifact, at that artifact's current revision, leaves the claim
+/// where it was. The other kinds are supplied about their own artifacts with the result their
+/// matches need, so a claim that also needs them (`release.proven` needs
+/// `implementation.verified`) is decided by the record under test alone.
+#[test]
+fn evidence_about_another_artifact_moves_no_claim() {
+    let ir = shipped();
+    let matches = evidence_matches(&ir);
+    let positive = |kind: &str| -> String {
+        matches
+            .iter()
+            .find(|(_, declared, _, _)| declared == kind)
+            .and_then(|(_, _, result, _)| result.clone())
+            .unwrap_or_else(|| "present".to_owned())
+    };
+    let mut moved = Vec::new();
+    for (at, kind, result, _) in &matches {
+        let Some(claim_id) = at.strip_prefix("claim ") else {
+            continue;
+        };
+        let baseline: Vec<EvidenceRecord> = ABOUT
+            .iter()
+            .filter(|(other, _)| other != kind)
+            .map(|(other, subject)| {
+                record(
+                    &format!("{other}-own"),
+                    other,
+                    &positive(other),
+                    subject,
+                    current(subject),
+                )
+            })
+            .collect();
+        let before = claim(&decide(&ir, &case("R2"), &baseline, None), claim_id);
+        for (artifact, revision) in CURRENT {
+            if artifact == about(kind) {
+                continue;
+            }
+            let mut evidence = baseline.clone();
+            let shown = result.clone().unwrap_or_else(|| "present".to_owned());
+            evidence.push(record("elsewhere", kind, &shown, artifact, revision));
+            let after = claim(&decide(&ir, &case("R2"), &evidence, None), claim_id);
+            if after != before {
+                moved.push(format!(
+                    "{claim_id}: {kind} {shown} about {artifact}@{revision} moved it {before:?} -> {after:?}"
+                ));
+            }
+        }
+    }
+    assert_eq!(moved, Vec::<String>::new());
+}
+
 /// Design § 9: `accepted` is the terminal state reached only from `observing`, which is reached
 /// only through `candidate` (`implementation.verified`) and `released` (`release.proven`). Canon
 /// has no states, so the outcome's `requires` is the only place that path can be kept. The

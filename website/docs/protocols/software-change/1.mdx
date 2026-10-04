@@ -52,12 +52,12 @@ Each claim is TRUE, FALSE or UNKNOWN, established from evidence by its predicate
 
 | Claim | Description | True when |
 |---|---|---|
-| `deployment.healthy` | the deployment is running healthily | evidence `operational_observation` with result `healthy` |
-| `implementation.reviewed` | the current implementation revision is reviewed | evidence `code_review` with result `approved` |
-| `implementation.verified` | the current implementation revision is verified | all of (evidence `test_result` with result `pass`) |
-| `objective.realized` | the intent's objective is met | evidence `objective_observation` with result `satisfied` |
-| `release.proven` | the release comes from a verified implementation and carries current build provenance | all of (`implementation.verified` is **TRUE**; evidence `build_provenance`) |
-| `tests.pass` | the tests pass for the current implementation revision | evidence `test_result` with result `pass` |
+| `deployment.healthy` | the deployment is running healthily | evidence `operational_observation` with result `healthy` about `deployment` |
+| `implementation.reviewed` | the current implementation revision is reviewed | evidence `code_review` with result `approved` about `implementation` |
+| `implementation.verified` | the current implementation revision is verified | all of (evidence `test_result` with result `pass` about `implementation`) |
+| `objective.realized` | the intent's objective is met | evidence `objective_observation` with result `satisfied` about `intent` |
+| `release.proven` | the current implementation revision is verified and the current release revision carries build provenance; nothing here ties that release to the verified implementation revision | all of (`implementation.verified` is **TRUE**; evidence `build_provenance` about `release`) |
+| `tests.pass` | the tests pass for the current implementation revision | evidence `test_result` with result `pass` about `implementation` |
 
 ## Obligations
 
@@ -71,7 +71,7 @@ The legitimate terminal interpretations of a case, and what each requires.
 
 | Outcome | Description | Requires |
 |---|---|---|
-| `accepted` | the case closed with its result accepted; needs the release proven from the verified implementation, the deployment healthy and the objective realized | all of (`deployment.healthy` is **TRUE**; `objective.realized` is **TRUE**; `release.proven` is **TRUE**) |
+| `accepted` | the case closed with its result accepted; needs the release proven, the deployment healthy and the objective realized | all of (`deployment.healthy` is **TRUE**; `objective.realized` is **TRUE**; `release.proven` is **TRUE**) |
 
 ## Artifacts
 

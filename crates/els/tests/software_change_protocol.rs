@@ -248,10 +248,12 @@ fn chg_1842_merge_waits_for_current_revision_tests_and_authority() {
         assert_eq!(effect(write).as_deref(), Some("write"), "{write}");
     }
 
-    // `accepted` needs every one of a realized objective, a healthy deployment and a release
-    // proven from the verified implementation (design § 9 reaches `accepted` only through
-    // `candidate` and `released`).
-    let accepted = &ir.outcomes[&OutcomeId::new("accepted")].requires;
+    // `accepted` needs every one of a realized objective, a healthy deployment and a proven
+    // release (design § 9 reaches `accepted` only through `candidate` and `released`).
+    let accepted = ir.outcomes[&OutcomeId::new("accepted")]
+        .requires
+        .predicate()
+        .expect("accepted requires a predicate, not an explicit decision");
     let Predicate::All(required) = accepted else {
         panic!("accepted requires a conjunction: {accepted:?}");
     };

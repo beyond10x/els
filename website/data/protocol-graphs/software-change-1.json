@@ -8,25 +8,25 @@
     {
       "from": "evidence:operational_observation",
       "kind": "establishes",
-      "qualifier": "healthy",
+      "qualifier": "healthy about deployment",
       "to": "claim:deployment.healthy"
     },
     {
       "from": "evidence:code_review",
       "kind": "establishes",
-      "qualifier": "approved",
+      "qualifier": "approved about implementation",
       "to": "claim:implementation.reviewed"
     },
     {
       "from": "evidence:test_result",
       "kind": "establishes",
-      "qualifier": "pass",
+      "qualifier": "pass about implementation",
       "to": "claim:implementation.verified"
     },
     {
       "from": "evidence:objective_observation",
       "kind": "establishes",
-      "qualifier": "satisfied",
+      "qualifier": "satisfied about intent",
       "to": "claim:objective.realized"
     },
     {
@@ -37,12 +37,13 @@
     {
       "from": "evidence:build_provenance",
       "kind": "establishes",
+      "qualifier": "about release",
       "to": "claim:release.proven"
     },
     {
       "from": "evidence:test_result",
       "kind": "establishes",
-      "qualifier": "pass",
+      "qualifier": "pass about implementation",
       "to": "claim:tests.pass"
     },
     {
@@ -187,7 +188,7 @@
       }
     },
     {
-      "description": "the release comes from a verified implementation and carries current build provenance",
+      "description": "the current implementation revision is verified and the current release revision carries build provenance; nothing here ties that release to the verified implementation revision",
       "id": "claim:release.proven",
       "kind": "claim",
       "name": "release.proven",
@@ -219,7 +220,7 @@
       }
     },
     {
-      "description": "the case closed with its result accepted; needs the release proven from the verified implementation, the deployment healthy and the objective realized",
+      "description": "the case closed with its result accepted; needs the release proven, the deployment healthy and the objective realized",
       "id": "outcome:accepted",
       "kind": "outcome",
       "name": "accepted",

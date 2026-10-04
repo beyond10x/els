@@ -4,7 +4,7 @@
 use std::fmt::Write as _;
 
 use b10x_canon::ir::Ir;
-use b10x_canon::model::{Predicate, Truth};
+use b10x_canon::model::{OutcomeRequirement, Predicate, Truth};
 
 use crate::markdown::{HEADER, code, text, yaml_string};
 
@@ -51,20 +51,30 @@ pub fn predicate(predicate: &Predicate) -> String {
             .join("; ")
     };
     match predicate {
-        Predicate::Evidence(matching) => match &matching.result {
-            None => format!("evidence {}", code(matching.kind.as_str())),
-            Some(result) => format!(
-                "evidence {} with result {}",
-                code(matching.kind.as_str()),
-                code(result)
-            ),
-        },
+        Predicate::Evidence(matching) => {
+            let mut line = format!("evidence {}", code(matching.kind.as_str()));
+            if let Some(result) = &matching.result {
+                line.push_str(&format!(" with result {}", code(result)));
+            }
+            if let Some(subject) = &matching.subject {
+                line.push_str(&format!(" about {}", code(subject.as_str())));
+            }
+            line
+        }
         Predicate::Claim(test) => format!("{} is {}", code(test.claim.as_str()), truth(test.is)),
         Predicate::All(members) if members.is_empty() => "always true".to_owned(),
         Predicate::Any(members) if members.is_empty() => "never true".to_owned(),
         Predicate::All(members) => format!("all of ({})", list(members)),
         Predicate::Any(members) => format!("any of ({})", list(members)),
         Predicate::Not(inner) => format!("not ({})", self::predicate(inner)),
+    }
+}
+
+/// What an outcome requires as one readable line: its predicate, or the explicit decision it needs.
+fn requirement(requirement: &OutcomeRequirement) -> String {
+    match requirement {
+        OutcomeRequirement::Predicate(requires) => predicate(requires),
+        OutcomeRequirement::Decision(name) => format!("decision {}", code(name.as_str())),
     }
 }
 
@@ -269,7 +279,7 @@ pub fn page(ir: &Ir, source: &Source) -> String {
                 vec![
                     code(id.as_str()),
                     description(&outcome.description),
-                    predicate(&outcome.requires),
+                    requirement(&outcome.requires),
                 ]
             })
             .collect(),
@@ -295,7 +305,7 @@ mod tests {
 
     fn claim_predicate(yaml: &str) -> String {
         let source = format!(
-            "format: protocol/1\nprotocol: {{id: p, revision: 1}}\nevidence_kinds: {{e: {{}}}}\nclaims:\n  a:\n    true_when: {{evidence: {{kind: e}}}}\n  b:\n    true_when: {yaml}\n"
+            "format: protocol/1\nprotocol: {{id: p, revision: 1}}\nartifacts: {{x: {{}}}}\nevidence_kinds: {{e: {{}}}}\nclaims:\n  a:\n    true_when: {{evidence: {{kind: e}}}}\n  b:\n    true_when: {yaml}\n"
         );
         let protocol = parse(&source).expect("parses");
         let (_, claim) = protocol.claims.iter().nth(1).expect("claim b");
@@ -309,6 +319,12 @@ mod tests {
                 "{any: [{not: {claim: a, is: unknown}}, {all: []}, {evidence: {kind: e, result: ok}}]}"
             ),
             "any of (not (`a` is **UNKNOWN**); always true; evidence `e` with result `ok`)"
+        );
+        assert_eq!(
+            claim_predicate(
+                "{all: [{evidence: {kind: e, result: ok, subject: x}}, {evidence: {kind: e, subject: x}}]}"
+            ),
+            "all of (evidence `e` with result `ok` about `x`; evidence `e` about `x`)"
         );
         assert_eq!(claim_predicate("{claim: a}"), "`a` is **TRUE**");
         assert_eq!(claim_predicate("{any: []}"), "never true");

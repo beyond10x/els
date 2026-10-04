@@ -3,7 +3,8 @@
 //!
 //! Nodes are ordered by kind (action, evidence, claim, outcome, obligation), then by name, and are
 //! identified as `<kind>:<name>`. Edges: `produces` (action → evidence kind it may produce),
-//! `establishes` (evidence kind → claim whose `true_when` matches it, qualified by the result),
+//! `establishes` (evidence kind → claim whose `true_when` matches it, qualified by the result and
+//! the subject),
 //! `supports` (claim → claim whose `true_when` tests it), `requires` (claim → outcome whose
 //! `requires` tests it, and claim → obligation whose `discharged_when` tests it) and `gates`
 //! (claim → action whose precondition tests it). The format's edge kinds are a closed set
@@ -13,20 +14,25 @@
 //! `true`, with polarity carried through `not`: under an odd number of `not`s, `{claim: c}` needs
 //! `false`, `{claim: c, is: false}` needs `true` and `{claim: c, is: unknown}` needs
 //! `not unknown`; an evidence edge under an odd number of `not`s is qualified `not <result>`, or
-//! `not present` for a match without a result. An outcome or a
-//! precondition that matches evidence directly keeps that match in its predicate; the format has no
-//! edge kind for it. A discharge predicate tests claims only: Canon refuses one that matches
+//! `not present` for a match without a result. A match bound to an artifact appends
+//! `about <subject>` to that qualifier (`pass about implementation`, `about release`), so two
+//! matches of one kind about different artifacts are two edges. A predicate's evidence match has no
+//! `subject` key in the format, so the subject reaches the graph only through that qualifier. An
+//! outcome or a precondition that matches evidence directly keeps that match in its predicate,
+//! without its subject; the format has no edge kind for it. A discharge predicate tests claims only: Canon refuses one that matches
 //! evidence.
 
 use b10x_canon::ir::Ir;
-use b10x_canon::model::{Predicate, Truth};
+use b10x_canon::model::{EvidenceMatch, Predicate, Truth};
 use serde_json::{Map, Value, json};
 
 /// The format this module emits.
 pub const FORMAT: &str = "b10x-protocol-graph/1";
 
-/// A predicate in the `canon-ir/1` shape: a claim test omits `is` when it is `true`, an evidence
-/// match omits `result` when it has none.
+/// A predicate in the `b10x-protocol-graph/1` shape: a claim test omits `is` when it is `true`, an
+/// evidence match omits `result` when it has none. Unlike `canon-ir/1`, an evidence match never
+/// carries `subject`: the format has no key for it, and a match without one does not mean "about
+/// any artifact" here. A claim's matches show their subjects on its `establishes` edges.
 pub fn predicate(predicate: &Predicate) -> Value {
     match predicate {
         Predicate::All(members) => {
@@ -109,12 +115,18 @@ fn claim_qualifier(is: Truth, negated: bool) -> Option<String> {
 }
 
 /// The result an evidence match needs, as an edge qualifier; under an odd number of `not`s,
-/// `not <result>`, or `not present` for a match without a result.
-fn evidence_qualifier(result: &Option<String>, negated: bool) -> Option<String> {
-    match (result, negated) {
+/// `not <result>`, or `not present` for a match without a result; followed by `about <subject>`
+/// when the match is bound to an artifact.
+fn evidence_qualifier(matching: &EvidenceMatch, negated: bool) -> Option<String> {
+    let result = match (&matching.result, negated) {
         (result, false) => result.clone(),
         (Some(result), true) => Some(format!("not {result}")),
         (None, true) => Some("not present".to_owned()),
+    };
+    match (result, &matching.subject) {
+        (result, None) => result,
+        (Some(result), Some(subject)) => Some(format!("{result} about {subject}")),
+        (None, Some(subject)) => Some(format!("about {subject}")),
     }
 }
 
@@ -178,7 +190,9 @@ pub fn document(ir: &Ir, source: &str) -> Value {
     }
     for (id, outcome) in &ir.outcomes {
         let mut value = node("outcome", id.as_str(), &outcome.description);
-        value.insert("predicate".into(), predicate(&outcome.requires));
+        if let Some(requires) = outcome.requires.predicate() {
+            value.insert("predicate".into(), predicate(requires));
+        }
         nodes.push(Value::Object(value));
     }
     for (id, obligation) in &ir.obligations {
@@ -209,7 +223,7 @@ pub fn document(ir: &Ir, source: &str) -> Value {
                 from: format!("evidence:{}", matching.kind),
                 to: format!("claim:{id}"),
                 kind: "establishes",
-                qualifier: evidence_qualifier(&matching.result, negated),
+                qualifier: evidence_qualifier(matching, negated),
             }),
             Predicate::Claim(test) => add(Edge {
                 from: format!("claim:{}", test.claim),
@@ -221,12 +235,9 @@ pub fn document(ir: &Ir, source: &str) -> Value {
         });
     }
     for (id, outcome) in &ir.outcomes {
-        claim_edges(
-            &outcome.requires,
-            &format!("outcome:{id}"),
-            "requires",
-            &mut add,
-        );
+        if let Some(requires) = outcome.requires.predicate() {
+            claim_edges(requires, &format!("outcome:{id}"), "requires", &mut add);
+        }
     }
     for (id, obligation) in &ir.obligations {
         claim_edges(
@@ -394,6 +405,25 @@ mod tests {
             r#"{"from":"claim:c","kind":"requires","qualifier":"false","to":"outcome:done"}"#,
             r#"{"from":"evidence:e","kind":"establishes","qualifier":"not ok","to":"claim:a"}"#,
             r#"{"from":"evidence:e","kind":"establishes","qualifier":"not present","to":"claim:b"}"#,
+        ];
+        expected.sort();
+        assert_eq!(edges, expected);
+    }
+
+    /// A bound match carries its subject on its edge, with or without a result and under `not`,
+    /// and two matches of one kind about different artifacts stay two edges.
+    #[test]
+    fn an_evidence_edge_carries_the_subject_of_its_match() {
+        let source = "format: protocol/1\nprotocol: {id: p, revision: 1}\nartifacts: {x: {}, y: {}}\nevidence_kinds: {e: {}}\nclaims:\n  a:\n    true_when: {all: [{evidence: {kind: e, result: ok, subject: x}}, {evidence: {kind: e, result: ok, subject: y}}]}\n  b:\n    true_when: {any: [{evidence: {kind: e, subject: x}}, {not: {evidence: {kind: e, result: ok, subject: y}}}, {not: {evidence: {kind: e, subject: y}}}]}\n";
+        let ir = compile(&parse(source).expect("parses")).expect("compiles");
+        let mut edges = sorted(&document(&ir, "x")["edges"]);
+        edges.sort();
+        let mut expected = vec![
+            r#"{"from":"evidence:e","kind":"establishes","qualifier":"ok about x","to":"claim:a"}"#,
+            r#"{"from":"evidence:e","kind":"establishes","qualifier":"ok about y","to":"claim:a"}"#,
+            r#"{"from":"evidence:e","kind":"establishes","qualifier":"about x","to":"claim:b"}"#,
+            r#"{"from":"evidence:e","kind":"establishes","qualifier":"not ok about y","to":"claim:b"}"#,
+            r#"{"from":"evidence:e","kind":"establishes","qualifier":"not present about y","to":"claim:b"}"#,
         ];
         expected.sort();
         assert_eq!(edges, expected);
