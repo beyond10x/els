@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-04T09:15:36Z",
+  "actor": "human:timo",
+  "artifact": "story:incident-response-subject-binding",
+  "kind": "story",
+  "revision": 6,
+  "change": {
+    "change": "evidence",
+    "kind": "test_result",
+    "source": "cargo test --workspace --locked: 102 passed, 0 failed",
+    "reference": "https://github.com/beyond10x/els/commit/b95e7ff"
+  }
+}
