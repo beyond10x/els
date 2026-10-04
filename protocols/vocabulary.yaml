@@ -1,0 +1,143 @@
+format: vocabulary/1
+
+terms:
+  - id: intent
+    category: artifact_kind
+    marking: core
+    meaning: what the change or response is meant to achieve
+  - id: system_specification
+    category: artifact_kind
+    marking: core
+    meaning: the specified behaviour of the system concerned
+  - id: plan
+    category: artifact_kind
+    marking: core
+    meaning: the intended steps toward the intent
+  - id: release
+    category: artifact_kind
+    marking: core
+    meaning: a versioned, deployable unit of the system
+  - id: deployment
+    category: artifact_kind
+    marking: core
+    meaning: a release running in an environment
+  - id: service
+    category: artifact_kind
+    marking: core
+    meaning: the running service a case concerns
+  - id: implementation
+    category: artifact_kind
+    marking: software.change
+    meaning: a revision of the code that realizes the plan
+  - id: operational_observation
+    category: evidence_kind
+    marking: core
+    meaning: an observation of the running system
+  - id: objective_observation
+    category: evidence_kind
+    marking: core
+    meaning: an observation of whether the intent's objective is met
+  - id: impact_assessment
+    category: evidence_kind
+    marking: core
+    meaning: an assessment of who and what an incident affects
+  - id: cause_analysis
+    category: evidence_kind
+    marking: core
+    meaning: an analysis of why an incident happened
+  - id: test_result
+    category: evidence_kind
+    marking: software.change
+    meaning: the result of running tests against an implementation revision
+  - id: code_review
+    category: evidence_kind
+    marking: software.change
+    meaning: a review of an implementation revision
+  - id: build_provenance
+    category: evidence_kind
+    marking: software.change
+    meaning: the record of how a release was built from an implementation
+  - id: release.proven
+    category: claim_id
+    marking: core
+    meaning: the release comes from a verified implementation and carries current build provenance
+  - id: deployment.healthy
+    category: claim_id
+    marking: core
+    meaning: the deployment is running healthily
+  - id: objective.realized
+    category: claim_id
+    marking: core
+    meaning: the intent's objective is met
+  - id: impact.bounded
+    category: claim_id
+    marking: core
+    meaning: the incident's impact is known and contained
+  - id: service.healthy
+    category: claim_id
+    marking: core
+    meaning: the service is running healthily
+  - id: cause.identified
+    category: claim_id
+    marking: core
+    meaning: the incident's cause is known
+  - id: tests.pass
+    category: claim_id
+    marking: software.change
+    meaning: the tests pass for the current implementation revision
+  - id: implementation.reviewed
+    category: claim_id
+    marking: software.change
+    meaning: the current implementation revision is reviewed
+  - id: implementation.verified
+    category: claim_id
+    marking: software.change
+    meaning: the current implementation revision is verified
+  - id: metrics.inspect
+    category: action_id
+    marking: core
+    meaning: read the system's metrics
+  - id: logs.search
+    category: action_id
+    marking: core
+    meaning: search the system's logs
+  - id: release.inspect
+    category: action_id
+    marking: core
+    meaning: read what a release contains
+  - id: release.rollback
+    category: action_id
+    marking: core
+    meaning: return to a previous release
+  - id: traffic.shift
+    category: action_id
+    marking: core
+    meaning: move traffic between deployments
+  - id: emergency.leave
+    category: action_id
+    marking: core
+    meaning: leave emergency mode
+  - id: repository.inspect
+    category: action_id
+    marking: software.change
+    meaning: read the repository
+  - id: repository.edit
+    category: action_id
+    marking: software.change
+    meaning: change the repository's working revision
+  - id: repository.merge
+    category: action_id
+    marking: software.change
+    meaning: merge a revision into the repository's mainline
+  - id: tests.run
+    category: action_id
+    marking: software.change
+    meaning: run the tests against an implementation revision
+  - id: restore_service
+    category: obligation_id
+    marking: core
+    meaning: bring the affected service back to health
+  - id: accepted
+    category: outcome_id
+    marking: core
+    meaning: the case closed with its result accepted
