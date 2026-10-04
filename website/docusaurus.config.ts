@@ -73,7 +73,7 @@ const config: Config = {
         {to: '/docs/protocols', label: 'Protocols', position: 'left'},
         {to: '/docs/vocabulary', label: 'Vocabulary', position: 'left'},
         {to: '/docs/showcase', label: 'Showcase', position: 'left'},
-        {href: 'https://github.com/beyond10x/els', label: 'GitHub ↗', position: 'right'},
+        {href: 'https://github.com/beyond10x/els', label: 'GitHub', position: 'right'},
       ],
     },
     footer: {
@@ -86,16 +86,8 @@ const config: Config = {
             {label: 'Protocols', to: '/docs/protocols'},
             {label: 'Vocabulary', to: '/docs/vocabulary'},
             {label: 'Showcase', to: '/docs/showcase'},
+            {label: 'Status', to: '/docs/status'},
             {label: 'Source', href: 'https://github.com/beyond10x/els'},
-          ],
-        },
-        {
-          title: 'Family',
-          items: [
-            {label: 'Canon', href: 'https://github.com/beyond10x/canon'},
-            {label: 'Commission', href: 'https://beyond10x.github.io/commission/'},
-            {label: 'Loom', href: 'https://beyond10x.github.io/loom/'},
-            {label: 'ESS', href: 'https://beyond10x.github.io/ess/'},
           ],
         },
       ],

@@ -14,6 +14,7 @@ use b10x_els::vocabulary::{Category, Marking, Vocabulary};
 use crate::graph;
 use crate::markdown::{HEADER, code, text, yaml_string};
 use crate::protocol::{self, Source};
+use crate::status;
 
 /// The Docusaurus site, relative to the repository root. Generated files live in its `docs/protocols/`,
 /// `docs/vocabulary.md` and `data/protocol-graphs/`.
@@ -216,6 +217,7 @@ pub fn render(inputs: &Inputs) -> Result<BTreeMap<String, String>> {
         .map_err(|error| anyhow!("protocols/vocabulary.yaml: {error}"))?;
     let mut files = BTreeMap::new();
     let mut shipped = Vec::new();
+    let mut statuses = Vec::new();
     for source in &inputs.protocols {
         let ir = compiled(source)?;
         files.insert(
@@ -248,7 +250,14 @@ pub fn render(inputs: &Inputs) -> Result<BTreeMap<String, String>> {
                 ir.outcomes.len()
             ),
         });
+        statuses.push((source, ir));
     }
+    let protocols: Vec<_> = statuses.iter().map(|(source, ir)| (*source, ir)).collect();
+    files.insert(
+        status::STATUS_FILE.to_owned(),
+        serde_json::to_string_pretty(&status::document(&vocabulary, &protocols))? + "\n",
+    );
+    files.insert(status::STATUS_PAGE.to_owned(), status::page());
     files.insert("docs/protocols/index.md".to_owned(), index_page(&shipped));
     files.insert(
         "docs/protocols/_category_.yml".to_owned(),
@@ -269,9 +278,10 @@ pub fn render(inputs: &Inputs) -> Result<BTreeMap<String, String>> {
 }
 
 /// Whether a file at `path` (relative to the site) is one this generator writes: every file under
-/// the two graph directories, and any other file headed with [`HEADER`].
+/// the two graph directories, the status document, and any other file headed with [`HEADER`].
 fn is_generated(path: &str, content: &str) -> bool {
-    path.starts_with(&format!("{GRAPHS}/"))
+    path == status::STATUS_FILE
+        || path.starts_with(&format!("{GRAPHS}/"))
         || path.starts_with(&format!("{EXAMPLE_GRAPHS}/"))
         || content.lines().take(2).any(|line| line == HEADER)
 }
@@ -435,8 +445,10 @@ mod tests {
         assert_eq!(
             files.keys().map(String::as_str).collect::<Vec<_>>(),
             [
+                "data/status.json",
                 "docs/protocols/_category_.yml",
                 "docs/protocols/index.md",
+                "docs/status.mdx",
                 "docs/vocabulary.md"
             ]
         );
@@ -481,6 +493,58 @@ mod tests {
             "{error}"
         );
         let _ = fs::remove_dir_all(&site);
+    }
+
+    #[test]
+    fn the_status_document_has_one_shipped_row_per_protocol() {
+        let files = with(vec![source("investigation", INVESTIGATION)]).expect("renders");
+        let status: Value = serde_json::from_str(&files["data/status.json"]).expect("json");
+        assert_eq!(status["format"], "b10x-status/1");
+        let items = status["items"].as_array().expect("items");
+        let protocols: Vec<&Value> = items
+            .iter()
+            .filter(|item| item["area"] == "Protocols")
+            .collect();
+        assert_eq!(protocols.len(), 1);
+        assert_eq!(protocols[0]["label"], "investigation/1");
+        assert_eq!(protocols[0]["status"], "shipped");
+        assert_eq!(protocols[0]["href"], "/docs/protocols/investigation/1");
+        assert_eq!(
+            protocols[0]["detail"],
+            "Canon protocol/1 data declaring 1 claim, 2 evidence kinds, 2 actions and 1 outcome."
+        );
+        let terms = Vocabulary::from_yaml(VOCABULARY)
+            .expect("vocabulary")
+            .terms()
+            .len();
+        let vocabulary = items
+            .iter()
+            .find(|item| item["label"] == "Engineering vocabulary")
+            .expect("vocabulary row");
+        assert!(
+            vocabulary["detail"]
+                .as_str()
+                .is_some_and(|detail| detail.starts_with(&format!("{terms} terms,"))),
+            "{vocabulary}"
+        );
+        let mut labels: Vec<&str> = items
+            .iter()
+            .filter_map(|item| item["label"].as_str())
+            .collect();
+        let count = labels.len();
+        labels.sort_unstable();
+        labels.dedup();
+        assert_eq!(labels.len(), count, "labels are unique");
+
+        let without = with(Vec::new()).expect("renders");
+        let status: Value = serde_json::from_str(&without["data/status.json"]).expect("json");
+        assert!(
+            status["items"]
+                .as_array()
+                .expect("items")
+                .iter()
+                .all(|item| item["area"] != "Protocols")
+        );
     }
 
     #[test]

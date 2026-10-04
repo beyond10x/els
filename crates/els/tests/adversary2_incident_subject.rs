@@ -259,20 +259,35 @@ fn every_artifact_the_incident_protocol_and_inc_492_name_is_a_vocabulary_artifac
     }
 }
 
-/// `website/product.json` against what ships: every protocol in `protocols/` has one status row,
-/// labelled `<id>/<revision>`, marked shipped and linking the page `els-docs` generates for it;
-/// every protocol row names a protocol that ships; and a row saying every evidence match is
-/// bound to its artifact names a protocol in which every match names a subject.
+/// `website/product.json` and the status file its status section names, against what ships:
+/// every protocol in `protocols/` has one status row, labelled `<id>/<revision>`, marked shipped
+/// and linking the page `els-docs` generates for it; every protocol row names a protocol that
+/// ships; and a row saying every evidence match is bound to its artifact names a protocol in
+/// which every match names a subject.
 #[test]
 fn the_landing_page_status_rows_are_the_shipped_protocols() {
     let product: Value =
         serde_yaml_ng::from_str(&read("website/product.json")).expect("JSON reads as YAML");
-    let rows: Vec<&Value> = product["sections"]
+    // A status section names its `b10x-status/1` file (relative to `website/`) or lists its rows.
+    let files: Vec<Value> = product["sections"]
         .as_sequence()
         .expect("sections")
         .iter()
         .filter(|section| section["kind"] == "status")
-        .flat_map(|section| section["items"].as_sequence().expect("items").iter())
+        .map(|section| match section["items"].as_str() {
+            Some(path) => {
+                let status: Value = serde_yaml_ng::from_str(&read(&format!("website/{path}")))
+                    .expect("JSON reads as YAML");
+                assert_eq!(status["format"], "b10x-status/1", "website/{path}");
+                status["items"].clone()
+            }
+            None => section["items"].clone(),
+        })
+        .collect();
+    assert!(!files.is_empty(), "the landing page has a status section");
+    let rows: Vec<&Value> = files
+        .iter()
+        .flat_map(|items| items.as_sequence().expect("items").iter())
         .collect();
     let is_protocol_label = |label: &str| {
         label

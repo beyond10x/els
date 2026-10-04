@@ -10,6 +10,7 @@ mod lint;
 mod manifest;
 mod markdown;
 mod protocol;
+mod status;
 
 use std::path::PathBuf;
 
