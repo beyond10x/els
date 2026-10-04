@@ -9,7 +9,6 @@ case:
   protocol: incident.response
   artifacts:
     service: {revision: s1}
-    release: {revision: r42}
 
 states:
   - id: initial
