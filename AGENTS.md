@@ -32,6 +32,11 @@ ELS opts out of ESS for its protocol semantics: protocols are defined in Canon a
 conformance (Atlas ADR 0067). ESS conformance reports are an evidence *kind* ELS protocols may admit
 (story E-007); that is a use of ESS output, not a specification of ELS.
 
+Protocol first (Atlas ADR 0080): a unit that changes behaviour lands its protocol YAML and fixture
+expectations in its first commit, a named test (a Canon fixture test under `crates/els/tests/`)
+fails on that commit and the failing run is recorded, and only later commits implement against it.
+A change with no behaviour change is exempt and says so in its story's `## Protocol first`.
+
 ## Work
 
 - Planned in the AEP store under `.engineering/`, written only through `aep plan artifact`. Body
