@@ -175,8 +175,12 @@ fn harness_refuses_a_fixture_it_cannot_evaluate_as_written() {
 #[test]
 fn harness_refuses_a_fixture_without_states() {
     let text = smoke_text();
-    let (head, _) = text.split_once("\nstates:\n").expect("the smoke fixture lists states");
+    let (head, _) = text
+        .split_once("\nstates:\n")
+        .expect("the smoke fixture lists states");
     let text = format!("{head}\nstates: []\n");
-    let error = Fixture::from_yaml(&text).map(|_| ()).expect_err("no states is refused");
+    let error = Fixture::from_yaml(&text)
+        .map(|_| ())
+        .expect_err("no states is refused");
     assert_eq!(error.to_string(), "the fixture lists no states");
 }
