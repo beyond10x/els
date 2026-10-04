@@ -3,7 +3,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 import {withProductSite} from '@beyond10x/docs-system/product-site';
 
 const config: Config = {
-  title: 'ELS',
+  title: 'Engineering protocols',
   tagline:
     'Engineering protocols on Canon: which claims must hold, which evidence counts and for which revision, which actions need authority, and which outcomes a case can end in.',
 
@@ -66,7 +66,7 @@ const config: Config = {
 
   themeConfig: {
     navbar: {
-      title: 'ELS',
+      title: 'Engineering protocols',
       items: [
         {to: '/docs/', label: 'Documentation', position: 'left', activeBaseRegex: '^/els/docs/$'},
         {to: '/docs/category/concepts', label: 'Concepts', position: 'left'},
@@ -79,9 +79,9 @@ const config: Config = {
     footer: {
       links: [
         {
-          title: 'ELS',
+          title: 'Engineering protocols',
           items: [
-            {label: 'What ELS is', to: '/docs/'},
+            {label: 'What engineering protocols are', to: '/docs/'},
             {label: 'Concepts', to: '/docs/category/concepts'},
             {label: 'Protocols', to: '/docs/protocols'},
             {label: 'Vocabulary', to: '/docs/vocabulary'},
@@ -91,7 +91,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: 'A beyond10x project. ELS · Apache-2.0.',
+      copyright: 'A beyond10x project. Engineering protocols · Apache-2.0.',
     },
   } satisfies Preset.ThemeConfig,
 };

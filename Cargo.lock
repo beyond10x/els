@@ -70,13 +70,25 @@ dependencies = [
 ]
 
 [[package]]
-name = "b10x-els"
+name = "b10x-canon-engineering"
 version = "0.0.0"
 dependencies = [
  "b10x-canon",
  "clap",
  "serde",
+ "serde_json",
  "serde_yaml_ng",
+]
+
+[[package]]
+name = "canon-engineering-docs"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "b10x-canon",
+ "b10x-canon-engineering",
+ "clap",
+ "serde_json",
 ]
 
 [[package]]
@@ -124,17 +136,6 @@ name = "colorchoice"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d07550c9036bf2ae0c684c4297d503f838287c83c53686d05370d0e139ae570"
-
-[[package]]
-name = "els-docs"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "b10x-canon",
- "b10x-els",
- "clap",
- "serde_json",
-]
 
 [[package]]
 name = "equivalent"

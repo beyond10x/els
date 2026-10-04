@@ -3,16 +3,16 @@ title: Protocols and compositions
 sidebar_position: 1
 description: A protocol says what must be true. A composition says who, when and with which tools.
 lede: A protocol says what must be true. A composition says who, when and with which tools.
-source: Decision record 0087, with each status checked against Canon and ELS code
+source: Decision record 0087, with each status checked against Canon and engineering protocols code
 ---
 
 import incident from '@site/data/protocol-graphs/incident-response-1.json';
 
-Governing engineering work takes two kinds of statement, and ELS keeps them apart.
+Governing engineering work takes two kinds of statement, and engineering protocols keep them apart.
 
 - A **protocol** says what must be true before work counts, which evidence establishes it, which
   actions exist and which of them need authority. It never names a person, a model, a tool or a
-  schedule. ELS protocols are Canon `protocol/1` documents.
+  schedule. Engineering protocols are Canon `protocol/1` documents.
 - A **composition** says, for one organization, who does the work, when a case opens and with which
   tools: agents, triggers, policy, runtime bindings and projections. It never decides what counts as
   done. A composition is its own document family, `composition/1` (decision record 0087).
@@ -21,7 +21,7 @@ The split is what lets the same protocol run in another organization, with other
 agents and other tools.
 
 <StatusStrip items={[
-  {label: 'Protocols as Canon protocol/1 data', status: 'shipped', detail: 'Canon validates, compiles and evaluates them; incident.response/1 is the first ELS protocol.', href: '/docs/protocols'},
+  {label: 'Protocols as Canon protocol/1 data', status: 'shipped', detail: 'Canon validates, compiles and evaluates them; incident.response/1 is the first shipped engineering protocol.', href: '/docs/protocols'},
   {label: 'Two layers: protocol and composition', status: 'decided', detail: 'Decision record 0087.'},
   {label: 'composition/1 as its own document family', status: 'decided', detail: 'Read by Commission, the intent router and the projector; none of them owns it. No format exists yet: its ESS domain comes first.'},
   {label: 'Triggers in the composition', status: 'planned', detail: 'Open: they may move to the intent router\'s own configuration.'},
@@ -30,7 +30,7 @@ agents and other tools.
 
 ## A protocol
 
-`incident.response/1` ships with ELS. An excerpt: two claims, an urgent obligation, and the action
+`incident.response/1` ships here. An excerpt: two claims, an urgent obligation, and the action
 that leaves emergency mode once the service is healthy and the impact bounded, whatever is known of
 the cause.
 

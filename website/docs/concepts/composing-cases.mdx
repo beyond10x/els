@@ -3,16 +3,16 @@ title: Composing cases
 sidebar_position: 2
 description: A case opens child cases at run time, and their outcomes become evidence in the parent.
 lede: A case opens child cases at run time, and their outcomes become evidence in the parent.
-source: Decision record 0081, with each status checked against Canon and ELS code
+source: Decision record 0081, with each status checked against Canon and engineering protocols code
 ---
 
 Work that one case cannot hold opens further cases. An audit opens one change per finding; an epic
 opens one change per story; an incident opens an investigation and, once the cause is known, a
 remediation change. The parent's conclusion depends on how its children end.
 
-ELS protocols express this with two primitives Canon will provide (decision record 0081): an action
-that opens a child case, and an evidence kind that carries a child's terminal outcome back to the
-parent. Execution strategy (scheduling, retries) stays outside the protocol.
+Engineering protocols express this with two primitives Canon will provide (decision record 0081):
+an action that opens a child case, and an evidence kind that carries a child's terminal outcome
+back to the parent. Execution strategy (scheduling, retries) stays outside the protocol.
 
 <StatusStrip items={[
   {label: 'case.open(protocol, subject)', status: 'decided', detail: 'An action that opens a child case; its authority is declared by the parent protocol. Not in Canon protocol/1 yet.'},
