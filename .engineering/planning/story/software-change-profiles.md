@@ -20,15 +20,15 @@ relations:
 - depends_on: story:vocabulary-yaml-source
 scope:
 - confidence: inferred
-  path: crates/els/src/vocabulary.rs
+  path: crates/canon-engineering/src/vocabulary.rs
 - confidence: cited
-  path: crates/els/tests/adversary_vocabulary.rs
+  path: crates/canon-engineering/tests/adversary_vocabulary.rs
 - confidence: cited
-  path: crates/els/tests/software_change_profiles.rs
+  path: crates/canon-engineering/tests/software_change_profiles.rs
 - confidence: cited
-  path: crates/els/tests/vocabulary.rs
+  path: crates/canon-engineering/tests/vocabulary.rs
 - confidence: cited
-  path: crates/els/tests/vocabulary_yaml.rs
+  path: crates/canon-engineering/tests/vocabulary_yaml.rs
 - confidence: cited
   path: docs/examples/software-change.md
 - confidence: cited
@@ -37,13 +37,13 @@ scope:
   path: protocols/software-change/1.yaml
 - confidence: cited
   path: protocols/vocabulary.yaml
-revision: 10
+revision: 21
 ---
 ## Outcome
 
 Four risk profiles (trivial, standard, elevated, critical) change the proof burden of `software.change/1` without creating a second lifecycle. Each profile keeps the same claims and transitions and changes only the derived obligations and authority requirements.
 
-This story edits `protocols/software-change/1.yaml` to add the `risk` case input and the obligation rules derived from it. It adds the terms it introduces to `protocols/vocabulary.yaml`: the case input `risk` and the profiles `trivial`, `standard`, `elevated` and `critical`. The typed reader `crates/els/src/vocabulary.rs` knows only the six categories of `story:els-vocabulary`, none of which is a case input or a profile. So this story adds the categories those terms need to the reader, and adds no term to the Rust (Atlas ADR 0077 point 3, draft: the vocabulary is data).
+This story edits `protocols/software-change/1.yaml` to add the `risk` case input and the obligation rules derived from it. It adds the terms it introduces to `protocols/vocabulary.yaml`: the case input `risk` and the profiles `trivial`, `standard`, `elevated` and `critical`. The typed reader `crates/canon-engineering/src/vocabulary.rs` knows only the six categories of `story:els-vocabulary`, none of which is a case input or a profile. So this story adds the categories those terms need to the reader, and adds no term to the Rust (Atlas ADR 0077 point 3, draft: the vocabulary is data).
 
 Design basis: `docs/design/engineering-lifecycle-specification-design.md` § 9 declares risk as a case input, and § 10 derives obligations from it. § 27 creates a distinct lifecycle only when the semantic graph differs. A profile is therefore the value of that case input, not an imported protocol. Protocol composition is an open Canon question (Canon design § 39.5), and canon's `protocol/1` model has no import section (`crates/canon/src/model/mod.rs`). The TASKBOARD says `standard` and design § 9 says `normal`; use `standard`.
 
@@ -66,16 +66,16 @@ Atlas ADR 0084 (accepted 2026-10-04, option C; on Atlas branch `plan/ga-adrs-008
 - `protocols/software-change/1.yaml`
 - `fixtures/software-change/`
 - `protocols/vocabulary.yaml`
-- `crates/els/src/vocabulary.rs` (inferred: the reader's term categories)
-- `crates/els/tests/software_change_profiles.rs` (new)
-- `crates/els/tests/vocabulary.rs`, `crates/els/tests/vocabulary_yaml.rs`, `crates/els/tests/adversary_vocabulary.rs` (each lists `repository.edit` as an expected term; the split replaces it)
+- `crates/canon-engineering/src/vocabulary.rs` (inferred: the reader's term categories)
+- `crates/canon-engineering/tests/software_change_profiles.rs` (new)
+- `crates/canon-engineering/tests/vocabulary.rs`, `crates/canon-engineering/tests/vocabulary_yaml.rs`, `crates/canon-engineering/tests/adversary_vocabulary.rs` (each lists `repository.edit` as an expected term; the split replaces it)
 - `docs/examples/software-change.md` (names `repository.edit` in its example output)
 
 ## Shared surface
 
 This story is the second link of the `software.change/1` chain: `story:software-change-protocol` → `story:software-change-profiles` → `story:software-change-negative-outcomes` → `story:ess-conformance-evidence` → `story:security-independence-rules` → `story:stale-evidence-fixtures`. Every story on it edits `protocols/software-change/1.yaml` and `fixtures/software-change/`, and Canon has no composition that would let a profile live in its own file. This story depends on `story:software-change-protocol` and runs before `story:software-change-negative-outcomes`.
 
-It is also the first story after `story:vocabulary-yaml-source` to edit `protocols/vocabulary.yaml` and `crates/els/src/vocabulary.rs`, and it depends on that story, which creates the YAML and the reader. It runs beside `story:protocol-registry`, which touches neither file.
+It is also the first story after `story:vocabulary-yaml-source` to edit `protocols/vocabulary.yaml` and `crates/canon-engineering/src/vocabulary.rs`, and it depends on that story, which creates the YAML and the reader. It runs beside `story:protocol-registry`, which touches neither file.
 
 ## Protocol first
 
@@ -83,9 +83,9 @@ Atlas ADR 0080 (draft). The first commit changes the following, and nothing else
 
 - `protocols/software-change/1.yaml`, adding the `risk` and `change_kind` case inputs, the obligations derived from `risk`, the split of `repository.edit` into `tests.write` and `implementation.edit`, the claim `regression.reproduced` and the `bugfix` precondition on `implementation.edit`;
 - the fixtures `profiles` and `change-kinds` in `fixtures/software-change/`, with the expectations in § Acceptance;
-- `crates/els/tests/software_change_profiles.rs`.
+- `crates/canon-engineering/tests/software_change_profiles.rs`.
 
-On that commit `profiles_nest_open_obligations` fails at items 4 and 8. `risk`, `trivial`, `standard`, `elevated`, `critical`, `change_kind`, `bugfix`, `refactor`, `tests.write`, `implementation.edit` and `regression.reproduced` do not yet resolve in the vocabulary, `repository.edit` still does, and the reader has no category for case inputs or profiles. The implementation commit adds and removes the terms in `protocols/vocabulary.yaml`, the categories in `crates/els/src/vocabulary.rs`, the expected-term lists in the three vocabulary test files and the action names in `docs/examples/software-change.md`, without changing the protocol YAML or the fixtures.
+On that commit `profiles_nest_open_obligations` fails at items 4 and 8. `risk`, `trivial`, `standard`, `elevated`, `critical`, `change_kind`, `bugfix`, `refactor`, `tests.write`, `implementation.edit` and `regression.reproduced` do not yet resolve in the vocabulary, `repository.edit` still does, and the reader has no category for case inputs or profiles. The implementation commit adds and removes the terms in `protocols/vocabulary.yaml`, the categories in `crates/canon-engineering/src/vocabulary.rs`, the expected-term lists in the three vocabulary test files and the action names in `docs/examples/software-change.md`, without changing the protocol YAML or the fixtures.
 
 ## Canon capability
 
@@ -95,16 +95,16 @@ Case inputs in `protocol/1` (C-001) and obligations derived by rule (C-005).
 
 ## Domain relations
 
-- ELS protocol → Canon protocol model: many-to-one. Canon owns the language and an ELS protocol is a document in it; an ELS protocol cannot exist before the Canon capability it uses. Inferable: from `crates/els/Cargo.toml:9`, the `b10x-canon` dependency, and `crates/els/src/lib.rs:5`, which types protocol ids with `b10x_canon::ProtocolId`. No ess/1 document declares it, because ELS opts out of ESS for protocol semantics (`AGENTS.md` § ESS).
+- ELS protocol → Canon protocol model: many-to-one. Canon owns the language and an ELS protocol is a document in it; an ELS protocol cannot exist before the Canon capability it uses. Inferable: from `crates/canon-engineering/Cargo.toml:9`, the `b10x-canon` dependency, and `crates/canon-engineering/src/lib.rs:5`, which types protocol ids with `b10x_canon::ProtocolId`. No ess/1 document declares it, because ELS opts out of ESS for protocol semantics (`AGENTS.md` § ESS).
 
 ## Acceptance
 
-The test `profiles_nest_open_obligations` in `crates/els/tests/software_change_profiles.rs` passes under `task check`. Its fixture is `profiles` in `fixtures/software-change/`: implementation revision R1, no evidence, no authority decision, and one fixed evaluation instant. The fixture is evaluated four times, with `risk` set to `trivial`, `standard`, `elevated` and `critical`. It expects:
+The test `profiles_nest_open_obligations` in `crates/canon-engineering/tests/software_change_profiles.rs` passes under `task check`. Its fixture is `profiles` in `fixtures/software-change/`: implementation revision R1, no evidence, no authority decision, and one fixed evaluation instant. The fixture is evaluated four times, with `risk` set to `trivial`, `standard`, `elevated` and `critical`. It expects:
 
 1. Starting from that fixture, all four evaluations run against one `canon-ir/1` document compiled once from `protocols/software-change/1.yaml`, so no profile has a protocol of its own.
 2. Starting from that fixture, the four open-obligation sets the evaluations report are pairwise different.
 3. Starting from that fixture, each open-obligation set strictly contains the set of the profile below it: trivial ⊂ standard ⊂ elevated ⊂ critical.
-4. Starting from `protocols/vocabulary.yaml` as this story leaves it, read through `crates/els/src/vocabulary.rs`, each of `risk`, `trivial`, `standard`, `elevated` and `critical` resolves to exactly one vocabulary entry.
+4. Starting from `protocols/vocabulary.yaml` as this story leaves it, read through `crates/canon-engineering/src/vocabulary.rs`, each of `risk`, `trivial`, `standard`, `elevated` and `critical` resolves to exactly one vocabulary entry.
 5. Starting from the fixture `change-kinds` (implementation revision R1, no authority decision, one fixed evaluation instant) with `change_kind` `bugfix` and no evidence, `tests.write` is admissible and `implementation.edit` is blocked naming `regression.reproduced`.
 6. Starting from `change-kinds` with `change_kind` `bugfix` and one `test_result` whose result is `failed`, `implementation.edit` is admissible.
 7. Starting from `change-kinds` with `change_kind` `refactor` and no evidence, `implementation.edit` is admissible.

@@ -15,13 +15,13 @@ scope:
 - confidence: inferred
   path: README.md
 - confidence: cited
-  path: crates/els/src/lib.rs
+  path: crates/canon-engineering/src/lib.rs
 - confidence: cited
-  path: crates/els/src/main.rs
+  path: crates/canon-engineering/src/main.rs
 - confidence: cited
-  path: crates/els/src/render.rs
+  path: crates/canon-engineering/src/render.rs
 - confidence: cited
-  path: crates/els/tests/protocol_docs_render.rs
+  path: crates/canon-engineering/tests/protocol_docs_render.rs
 - confidence: cited
   path: website/docs/protocols/
 - confidence: cited
@@ -30,7 +30,7 @@ scope:
   path: website/package.json
 - confidence: cited
   path: website/sidebars.ts
-revision: 7
+revision: 16
 ---
 ## Outcome
 
@@ -50,10 +50,10 @@ ELS has no site today: no `website/`, no `b10x.docs.yaml`, and `.github/workflow
 
 ## Scope
 
-- `crates/els/src/render.rs` (new)
-- `crates/els/src/lib.rs` (the `render` module declaration)
-- `crates/els/src/main.rs` (the `protocols render` subcommand)
-- `crates/els/tests/protocol_docs_render.rs` (new)
+- `crates/canon-engineering/src/render.rs` (new)
+- `crates/canon-engineering/src/lib.rs` (the `render` module declaration)
+- `crates/canon-engineering/src/main.rs` (the `protocols render` subcommand)
+- `crates/canon-engineering/tests/protocol_docs_render.rs` (new)
 - `website/docs/protocols/` (new: the generated pages)
 - `website/package.json`, `website/docusaurus.config.ts`, `website/sidebars.ts` (new: the site scaffold)
 - `README.md` (a link to the site's protocol pages; inferred)
@@ -61,13 +61,13 @@ ELS has no site today: no `website/`, no `b10x.docs.yaml`, and `.github/workflow
 
 ## Shared surface
 
-This story edits `crates/els/src/lib.rs` and `crates/els/src/main.rs` after `story:protocol-registry`, and depends on it for the registry and the `els` binary.
+This story edits `crates/canon-engineering/src/lib.rs` and `crates/canon-engineering/src/main.rs` after `story:protocol-registry`, and depends on it for the registry and the `els` binary.
 
 It also depends on `story:stale-evidence-fixtures`, the last story that changes either built-in protocol document. A page rendered earlier would drift with every later protocol story, and each of those stories would have to re-render and own the page. Rendering after the chains keeps `website/docs/protocols/` this story's alone. Any later change to a protocol document re-renders its page, because the drift test fails otherwise.
 
 ## Protocol first
 
-Atlas ADR 0080 (draft). The renderer adds no protocol data, so the specification change is none. The first commit adds `crates/els/tests/protocol_docs_render.rs` alone. On that commit `protocol_pages_are_fresh_renders_of_canon_ir` fails because `els::render` and the `protocols render` subcommand do not exist and no page is committed, so the test does not build. The implementation commits add the renderer, the subcommand, the site scaffold and the generated pages.
+Atlas ADR 0080 (draft). The renderer adds no protocol data, so the specification change is none. The first commit adds `crates/canon-engineering/tests/protocol_docs_render.rs` alone. On that commit `protocol_pages_are_fresh_renders_of_canon_ir` fails because `els::render` and the `protocols render` subcommand do not exist and no page is committed, so the test does not build. The implementation commits add the renderer, the subcommand, the site scaffold and the generated pages.
 
 ## Canon capability
 
@@ -75,7 +75,7 @@ Compile to `canon-ir/1` (C-002, canon `story:canon-ir`, implemented). The render
 
 ## Acceptance
 
-The test `protocol_pages_are_fresh_renders_of_canon_ir` in `crates/els/tests/protocol_docs_render.rs` passes under `task check`. It expects:
+The test `protocol_pages_are_fresh_renders_of_canon_ir` in `crates/canon-engineering/tests/protocol_docs_render.rs` passes under `task check`. It expects:
 
 1. For every (name, major) in `registry::list()`, rendering it gives bytes identical to the committed `website/docs/protocols/<name>/<major>.md`.
 2. For each page, its front matter carries `id`, `title` and `description`, and its fenced `mermaid` block names every action, evidence kind, claim and outcome in that protocol's `canon-ir/1`, and draws an edge from each action to each evidence kind in its `may_produce`.

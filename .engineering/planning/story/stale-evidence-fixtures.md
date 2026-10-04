@@ -22,7 +22,7 @@ relations:
 - depends_on: story:rollback-verification-rule
 scope:
 - confidence: cited
-  path: crates/els/tests/stale_evidence.rs
+  path: crates/canon-engineering/tests/stale_evidence.rs
 - confidence: cited
   path: fixtures/incident-response/
 - confidence: cited
@@ -31,7 +31,7 @@ scope:
   path: protocols/incident-response/1.yaml
 - confidence: cited
   path: protocols/software-change/1.yaml
-revision: 6
+revision: 9
 ---
 ## Outcome
 
@@ -42,7 +42,7 @@ This story owns the staleness rules for review, observation and health evidence 
   - `operational_observation` evidence carries a 30-minute freshness horizon, so `deployment.healthy` holds only on a fresh observation (design § 9, § 11.3).
 - In `protocols/incident-response/1.yaml`: `operational_observation` health evidence carries a 30-minute freshness horizon, so `service.healthy` holds only on a fresh observation. Design § 11.3 states 30 minutes for operational evidence and gives no separate incident horizon, so the incident horizon takes the same value.
 
-Each stale case evaluates `UNKNOWN`, never `FALSE` (`AGENTS.md` § Rules). The R1/R2 `test_result` case stays in `story:software-change-protocol`, and staleness of conformance evidence after a specification revision stays in `story:ess-conformance-evidence`. The story introduces no term, so it does not edit `protocols/vocabulary.yaml` or `crates/els/src/vocabulary.rs`.
+Each stale case evaluates `UNKNOWN`, never `FALSE` (`AGENTS.md` § Rules). The R1/R2 `test_result` case stays in `story:software-change-protocol`, and staleness of conformance evidence after a specification revision stays in `story:ess-conformance-evidence`. The story introduces no term, so it does not edit `protocols/vocabulary.yaml` or `crates/canon-engineering/src/vocabulary.rs`.
 
 The fixtures exercise Canon behaviour through ELS protocols; ELS does not implement applicability or freshness. The evaluation instant is passed explicitly. Rust in this story is test code only.
 
@@ -52,7 +52,7 @@ The fixtures exercise Canon behaviour through ELS protocols; ELS does not implem
 - `fixtures/software-change/`
 - `protocols/incident-response/1.yaml`
 - `fixtures/incident-response/`
-- `crates/els/tests/stale_evidence.rs` (new)
+- `crates/canon-engineering/tests/stale_evidence.rs` (new)
 
 ## Shared surface
 
@@ -69,7 +69,7 @@ Atlas ADR 0080 (draft). The first commit changes the following, and nothing else
 
 - both protocol documents, adding the revision binding on `code_review` and the freshness horizons;
 - the fixtures `stale-review` and `stale-observation` in `fixtures/software-change/` and `stale-health` in `fixtures/incident-response/`, with the expectations in § Acceptance;
-- `crates/els/tests/stale_evidence.rs`.
+- `crates/canon-engineering/tests/stale_evidence.rs`.
 
 The red test is `stale_evidence_is_unknown_and_fresh_evidence_holds`. **This story has no ELS implementation beyond that data.** It adds no term and no Rust outside the test, so the test fails on the first commit only if Canon (revision binding C-004, freshness C-008) does not yet evaluate what the YAML declares. If the test passes on the first commit, the story records that run as its baseline and says no implementation commit follows. ADR 0080 does not yet say how it applies to a story whose whole change is protocol data; that question is open.
 
@@ -79,11 +79,11 @@ Evidence applicability and revision binding (C-004), and invalidation and freshn
 
 ## Domain relations
 
-- ELS protocol → Canon protocol model: many-to-one. Canon owns the language and an ELS protocol is a document in it; an ELS protocol cannot exist before the Canon capability it uses. Inferable: from `crates/els/Cargo.toml:9`, the `b10x-canon` dependency, and `crates/els/src/lib.rs:5`, which types protocol ids with `b10x_canon::ProtocolId`. No ess/1 document declares it, because ELS opts out of ESS for protocol semantics (`AGENTS.md` § ESS).
+- ELS protocol → Canon protocol model: many-to-one. Canon owns the language and an ELS protocol is a document in it; an ELS protocol cannot exist before the Canon capability it uses. Inferable: from `crates/canon-engineering/Cargo.toml:9`, the `b10x-canon` dependency, and `crates/canon-engineering/src/lib.rs:5`, which types protocol ids with `b10x_canon::ProtocolId`. No ess/1 document declares it, because ELS opts out of ESS for protocol semantics (`AGENTS.md` § ESS).
 
 ## Acceptance
 
-The test `stale_evidence_is_unknown_and_fresh_evidence_holds` in `crates/els/tests/stale_evidence.rs` passes under `task check`. It loads both protocol documents through Canon by way of the harness. It expects:
+The test `stale_evidence_is_unknown_and_fresh_evidence_holds` in `crates/canon-engineering/tests/stale_evidence.rs` passes under `task check`. It loads both protocol documents through Canon by way of the harness. It expects:
 
 1. Starting from the fixture `stale-review` in `fixtures/software-change/` (implementation revision R2, a passing `test_result` bound to R2, one approving `code_review` bound to R1), evaluation reports `implementation.reviewed = UNKNOWN`, not `FALSE`.
 2. Starting from the same fixture with the approving `code_review` bound to R2 instead, evaluation reports `implementation.reviewed = TRUE`.

@@ -8,6 +8,7 @@ relations:
 - decomposes: epic:engineering-protocols-rename
 - depends_on: story:crate-rename
 - depends_on: story:repository-rename
+- depends_on: story:release-process
 revision: 2
 ---
 ## Outcome

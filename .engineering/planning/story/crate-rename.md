@@ -2,7 +2,7 @@
 format: aep.planning-md/3
 id: story:crate-rename
 kind: story
-status: active
+status: implemented
 title: The crate is b10x-canon-engineering and the project text says engineering protocols
 relations:
 - decomposes: epic:engineering-protocols-rename
@@ -28,10 +28,11 @@ scope:
   path: docs
 - confidence: inferred
   path: website/docs
-revision: 13
+revision: 15
 transitions:
 - {from: "draft", to: "proposed", at: "2026-10-04T23:13:07Z", actor: "human:timo", revision: 2}
 - {from: "proposed", to: "active", at: "2026-10-04T23:13:07Z", actor: "human:timo", revision: 3}
+- {from: "active", to: "implemented", at: "2026-10-04T23:28:58Z", actor: "human:timo", revision: 15, decided_on: {"recorded":{"test_result":1,"review_outcome":2,"verification":1}}}
 ---
 ## Outcome
 
@@ -53,3 +54,9 @@ calls the project "engineering protocols" rather than "ELS".
 
 `Cargo.toml`, `Cargo.lock`, `crates/els/` → `crates/canon-engineering/`, `crates/els-docs/` →
 `crates/canon-engineering-docs/`, `Taskfile.yml`, `README.md`, `AGENTS.md`, `docs/`, `website/`.
+
+## Close (wave 2026-10-05-w21)
+
+Items 1-4 hold at the merge `c18bde2`. Item 5 (a release) cannot be met: the repository has no
+release process (adversary pass 1, pre-existing). It moves to `story:release-process`, which
+`story:consumer-repin` now depends on.

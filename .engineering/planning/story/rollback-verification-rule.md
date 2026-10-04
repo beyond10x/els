@@ -21,14 +21,14 @@ relations:
 - serves: vision:governed-autonomy
 scope:
 - confidence: cited
-  path: crates/els/tests/rollback_verification_rule.rs
+  path: crates/canon-engineering/tests/rollback_verification_rule.rs
 - confidence: cited
   path: fixtures/incident-response/
 - confidence: cited
   path: protocols/incident-response/1.yaml
 - confidence: cited
   path: protocols/vocabulary.yaml
-revision: 4
+revision: 7
 ---
 ## Outcome
 
@@ -36,14 +36,14 @@ revision: 4
 
 ELS declares which independence dimensions a requirement needs; it does not resolve identities. The fixture supplies the independence decision as trusted input (design § 12, § 45.3; Canon design § 39.4). Canon owns the requirement form and the rule that evidence failing it does not satisfy (CANON-INDEPENDENCE-001).
 
-The story adds the one term it introduces, the claim `rollback.verified`, to `protocols/vocabulary.yaml`. The claim category already exists in the typed reader, so this story does not edit `crates/els/src/vocabulary.rs` (Atlas ADR 0077 point 3, draft).
+The story adds the one term it introduces, the claim `rollback.verified`, to `protocols/vocabulary.yaml`. The claim category already exists in the typed reader, so this story does not edit `crates/canon-engineering/src/vocabulary.rs` (Atlas ADR 0077 point 3, draft).
 
 ## Scope
 
 - `protocols/incident-response/1.yaml`
 - `fixtures/incident-response/`
 - `protocols/vocabulary.yaml`
-- `crates/els/tests/rollback_verification_rule.rs` (new)
+- `crates/canon-engineering/tests/rollback_verification_rule.rs` (new)
 
 ## Shared surface
 
@@ -62,7 +62,7 @@ Atlas ADR 0080 (draft). The first commit changes the following, and nothing else
 
 - `protocols/incident-response/1.yaml`, adding `rollback_result`, `rollback.verified` and its independence requirement;
 - the fixture `rollback-verification` in `fixtures/incident-response/`, with the expectations in § Acceptance;
-- `crates/els/tests/rollback_verification_rule.rs`.
+- `crates/canon-engineering/tests/rollback_verification_rule.rs`.
 
 On that commit `rollback_verified_needs_an_independent_verifier` fails at item 4: `rollback.verified` does not yet resolve in the vocabulary. The implementation commit adds the term to `protocols/vocabulary.yaml`.
 
@@ -72,16 +72,16 @@ Evidence applicability (C-004) and an independence requirement form. No Canon TA
 
 ## Domain relations
 
-- ELS protocol → Canon protocol model: many-to-one. Canon owns the language and an ELS protocol is a document in it; an ELS protocol cannot exist before the Canon capability it uses. Inferable: from `crates/els/Cargo.toml:9`, the `b10x-canon` dependency, and `crates/els/src/lib.rs:5`, which types protocol ids with `b10x_canon::ProtocolId`. No ess/1 document declares it, because ELS opts out of ESS for protocol semantics (`AGENTS.md` § ESS).
+- ELS protocol → Canon protocol model: many-to-one. Canon owns the language and an ELS protocol is a document in it; an ELS protocol cannot exist before the Canon capability it uses. Inferable: from `crates/canon-engineering/Cargo.toml:9`, the `b10x-canon` dependency, and `crates/canon-engineering/src/lib.rs:5`, which types protocol ids with `b10x_canon::ProtocolId`. No ess/1 document declares it, because ELS opts out of ESS for protocol semantics (`AGENTS.md` § ESS).
 
 ## Acceptance
 
-The test `rollback_verified_needs_an_independent_verifier` in `crates/els/tests/rollback_verification_rule.rs` passes under `task check`. It loads `protocols/incident-response/1.yaml` through Canon by way of the harness. It expects:
+The test `rollback_verified_needs_an_independent_verifier` in `crates/canon-engineering/tests/rollback_verification_rule.rs` passes under `task check`. It loads `protocols/incident-response/1.yaml` through Canon by way of the harness. It expects:
 
 1. Starting from the fixture `rollback-verification` in `fixtures/incident-response/` (the INC-492 case with `release.rollback` approved and performed by actor A, no `rollback_result`), evaluation reports `rollback.verified = UNKNOWN`.
 2. Starting from the state of 1 and adding `rollback_result` evidence with verdict complete from A, with an independence decision marking A not independent, evaluation reports `rollback.verified = UNKNOWN`.
 3. Starting from the state of 1 and adding `rollback_result` evidence with verdict complete from verifier B, with an independence decision marking B independent on `different_principal`, evaluation reports `rollback.verified = TRUE`.
-4. Starting from `protocols/vocabulary.yaml` as this story leaves it, read through `crates/els/src/vocabulary.rs`, `rollback.verified` resolves to exactly one vocabulary entry.
+4. Starting from `protocols/vocabulary.yaml` as this story leaves it, read through `crates/canon-engineering/src/vocabulary.rs`, `rollback.verified` resolves to exactly one vocabulary entry.
 
 ## Source
 

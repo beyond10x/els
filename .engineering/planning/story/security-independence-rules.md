@@ -19,16 +19,16 @@ relations:
 - depends_on: story:ess-conformance-evidence
 scope:
 - confidence: inferred
-  path: crates/els/src/vocabulary.rs
+  path: crates/canon-engineering/src/vocabulary.rs
 - confidence: cited
-  path: crates/els/tests/security_independence_rules.rs
+  path: crates/canon-engineering/tests/security_independence_rules.rs
 - confidence: cited
   path: fixtures/software-change/
 - confidence: cited
   path: protocols/software-change/1.yaml
 - confidence: cited
   path: protocols/vocabulary.yaml
-revision: 9
+revision: 14
 ---
 ## Outcome
 
@@ -41,7 +41,7 @@ revision: 9
 
 ELS declares which independence dimensions a requirement needs; it does not resolve identities. The fixture supplies the independence decision as trusted input (design § 12, § 45.3; Canon design § 39.4). Canon owns the requirement form and the rule that evidence failing it does not satisfy (CANON-INDEPENDENCE-001).
 
-The story adds the terms it introduces to `protocols/vocabulary.yaml`: the evidence kind `security_review`, the claim `security.reviewed`, the case input `affects_security_boundary`, and the independence dimensions `different_principal` and `different_agent_run`. The typed reader `crates/els/src/vocabulary.rs` has no category for an independence dimension, so this story adds that category and adds no term to the Rust (Atlas ADR 0077 point 3, draft).
+The story adds the terms it introduces to `protocols/vocabulary.yaml`: the evidence kind `security_review`, the claim `security.reviewed`, the case input `affects_security_boundary`, and the independence dimensions `different_principal` and `different_agent_run`. The typed reader `crates/canon-engineering/src/vocabulary.rs` has no category for an independence dimension, so this story adds that category and adds no term to the Rust (Atlas ADR 0077 point 3, draft).
 
 What stays out: the rollback-verification rule in `incident.response/1`. `story:rollback-verification-rule` declares it, using the dimension `different_principal` added here.
 
@@ -50,8 +50,8 @@ What stays out: the rollback-verification rule in `incident.response/1`. `story:
 - `protocols/software-change/1.yaml`
 - `fixtures/software-change/`
 - `protocols/vocabulary.yaml`
-- `crates/els/src/vocabulary.rs` (inferred: the reader's independence-dimension category)
-- `crates/els/tests/security_independence_rules.rs` (new)
+- `crates/canon-engineering/src/vocabulary.rs` (inferred: the reader's independence-dimension category)
+- `crates/canon-engineering/tests/security_independence_rules.rs` (new)
 
 ## Shared surface
 
@@ -65,9 +65,9 @@ Atlas ADR 0080 (draft). The first commit changes the following, and nothing else
 
 - `protocols/software-change/1.yaml`, adding `security_review`, `security.reviewed`, the derived obligation and the extended `implementation.verified`;
 - the fixture `security-boundary` in `fixtures/software-change/`, with the expectations in § Acceptance;
-- `crates/els/tests/security_independence_rules.rs`.
+- `crates/canon-engineering/tests/security_independence_rules.rs`.
 
-On that commit `independent_security_review_gates_implementation_verified` fails at item 5. The five new terms do not yet resolve in the vocabulary, and the reader has no independence-dimension category. The implementation commit adds the terms to `protocols/vocabulary.yaml` and the category to `crates/els/src/vocabulary.rs`.
+On that commit `independent_security_review_gates_implementation_verified` fails at item 5. The five new terms do not yet resolve in the vocabulary, and the reader has no independence-dimension category. The implementation commit adds the terms to `protocols/vocabulary.yaml` and the category to `crates/canon-engineering/src/vocabulary.rs`.
 
 ## Canon capability
 
@@ -75,17 +75,17 @@ Evidence applicability (C-004) and an independence requirement form. No Canon TA
 
 ## Domain relations
 
-- ELS protocol → Canon protocol model: many-to-one. Canon owns the language and an ELS protocol is a document in it; an ELS protocol cannot exist before the Canon capability it uses. Inferable: from `crates/els/Cargo.toml:9`, the `b10x-canon` dependency, and `crates/els/src/lib.rs:5`, which types protocol ids with `b10x_canon::ProtocolId`. No ess/1 document declares it, because ELS opts out of ESS for protocol semantics (`AGENTS.md` § ESS).
+- ELS protocol → Canon protocol model: many-to-one. Canon owns the language and an ELS protocol is a document in it; an ELS protocol cannot exist before the Canon capability it uses. Inferable: from `crates/canon-engineering/Cargo.toml:9`, the `b10x-canon` dependency, and `crates/canon-engineering/src/lib.rs:5`, which types protocol ids with `b10x_canon::ProtocolId`. No ess/1 document declares it, because ELS opts out of ESS for protocol semantics (`AGENTS.md` § ESS).
 
 ## Acceptance
 
-The test `independent_security_review_gates_implementation_verified` in `crates/els/tests/security_independence_rules.rs` passes under `task check`. It loads `protocols/software-change/1.yaml` through Canon by way of the harness. It expects:
+The test `independent_security_review_gates_implementation_verified` in `crates/canon-engineering/tests/security_independence_rules.rs` passes under `task check`. It loads `protocols/software-change/1.yaml` through Canon by way of the harness. It expects:
 
 1. Starting from the fixture `security-boundary` in `fixtures/software-change/` (implementation revision R1 by principal P1, `affects_security_boundary = true`, a passing `test_result` bound to R1, no `security_review`), evaluation reports `security.reviewed = UNKNOWN` and `implementation.verified = UNKNOWN`.
 2. Starting from the state of 1 and adding an approving `security_review` bound to R1 from P1, with an independence decision marking P1 not independent, evaluation reports `security.reviewed = UNKNOWN` and `implementation.verified = UNKNOWN`.
 3. Starting from the state of 1 and adding an approving `security_review` bound to R1 from principal P2, with an independence decision marking P2 independent on `different_principal`, evaluation reports `security.reviewed = TRUE` and `implementation.verified = TRUE`.
 4. Starting from the state of 1 with `affects_security_boundary = false`, evaluation reports `implementation.verified = TRUE` with no `security_review`.
-5. Starting from `protocols/vocabulary.yaml` as this story leaves it, read through `crates/els/src/vocabulary.rs`, each of `security_review`, `security.reviewed`, `affects_security_boundary`, `different_principal` and `different_agent_run` resolves to exactly one vocabulary entry.
+5. Starting from `protocols/vocabulary.yaml` as this story leaves it, read through `crates/canon-engineering/src/vocabulary.rs`, each of `security_review`, `security.reviewed`, `affects_security_boundary`, `different_principal` and `different_agent_run` resolves to exactly one vocabulary entry.
 
 ## Source
 

@@ -17,14 +17,14 @@ relations:
 - depends_on: story:software-change-negative-outcomes
 scope:
 - confidence: cited
-  path: crates/els/tests/ess_conformance_evidence.rs
+  path: crates/canon-engineering/tests/ess_conformance_evidence.rs
 - confidence: cited
   path: fixtures/software-change/
 - confidence: cited
   path: protocols/software-change/1.yaml
 - confidence: cited
   path: protocols/vocabulary.yaml
-revision: 5
+revision: 8
 ---
 ## Outcome
 
@@ -37,9 +37,9 @@ revision: 5
 
 `ess-conformance-report/1` is not admitted, because ESS never upconverts it to a qualifying report (ESS `docs/design/review-conformance-coverage.md` § New standalone report).
 
-The claim `implementation.conforms` is a conjunct that extends `implementation.verified`, which `story:software-change-protocol` defines (design § 9). This story edits that definition in `protocols/software-change/1.yaml` so that `implementation.verified` also requires `implementation.conforms` when the case input `affects_runtime_behavior` holds. It is not a free-standing claim. The story adds the terms it introduces to `protocols/vocabulary.yaml`: the evidence kind `system_conformance`, the claim `implementation.conforms` and the case input `affects_runtime_behavior`. All three categories are ones the typed reader already knows by then (the case-input category arrives with `story:software-change-profiles`), so this story does not edit `crates/els/src/vocabulary.rs`.
+The claim `implementation.conforms` is a conjunct that extends `implementation.verified`, which `story:software-change-protocol` defines (design § 9). This story edits that definition in `protocols/software-change/1.yaml` so that `implementation.verified` also requires `implementation.conforms` when the case input `affects_runtime_behavior` holds. It is not a free-standing claim. The story adds the terms it introduces to `protocols/vocabulary.yaml`: the evidence kind `system_conformance`, the claim `implementation.conforms` and the case input `affects_runtime_behavior`. All three categories are ones the typed reader already knows by then (the case-input category arrives with `story:software-change-profiles`), so this story does not edit `crates/canon-engineering/src/vocabulary.rs`.
 
-Where the report-to-evidence mapping needs code rather than protocol data, that code is test or fixture code under `crates/els/tests/` and `fixtures/`, not a module under `crates/els/src/`.
+Where the report-to-evidence mapping needs code rather than protocol data, that code is test or fixture code under `crates/canon-engineering/tests/` and `fixtures/`, not a module under `crates/canon-engineering/src/`.
 
 This is a use of ESS output, not an ESS specification of ELS (`AGENTS.md` § ESS).
 
@@ -48,7 +48,7 @@ This is a use of ESS output, not an ESS specification of ELS (`AGENTS.md` § ESS
 - `protocols/software-change/1.yaml`
 - `fixtures/software-change/`
 - `protocols/vocabulary.yaml`
-- `crates/els/tests/ess_conformance_evidence.rs` (new)
+- `crates/canon-engineering/tests/ess_conformance_evidence.rs` (new)
 
 ## Shared surface
 
@@ -60,9 +60,9 @@ Atlas ADR 0080 (draft). The first commit changes the following, and nothing else
 
 - `protocols/software-change/1.yaml`, adding `system_conformance` and `implementation.conforms` and the extended `implementation.verified`;
 - the fixture `conformance` in `fixtures/software-change/`, with the expectations in § Acceptance;
-- `crates/els/tests/ess_conformance_evidence.rs`.
+- `crates/canon-engineering/tests/ess_conformance_evidence.rs`.
 
-On that commit `implementation_conforms_follows_report_status_and_revisions` fails at item 9: `system_conformance`, `implementation.conforms` and `affects_runtime_behavior` do not yet resolve in the vocabulary. It also fails at item 7 if the report-admission check is not yet written. The implementation commit adds the terms to `protocols/vocabulary.yaml` and the admission code under `crates/els/tests/`.
+On that commit `implementation_conforms_follows_report_status_and_revisions` fails at item 9: `system_conformance`, `implementation.conforms` and `affects_runtime_behavior` do not yet resolve in the vocabulary. It also fails at item 7 if the report-admission check is not yet written. The implementation commit adds the terms to `protocols/vocabulary.yaml` and the admission code under `crates/canon-engineering/tests/`.
 
 ## Canon capability
 
@@ -70,11 +70,11 @@ Evidence applicability and revision binding (C-004), with evidence bound to two 
 
 ## Domain relations
 
-- ELS protocol → Canon protocol model: many-to-one. Canon owns the language and an ELS protocol is a document in it; an ELS protocol cannot exist before the Canon capability it uses. Inferable: from `crates/els/Cargo.toml:9`, the `b10x-canon` dependency, and `crates/els/src/lib.rs:5`, which types protocol ids with `b10x_canon::ProtocolId`. No ess/1 document declares it, because ELS opts out of ESS for protocol semantics (`AGENTS.md` § ESS).
+- ELS protocol → Canon protocol model: many-to-one. Canon owns the language and an ELS protocol is a document in it; an ELS protocol cannot exist before the Canon capability it uses. Inferable: from `crates/canon-engineering/Cargo.toml:9`, the `b10x-canon` dependency, and `crates/canon-engineering/src/lib.rs:5`, which types protocol ids with `b10x_canon::ProtocolId`. No ess/1 document declares it, because ELS opts out of ESS for protocol semantics (`AGENTS.md` § ESS).
 
 ## Acceptance
 
-The test `implementation_conforms_follows_report_status_and_revisions` in `crates/els/tests/ess_conformance_evidence.rs` passes under `task check`. It loads `protocols/software-change/1.yaml` through Canon by way of the harness. Its fixture is `conformance` in `fixtures/software-change/`, whose initial state is:
+The test `implementation_conforms_follows_report_status_and_revisions` in `crates/canon-engineering/tests/ess_conformance_evidence.rs` passes under `task check`. It loads `protocols/software-change/1.yaml` through Canon by way of the harness. Its fixture is `conformance` in `fixtures/software-change/`, whose initial state is:
 
 - implementation revision R2;
 - system specification at digest D2;
@@ -92,7 +92,7 @@ Each of expectations 2 to 7 starts from that initial state and adds one report. 
 6. After adding a `passed` report with `spec_digest` D2 and implementation R1, evaluation reports `implementation.conforms = UNKNOWN`.
 7. After adding an `ess-conformance-report/1` that says `passed` for D2 and R2, admission refuses it with a message naming `ess-conformance-report/1`, and evaluation reports `implementation.conforms = UNKNOWN`.
 8. Starting from the initial state with `affects_runtime_behavior = false` and no report, evaluation reports `implementation.verified = TRUE`.
-9. Starting from `protocols/vocabulary.yaml` as this story leaves it, read through `crates/els/src/vocabulary.rs`, each of `system_conformance`, `implementation.conforms` and `affects_runtime_behavior` resolves to exactly one vocabulary entry.
+9. Starting from `protocols/vocabulary.yaml` as this story leaves it, read through `crates/canon-engineering/src/vocabulary.rs`, each of `system_conformance`, `implementation.conforms` and `affects_runtime_behavior` resolves to exactly one vocabulary entry.
 
 ## Source
 

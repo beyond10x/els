@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-04T23:28:58Z",
+  "actor": "human:timo",
+  "artifact": "story:crate-rename",
+  "kind": "story",
+  "revision": 14,
+  "change": {
+    "change": "evidence",
+    "kind": "verification",
+    "source": "cargo metadata --no-deps: packages b10x-canon-engineering, canon-engineering-docs; base 4fe56de crate_names red 5, treatment green 5",
+    "reference": "~/.cache/ga-wave-2026-10-05-w21/els-crate-rename/scratch/phase1-red.log vs els-int-gate.log"
+  }
+}

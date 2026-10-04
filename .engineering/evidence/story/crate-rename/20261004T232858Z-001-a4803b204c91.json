@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-04T23:28:58Z",
+  "actor": "human:timo",
+  "artifact": "story:crate-rename",
+  "kind": "story",
+  "revision": 14,
+  "change": {
+    "change": "evidence",
+    "kind": "test_result",
+    "source": "integration gate: fmt 0, clippy 0, cargo test --workspace 0 (129 passed, 0 failed), generate --check 0",
+    "reference": "wave/2026-10-05-w21 c18bde2"
+  }
+}
