@@ -4,6 +4,8 @@
 
 use b10x_canon::ProtocolId;
 
+pub mod vocabulary;
+
 pub const SOFTWARE_CHANGE_V1: &str = "software.change/1";
 pub const INCIDENT_RESPONSE_V1: &str = "incident.response/1";
 

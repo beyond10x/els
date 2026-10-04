@@ -4,9 +4,9 @@
 Case INC-492
 
 Claims:
-  customer_impact_bounded = TRUE
-  service_healthy = FALSE
-  cause_identified = UNKNOWN
+  impact.bounded = TRUE
+  service.healthy = FALSE
+  cause.identified = UNKNOWN
 
 Urgent obligation:
   restore_service
@@ -22,9 +22,9 @@ Actions:
 After successful rollback and fresh health evidence:
 
 ```text
-service_healthy = TRUE
-customer_impact_bounded = TRUE
-cause_identified = UNKNOWN
+service.healthy = TRUE
+impact.bounded = TRUE
+cause.identified = UNKNOWN
 ```
 
 The operational incident can leave emergency mode while the investigation remains open.
