@@ -2,7 +2,7 @@
 format: aep.planning-md/3
 id: epic:els-first-domain
 kind: epic
-status: proposed
+status: active
 title: 'ELS first domain: software change and incident response'
 summary: Engineering vocabulary, software.change/1 with profiles and outcomes, incident.response/1, ESS evidence binding, ML protocol shape decided.
 refs:
@@ -11,9 +11,10 @@ refs:
 relations:
 - serves: vision:governed-autonomy
 - serves: vision:O2
-revision: 3
+revision: 4
 transitions:
 - {from: "draft", to: "proposed", at: "2026-10-04T00:01:14Z", actor: "human:timo", revision: 2}
+- {from: "proposed", to: "active", at: "2026-10-04T01:17:40Z", actor: "human:timo", revision: 4, decided_on: {"recorded":{"review_outcome":1}}}
 ---
 ## Outcome
 

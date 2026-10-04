@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-04T01:33:49Z",
+  "actor": "human:timo",
+  "artifact": "story:els-vocabulary",
+  "kind": "story",
+  "revision": 9,
+  "change": {
+    "change": "evidence",
+    "kind": "verification",
+    "source": "cargo test --test vocabulary: baseline wave/2026-10-04-w2 at 943992c vs treatment impl/els-vocabulary at 4030ed4",
+    "reference": "ga-wave-2026-10-04-w2/els-els-vocabulary/scratch/red-1-no-module.log: baseline exit 101 (unresolved import b10x_els::vocabulary); treatment 2 passed exit 0; VERIFIED"
+  }
+}

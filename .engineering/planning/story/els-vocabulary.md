@@ -2,7 +2,7 @@
 format: aep.planning-md/3
 id: story:els-vocabulary
 kind: story
-status: draft
+status: implemented
 title: Define the engineering vocabulary package
 summary: Typed engineering terms shared by software.change/1 and incident.response/1; no generic claim or evidence semantics.
 refs:
@@ -25,7 +25,11 @@ scope:
   path: docs/examples/incident-response.md
 - confidence: cited
   path: docs/examples/software-change.md
-revision: 5
+revision: 10
+transitions:
+- {from: "draft", to: "proposed", at: "2026-10-04T01:17:40Z", actor: "human:timo", revision: 6, decided_on: {"recorded":{"review_outcome":4}}}
+- {from: "proposed", to: "active", at: "2026-10-04T01:17:41Z", actor: "human:timo", revision: 7, decided_on: {"recorded":{"review_outcome":4}}}
+- {from: "active", to: "implemented", at: "2026-10-04T01:33:49Z", actor: "human:timo", revision: 10, decided_on: {"recorded":{"test_result":1,"review_outcome":8,"verification":1}}}
 ---
 ## Outcome
 
@@ -54,7 +58,7 @@ These are every term `story:software-change-protocol` and `story:incident-respon
 
 ### Terms later stories add
 
-Each later story adds the terms it introduces to `crates/els/src/vocabulary.rs` and says so in its own body:
+Each later story adds the terms it introduces to `crates/els/src/vocabulary.rs`, adds them to the exact term table in `crates/els/tests/adversary_vocabulary.rs` (which pins the vocabulary to the declared set), and says so in its own body:
 
 | story | terms it adds |
 |---|---|
@@ -93,3 +97,5 @@ The test `vocabulary_declares_first_domain_terms` in `crates/els/tests/vocabular
 ## Source
 
 TASKBOARD E-001 (Atlas `docs/design/governed-autonomy/TASKBOARD.md` § ELS); Atlas ADR 0068; Canon `docs/design/canon-protocol-calculus-design.md` § 16.2, § 18; `docs/design/engineering-lifecycle-specification-design.md` § 9–§ 10; `docs/examples/`; round-1 reviews `review-result:els-first-domain-acceptance-r1`, `review-result:els-first-domain-design-r1`, `review-result:els-first-domain-parallel-safety-r1`; round-2 review `review-result:els-first-domain-design-r2` (harness and protocol layout moved to `story:fixture-harness`).
+
+
