@@ -16,26 +16,29 @@ scope:
   path: Cargo.lock
 - confidence: inferred
   path: Cargo.toml
-revision: 7
+revision: 8
 transitions:
 - {from: "draft", to: "proposed", at: "2026-10-04T23:30:28Z", actor: "human:timo", revision: 2}
 - {from: "proposed", to: "active", at: "2026-10-04T23:30:28Z", actor: "human:timo", revision: 3}
 ---
 ## Outcome
 
-The repository has a release process: a tag-driven release workflow, a documented checklist in
-`AGENTS.md`, and a first tag, so consumers pin `b10x-canon-engineering` by tag instead of by rev.
+The repository releases the way llm does: a release commit sets the workspace version and adds a
+`CHANGELOG.md` entry, `b10x-bot[bot]` tags the merged commit with a bare version (`0.1.0`), and the
+bot publishes the GitHub Release. Consumers then pin `b10x-canon-engineering` by `tag`.
 
 ## Why
 
 Adversary pass 1 on `story:crate-rename` (wave 2026-10-05-w21,
 `review-result:adversary-w21-els-crate-rename-pass-1`): "The repository has no release process (no
 release workflow, no tags, nothing in README or AGENTS)". `story:crate-rename` acceptance item 5 and
-`story:consumer-repin` both assume a tag.
+`story:consumer-repin` both assume a tag. llm's process (llm `CHANGELOG.md`, release commit
+`8fa8a15a`, tag `0.1.6`) has no release workflow; this story copies it.
 
 ## Acceptance
 
-- `AGENTS.md` names the release steps; a workflow builds and publishes a GitHub Release on a tag.
-- The first tag exists after a green `task check` on `main`, with its GitHub Release; checks on the
-  tag are green.
-- Consumers can pin `tag = "<version>"`.
+- `AGENTS.md` has a release section naming the steps and the completion rule (tag, required
+  checks and GitHub Release verified).
+- `CHANGELOG.md` exists with a `0.1.0` entry; the workspace version is `0.1.0`.
+- Tag `0.1.0` (annotated, by `b10x-bot[bot]`) points at a `main` commit whose checks are green, and
+  the GitHub Release `0.1.0` exists, authored by the bot.
