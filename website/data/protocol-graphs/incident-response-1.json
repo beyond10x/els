@@ -1,0 +1,182 @@
+{
+  "edges": [
+    {
+      "from": "action:logs.search",
+      "kind": "produces",
+      "to": "evidence:cause_analysis"
+    },
+    {
+      "from": "action:metrics.inspect",
+      "kind": "produces",
+      "to": "evidence:impact_assessment"
+    },
+    {
+      "from": "action:metrics.inspect",
+      "kind": "produces",
+      "to": "evidence:operational_observation"
+    },
+    {
+      "from": "action:release.inspect",
+      "kind": "produces",
+      "to": "evidence:cause_analysis"
+    },
+    {
+      "from": "evidence:cause_analysis",
+      "kind": "establishes",
+      "qualifier": "identified",
+      "to": "claim:cause.identified"
+    },
+    {
+      "from": "evidence:impact_assessment",
+      "kind": "establishes",
+      "qualifier": "bounded",
+      "to": "claim:impact.bounded"
+    },
+    {
+      "from": "evidence:operational_observation",
+      "kind": "establishes",
+      "qualifier": "healthy",
+      "to": "claim:service.healthy"
+    },
+    {
+      "from": "claim:impact.bounded",
+      "kind": "gates",
+      "to": "action:emergency.leave"
+    },
+    {
+      "from": "claim:service.healthy",
+      "kind": "gates",
+      "to": "action:emergency.leave"
+    }
+  ],
+  "format": "b10x-protocol-graph/1",
+  "nodes": [
+    {
+      "description": "leave emergency mode; admissible once restore_service is discharged and the impact is bounded, whatever is known of the cause",
+      "id": "action:emergency.leave",
+      "kind": "action",
+      "name": "emergency.leave",
+      "predicate": {
+        "all": [
+          {
+            "claim": {
+              "id": "impact.bounded"
+            }
+          },
+          {
+            "claim": {
+              "id": "service.healthy"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "description": "search the system's logs",
+      "effect": "read",
+      "id": "action:logs.search",
+      "kind": "action",
+      "name": "logs.search"
+    },
+    {
+      "description": "read the system's metrics",
+      "effect": "read",
+      "id": "action:metrics.inspect",
+      "kind": "action",
+      "name": "metrics.inspect"
+    },
+    {
+      "description": "read what a release contains",
+      "effect": "read",
+      "id": "action:release.inspect",
+      "kind": "action",
+      "name": "release.inspect"
+    },
+    {
+      "capabilities": [
+        "release.rollback"
+      ],
+      "description": "return to a previous release",
+      "effect": "write",
+      "id": "action:release.rollback",
+      "kind": "action",
+      "name": "release.rollback"
+    },
+    {
+      "capabilities": [
+        "traffic.shift"
+      ],
+      "description": "move traffic between deployments",
+      "effect": "write",
+      "id": "action:traffic.shift",
+      "kind": "action",
+      "name": "traffic.shift"
+    },
+    {
+      "description": "an analysis of why an incident happened",
+      "id": "evidence:cause_analysis",
+      "kind": "evidence",
+      "name": "cause_analysis"
+    },
+    {
+      "description": "an assessment of who and what an incident affects",
+      "id": "evidence:impact_assessment",
+      "kind": "evidence",
+      "name": "impact_assessment"
+    },
+    {
+      "description": "an observation of the running system; its result is healthy or unhealthy",
+      "id": "evidence:operational_observation",
+      "kind": "evidence",
+      "name": "operational_observation"
+    },
+    {
+      "description": "the incident's cause is known",
+      "id": "claim:cause.identified",
+      "kind": "claim",
+      "name": "cause.identified",
+      "predicate": {
+        "evidence": {
+          "kind": "cause_analysis",
+          "result": "identified"
+        }
+      }
+    },
+    {
+      "description": "the incident's impact is known and contained",
+      "id": "claim:impact.bounded",
+      "kind": "claim",
+      "name": "impact.bounded",
+      "predicate": {
+        "evidence": {
+          "kind": "impact_assessment",
+          "result": "bounded"
+        }
+      }
+    },
+    {
+      "description": "the service is running healthily",
+      "id": "claim:service.healthy",
+      "kind": "claim",
+      "name": "service.healthy",
+      "predicate": {
+        "evidence": {
+          "kind": "operational_observation",
+          "result": "healthy"
+        }
+      }
+    },
+    {
+      "description": "urgent; bring the affected service back to health",
+      "id": "obligation:restore_service",
+      "kind": "obligation",
+      "name": "restore_service"
+    }
+  ],
+  "protocol": {
+    "description": "Respond to an incident: restore the service and leave emergency mode on restoration evidence, while the investigation of its cause progresses on its own.",
+    "id": "incident.response",
+    "revision": 1,
+    "source": "protocols/incident-response/1.yaml"
+  }
+}
