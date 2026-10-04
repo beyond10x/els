@@ -69,8 +69,10 @@ const config: Config = {
       title: 'ELS',
       items: [
         {to: '/docs/', label: 'Documentation', position: 'left', activeBaseRegex: '^/els/docs/$'},
+        {to: '/docs/category/concepts', label: 'Concepts', position: 'left'},
         {to: '/docs/protocols', label: 'Protocols', position: 'left'},
         {to: '/docs/vocabulary', label: 'Vocabulary', position: 'left'},
+        {to: '/docs/showcase', label: 'Showcase', position: 'left'},
         {href: 'https://github.com/beyond10x/els', label: 'GitHub ↗', position: 'right'},
       ],
     },
@@ -80,8 +82,10 @@ const config: Config = {
           title: 'ELS',
           items: [
             {label: 'What ELS is', to: '/docs/'},
+            {label: 'Concepts', to: '/docs/category/concepts'},
             {label: 'Protocols', to: '/docs/protocols'},
             {label: 'Vocabulary', to: '/docs/vocabulary'},
+            {label: 'Showcase', to: '/docs/showcase'},
             {label: 'Source', href: 'https://github.com/beyond10x/els'},
           ],
         },
