@@ -54,3 +54,13 @@ Both source trees are retained for review with verified archives under
 `$HOME/.local/state/worktree/archives/{canon/canon-assertions,engineering-protocols/engineering-assertions}`.
 The provider-only tree was archived and removed through exact-id GC after its commits were
 integrated; its archive remains under `engineering-protocols/assertion-providers`.
+
+## Pull request submission resumed
+
+On 2026-10-05 the operator requested submitted green pull requests. Canon's missing exact App-only
+branch-authority rule was restored through the bot API (rule 24531196). Its source branch was
+published through signed Gates delivery, making this repository's pinned Canon commit remotely
+available. The publication blocker is cleared. Current main is integrated for PR checks.
+Submission continues in managed tree `engineering-assertions-pr`, branch
+`feat/engineering-assertions-pr`; earlier archives remain recovery snapshots. Canon should merge
+before this dependent PR. No release or deployment is part of PR submission.
