@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-05T21:57:24Z",
+  "actor": "human:timo",
+  "artifact": "release-plan:engineering-0-2-0",
+  "kind": "release-plan",
+  "revision": 3,
+  "change": {
+    "change": "evidence",
+    "kind": "test_result",
+    "source": "PASS: task check with Canon tag 0.1.0 locked to 761239f42923844bec3faf5aaae616fc06110739; fmt, clippy, 171 workspace tests, ESS 0.53.0 contracts and 16 generated documentation files without drift. Docusaurus build passed. Malformed-provider fixture additionally passed 50 consecutive focused runs."
+  }
+}

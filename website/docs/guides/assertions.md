@@ -6,7 +6,7 @@ lede: A gate passes only when every assertion evaluates true against its bound o
 source: crates/canon-engineering-assertions; crates/assertion-providers; catalog/engineering.yaml
 ---
 
-Assertion gates are available in the source CLI. They use the generic `canon-expr/1` language
+Assertion gates are available in source release 0.2.0. They use the generic `canon-expr/1` language
 from [Canon](https://beyond10x.github.io/canon/) ([GitHub](https://github.com/beyond10x/canon)).
 Engineering Protocols owns the catalog, process registration and collection. AEP acceptance
 objects and automatic task offboarding are **planned** integrations. Kubernetes collection is
