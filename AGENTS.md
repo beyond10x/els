@@ -1,43 +1,114 @@
 # AGENTS.md — engineering-protocols
 
-What engineering protocols are and how to build them is in [README.md](README.md); this file is
-what an agent changing the repository must know. The cross-repository architecture is Atlas ADRs
-0066–0075 and Atlas `docs/design/governed-autonomy/`.
-
-## Serves
-
-- **O2 — decisions as data, with evidence.** Engineering method is declared as protocols and
-  evaluated by Canon.
+This file is for an agent changing the repository. What engineering protocols are, how to depend on
+them and how to run them is in [README.md](README.md); the public site is
+<https://beyond10x.github.io/engineering-protocols/>. The cross-repository architecture is Atlas
+ADRs 0066–0075 and Atlas `docs/design/governed-autonomy/`.
 
 ## Boundary
 
-- Engineering protocols own engineering-domain vocabulary and protocols (Atlas ADR 0068):
-  `software.change/1`, `incident.response/1`, later investigation, ML experiment, migration and
-  security response.
-- `support.triage/1` is the one protocol outside engineering, placed here by operator decision of
-  2026-10-05 as the rules half of a support triage example. Its terms stay out of the engineering
-  vocabulary, and its actions are tool-agnostic like every other protocol here.
-- Generic claim, evidence and obligation semantics belong to Canon. Do not re-implement them here.
-- Engineering protocols do not own the live engineering record (AEP, Atlas ADR 0069) or agent
-  execution (Commission, Loom).
-- Pressure-test every abstraction against both software delivery and incident response. A rule that
-  only makes sense for Git, pull requests or code is not necessarily a core rule of engineering
-  protocols.
+This repository owns engineering-domain vocabulary and the protocols written in it (Atlas ADR
+0068): `software.change/1` and `incident.response/1` today, investigation, ML experiment, migration
+and security response later. `support.triage/1` is the one protocol outside engineering, placed
+here by operator decision of 2026-10-05 as the rules half of a support triage example; its terms
+stay out of `protocols/vocabulary.yaml`, and its actions are tool-agnostic like every other
+protocol's.
 
-## Rules
+It does not own:
 
-- Protocol evaluation goes through Canon; engineering protocols add no hidden clock, network or
-  model call.
-- `UNKNOWN` is not `FALSE`.
-- Every protocol rule lands with a fixture that exercises it, including stale-revision fixtures.
-- Anything that runs is Rust; command lines use clap derive.
+| Not here | Owner |
+|---|---|
+| Claim, evidence and obligation semantics; validation, compilation, evaluation | Canon. Do not re-implement them here. |
+| The live engineering record | AEP (Atlas ADR 0069) |
+| Running agents | Loom; its `loom-governor`, `loom-intake-router` and `loom-intake-slice` crates depend on this crate at tag 0.1.0 |
+
+Pressure-test every abstraction against both software delivery and incident response. A rule that
+only makes sense for Git, pull requests or code is not necessarily a core rule of engineering
+protocols.
+
+## Invariants
+
+| A change must keep | Held by |
+|---|---|
+| Every `protocols/<name>/<major>.yaml` is embedded by `crates/canon-engineering/build.rs` with no Rust edit, and each one parses and validates in Canon | `tests/protocol_registry.rs::registry_lists_fetches_and_validates_every_builtin` |
+| A malformed protocol path under `protocols/` fails the build rather than being skipped | `build.rs`, rule in `src/builtin_name.rs` |
+| `UNKNOWN` is not `FALSE`: tests on a stale revision leave `tests.pass` `UNKNOWN` and merge blocked | `tests/software_change_protocol.rs::chg_1842_merge_waits_for_current_revision_tests_and_authority` |
+| An incident leaves emergency mode while its cause is still `UNKNOWN` | `tests/incident_response_protocol.rs::inc_492_leaves_emergency_while_cause_unknown` |
+| `support.triage/1` has no unreachable outcome and no authority bypass | `tests/support_triage_protocol.rs::canon_check_finds_no_unreachable_outcome_and_no_authority_bypass` |
+| `protocols/vocabulary.yaml` is the vocabulary's only source | `tests/vocabulary_yaml.rs::vocabulary_yaml_is_the_source` |
+| Every protocol rule lands with a fixture under `fixtures/` that exercises it, stale-revision cases included | the fixture harness, `tests/fixture_harness.rs`; adding the fixture is review's job |
+| Evaluation adds no hidden clock, network or model call; a fixture's instant is an input | `tests/support/mod.rs` reads the instant from the fixture; review |
+| The package, library and binary names are `b10x-canon-engineering`, `canon_engineering`, `canon-engineering`; no retired name ships | `tests/crate_names.rs`, `tests/adversary_rename.rs` |
+| Generated site files match a fresh render | `canon-engineering-docs generate --check` in `task check` |
+
+Test paths above are under `crates/canon-engineering/`. Anything that runs is Rust, and command
+lines use clap derive.
+
+## Gate
+
+`task check` is the gate, and CI's `check` workflow runs exactly it. Its steps, each runnable alone:
+
+```console
+cargo fmt --all --check
+cargo clippy --workspace --all-targets --locked -- -D warnings
+cargo test --workspace --locked
+cargo run --locked -p canon-engineering-docs -- generate --check
+```
+
+There is no `rust-toolchain.toml`; CI installs the current `stable` through
+`dtolnay/rust-toolchain`, so gate on an up-to-date stable. `task plan` runs
+`aep plan artifact validate`. Two more workflows run on every pull request and on `main`:
+`Documentation validation` (`pages.yml`: the docs crate's tests, `generate --check`, the site
+build) and `Shared source gates` (`shared-gates.yml`: the common Gates checks).
+
+`b10x-canon` and `b10x-canon-expr` are Git dependencies on the same exact Canon revision in the
+crate manifests and `Cargo.lock`. A Canon change reaches this repository through an explicit
+revision and lockfile update, which is a change to gate like any other.
+
+## Generated files
+
+Never edit these by hand; change the protocol or the generator, then run `task docs`
+(`canon-engineering-docs generate`):
+
+| Output | From |
+|---|---|
+| `website/docs/protocols/<name>/<major>.mdx`, `website/docs/protocols/index.md` | `protocols/<name>/<major>.yaml`, compiled by Canon |
+| `website/data/protocol-graphs/*.json` (`b10x-protocol-graph/1`) | the same protocols |
+| `website/data/example-graphs/*.json` | preview protocols in `website/examples/protocols/` |
+| `website/docs/vocabulary.md` | `protocols/vocabulary.yaml` |
+| `website/data/status.json` (`b10x-status/1`), `website/docs/status.mdx` | one shipped row per protocol plus the list in `crates/canon-engineering-docs/src/status.rs` |
+
+Each generated page starts with `generated by canon-engineering-docs, do not edit`. Preview
+protocols that concept pages draw belong in `website/examples/protocols/`, never in `protocols/`:
+anything in `protocols/` becomes a built-in. Generation also refuses the old admonition form
+(`:::kind Title`); write `:::kind[Title]`.
+
+## Public documentation
+
+`website/` is Docusaurus on the Docs System product-site template, with `@beyond10x/docs-system`
+pinned to a commit in `website/package.json`; only the site build is Node (22 in CI). The landing
+page is data, `website/product.json` (`b10x-product-landing/1`); its claims are checked like any
+page's. Hand-written pages are `website/docs/index.md`, `website/docs/concepts/` and
+`website/docs/showcase.mdx`; each concept page labels what is shipped, decided and planned, checked
+against Canon and this repository. `task site-build` builds the site into `website/build`.
+
+The site is independent. A bot push to `main` that passes `Documentation validation` uploads
+`website/build` (bound to its commit by `canon-engineering-docs site-manifest`) and triggers
+`Documentation site` (`b10x-docs-site.yml`), which deploys through Website's `project-site.yml`.
+The site publishes no `.well-known/b10x-routes.json`.
+
+In `website/docusaurus.config.ts`, `product: 'els'` stays as it is: it is a fixed Docs System
+palette key, not the repository name, and any other value fails the build. For any change to the
+site, its workflows or README.md, follow the workspace `docs` skill
+(`~/beyond10x/.agents/skills/docs/SKILL.md`), and verify the live page before reporting it
+published.
 
 ## ESS
 
 This repository opts out of ESS for its protocol semantics: protocols are defined in Canon and
 tested by Canon conformance (Atlas ADR 0067). ESS conformance reports are an evidence *kind*
-engineering protocols may admit (story E-007); that is a use of ESS output, not a specification of
-this repository.
+engineering protocols may admit (`story:ess-conformance-evidence`, draft); that is a use of ESS
+output, not a specification of this repository.
 
 Assertion collection and its CLI are not part of that opt-out. Their wire model lives in `ess/`;
 provider envelopes live in `ess/providers/`, both pinned to ESS 0.53.0. The gate document is a
@@ -60,56 +131,47 @@ expectations in its first commit, a named test (a Canon fixture test under
 later commits implement against it. A change with no behaviour change is exempt and says so in its
 story's `## Protocol first`.
 
-## Public documentation
-
-`website/` is a Docusaurus site on the docs-system product-site template (`withProductSite`, with
-`@beyond10x/docs-system` pinned to a commit); only its build is Node. The landing page is
-`website/product.json` (`b10x-product-landing/1`); documentation lives under `/docs/`, and the
-earlier `/protocols` and `/vocabulary` URLs redirect there. Every derived input is written by the
-Rust `canon-engineering-docs` crate: `canon-engineering-docs generate` (`task docs`) compiles each
-`protocols/<name>/<major>.yaml` with Canon and writes one page per protocol (tables plus
-`<ProtocolGraph>`) into `website/docs/protocols/`, its `b10x-protocol-graph/1` document into
-`website/data/protocol-graphs/`, and the protocols index and the vocabulary into `website/docs/`.
-It also writes the status record `website/data/status.json` (`b10x-status/1`: one shipped row per
-protocol, the rest listed in `crates/canon-engineering-docs/src/status.rs`), which the landing
-page's status section and the generated `website/docs/status.mdx` both read.
-Each generated page is headed `generated by canon-engineering-docs, do not edit`, and every file in
-`website/data/protocol-graphs/` is generated; change the protocol or the generator and regenerate
-instead. Preview protocols the concept pages draw are kept in `website/examples/protocols/`, never in
-`protocols/`; they yield only graph documents, in `website/data/example-graphs/`. `task check` runs
-`canon-engineering-docs generate --check`, which fails on drift. Hand-written pages are concepts and
-guides only (`website/docs/index.md`, `website/docs/concepts/`, `website/docs/showcase.mdx`); each
-concept page labels what is shipped, decided and planned, checked against Canon and the code in this
-repository. `task site-build` builds the site. Never put App credentials in this repository. Verify
-the live site before reporting it published.
-
 ## Work
 
-- Planned in the AEP store under `.engineering/`, written only through `aep plan artifact`. Body
-  drafts go in `.engineering/drafts/` (ignored).
-- Build with the `CARGO_TARGET_DIR` the Taskfile sets (one directory per repository under
-  `$HOME/.cache/b10x-target/`).
-  `crates/canon-engineering/build.rs` embeds `protocols/`, so a target dir shared between checkouts
-  can embed another checkout's protocol files: give each worktree its own `CARGO_TARGET_DIR` before
-  trusting a gate run there.
-- Every commit and push is `b10x-bot[bot]`'s through `b10x-gates bot`; every GitHub write goes
-  through `b10x-gates api`.
-- Use a managed worktree (`worktree create --repo els --purpose …`) for changes.
+- The plan is the AEP store under `.engineering/`, written only through `aep plan artifact`
+  (`aep plan artifact list` to read it). Body drafts go in `.engineering/drafts/`, which Git
+  ignores. Evidence for a story lives under `.engineering/evidence/story/<id>/`.
+- Waves run as `aep:implementing` describes: one `impl/<story-id>` branch per unit, merged into
+  `wave/<date>-w<N>`, closed by a `plan: close wave …` commit. Smaller changes go through a bot
+  pull request.
+- Use a managed worktree: `worktree create --repo ~/beyond10x/engineering-protocols --purpose …`.
+- Build with the `CARGO_TARGET_DIR` the Taskfile sets, under `$HOME/.cache/b10x-target/`.
+  `crates/canon-engineering/build.rs` embeds `protocols/`, so a target directory shared between
+  checkouts can embed another checkout's protocol files: give each worktree its own
+  `CARGO_TARGET_DIR` before trusting a gate run there.
+- Every commit and push is `b10x-bot[bot]`'s, through `b10x-gates bot`; check both author and
+  committer before pushing. Every other GitHub write (pull request, comment, release, workflow
+  dispatch, re-run) goes through `b10x-gates api`. `gh` is for reading only.
 
 ## Releases
 
-Source releases at bare-version tags (`0.1.0`); the workspace is `publish = false` and has no
+Source releases at bare-version tags (`0.1.0`). Nothing is published to crates.io and there is no
 release workflow. A release is:
 
 1. A release commit on `main` (through a wave or a bot pull request): the workspace `version` in
-   `Cargo.toml`, `Cargo.lock`, and a `CHANGELOG.md` entry for that version.
+   `Cargo.toml`, `Cargo.lock`, and a `CHANGELOG.md` entry for that version, moved out of
+   `[Unreleased]`.
 2. `task check` green on that commit, and its CI checks green.
 3. An annotated tag by `b10x-bot[bot]` on that commit: `b10x-gates bot … -- tag -a <version> -m
    "Engineering protocols <version>" <commit>`, then `-- push origin <version>`.
 4. The GitHub Release for the tag, created by the bot (`b10x-gates api --method POST --path
    /repos/beyond10x/engineering-protocols/releases`), its notes taken from the CHANGELOG entry.
 
-Consumers pin `b10x-canon-engineering` by `tag = "<version>"`.
+Consumers pin `b10x-canon-engineering` by `tag = "<version>"`; README.md's install lines name the
+latest tag and change in the release commit.
+
+## Never
+
+- Re-implement Canon semantics, or add a clock, network or model call to evaluation.
+- Put a preview or example protocol in `protocols/`.
+- Hand-edit a generated file, or the generated block below.
+- Commit App credentials or private policy to this repository.
+- Write to GitHub as anyone but the bot, or report the site published without checking it live.
 
 <!-- b10x-release-operations:start -->
 ## Release completion

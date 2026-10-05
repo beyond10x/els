@@ -1,4 +1,4 @@
-# ELS owns this standalone site caller. It follows ESS's project-site publication boundary.
+# Engineering protocols owns this standalone site caller. It follows ESS's project-site publication boundary.
 name: Documentation site
 
 on:

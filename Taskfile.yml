@@ -1,7 +1,7 @@
 version: '3'
 
 env:
-  CARGO_TARGET_DIR: '{{.HOME}}/.cache/b10x-target/els'
+  CARGO_TARGET_DIR: '{{.HOME}}/.cache/b10x-target/engineering-protocols'
 
 tasks:
   default:
