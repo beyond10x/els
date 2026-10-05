@@ -55,7 +55,7 @@ mod tests {
             serde_json::from_str(&manifest(commit).expect("manifest")).expect("json");
         assert_eq!(
             value,
-            json!({"schema":"b10x-project-site/v1","repository":"els","commit":commit,"baseUrl":"/els/"})
+            json!({"schema":"b10x-project-site/v1","repository":"engineering-protocols","commit":commit,"baseUrl":"/engineering-protocols/"})
         );
         assert!(manifest(&"0".repeat(40)).is_err());
         assert!(manifest("fef0494").is_err());

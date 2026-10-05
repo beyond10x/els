@@ -2,9 +2,14 @@
 //! clap surface (`--help`, a usage error) must name `canon-engineering` and never the project's
 //! earlier name, the library's one human-facing error names no project, and the acceptance's
 //! `grep -rniw els` over `README.md`, `AGENTS.md`, `docs/`, `website/` and `crates/` returns only
-//! hits of the kinds the coordinator scoped out (repository name, docs route and site ids, fixture
-//! format ids, story ids, the retired names this suite asserts are gone, the historic design
-//! proposal and the dated showcase snapshot).
+//! hits of the kinds the coordinator scoped out (the docs-system product id, the managed-worktree
+//! repository id, fixture format ids, protocol ids, story ids, the retired names this suite asserts
+//! are gone, the historic design proposal and the dated showcase snapshot).
+//!
+//! `story:repository-rename` tightened it: the repository is `beyond10x/engineering-protocols` and
+//! its site is served under `/engineering-protocols/`, so the old repository URL, the old `/els/`
+//! route and the old site ids are no longer an allowed kind, and no file this repository ships
+//! names them.
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
@@ -147,16 +152,9 @@ fn every_remaining_els_hit_is_a_scoped_out_kind() {
     };
     let allowed_line = |line: &str| {
         [
-            "github.com/beyond10x/els",
-            "/els/",
             "els-fixture/",
             "story:els-",
-            "projectName: 'els'",
             "product: 'els'",
-            "\"repository\": \"els\"",
-            "\"repository\":\"els\"",
-            "declared as els",
-            "# AGENTS.md — els",
             "--repo els",
             "els/incident.response@1",
             "`crates/els/src/vocabulary.rs` at `13d180f`",
@@ -187,5 +185,158 @@ fn every_remaining_els_hit_is_a_scoped_out_kind() {
         unexplained.is_empty(),
         "whole-word `els` hits that name the project:\n{}",
         unexplained.join("\n")
+    );
+}
+
+/// Whether `line` names the repository's old GitHub path, `beyond10x/els`, as a whole path segment.
+fn names_old_repository(line: &str) -> bool {
+    let needle = "beyond10x/els";
+    let mut from = 0;
+    while let Some(found) = line[from..].find(needle) {
+        let end = from + found + needle.len();
+        let after = line[end..].chars().next();
+        if !after.is_some_and(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-') {
+            return true;
+        }
+        from = end;
+    }
+    false
+}
+
+/// Whether `line` names the site's old route, `/els/`. The one historic source path this repository
+/// cites by commit (`crates/els/src/vocabulary.rs` at `13d180f`) is not a route.
+fn names_old_route(line: &str) -> bool {
+    line.contains("/els/") && !line.contains("`crates/els/src/vocabulary.rs` at `13d180f`")
+}
+
+#[test]
+fn the_old_repository_and_route_matchers_match() {
+    assert!(names_old_repository("https://github.com/beyond10x/els"));
+    assert!(names_old_repository(
+        "https://github.com/beyond10x/els/blob/main/x"
+    ));
+    assert!(names_old_repository("github.repository == 'beyond10x/els'"));
+    assert!(!names_old_repository(
+        "https://github.com/beyond10x/engineering-protocols"
+    ));
+    assert!(!names_old_repository("beyond10x/elsewhere"));
+    assert!(!names_old_repository("beyond10x/els-docs"));
+    assert!(names_old_route("  baseUrl: '/els/',"));
+    assert!(names_old_route("src=\"/els/showcase/2026-10-04/\""));
+    assert!(!names_old_route("baseUrl: '/engineering-protocols/'"));
+    assert!(!names_old_route(
+        "/// The 35 terms of `crates/els/src/vocabulary.rs` at `13d180f`, in its order:"
+    ));
+}
+
+/// No file this repository ships names the old GitHub repository or the old site route. Unlike the
+/// whole-word scan above this also reads `Cargo.toml`, the Taskfile, the workflows and `protocols/`;
+/// it skips only history: the design proposal, the dated showcase snapshot, the changelog and this
+/// suite's own files.
+#[test]
+fn no_shipped_file_names_the_old_repository_or_route() {
+    let root = root();
+    let mut files = vec![
+        root.join("README.md"),
+        root.join("AGENTS.md"),
+        root.join("Cargo.toml"),
+        root.join("Taskfile.yml"),
+    ];
+    for dir in [".github", "docs", "website", "crates", "protocols"] {
+        walk(&root.join(dir), &mut files);
+    }
+    let history = |relative: &str| {
+        relative.starts_with("docs/design/")
+            || relative.starts_with("website/static/showcase/2026-10-04/")
+            || relative == "crates/canon-engineering/tests/adversary_rename.rs"
+            || relative == "crates/canon-engineering-docs/tests/adversary_rename.rs"
+    };
+    let mut stale = Vec::new();
+    for file in files {
+        let relative = file
+            .strip_prefix(&root)
+            .expect("under root")
+            .to_string_lossy()
+            .replace('\\', "/");
+        if history(&relative) {
+            continue;
+        }
+        let Ok(text) = std::fs::read_to_string(&file) else {
+            continue;
+        };
+        for (number, line) in text.lines().enumerate() {
+            if names_old_repository(line) || names_old_route(line) {
+                stale.push(format!("{relative}:{}: {line}", number + 1));
+            }
+        }
+    }
+    assert!(
+        stale.is_empty(),
+        "lines still naming beyond10x/els or the /els/ route:\n{}",
+        stale.join("\n")
+    );
+}
+
+/// The places that bind the repository's identity name the new one: the package metadata, the site
+/// publisher's repository guard, project id and route, the Docusaurus site, and the release path.
+#[test]
+fn the_repository_identity_names_engineering_protocols() {
+    let root = root();
+    let read = |relative: &str| {
+        std::fs::read_to_string(root.join(relative))
+            .unwrap_or_else(|error| panic!("{relative}: {error}"))
+    };
+    let expected = [
+        (
+            "Cargo.toml",
+            "repository = \"https://github.com/beyond10x/engineering-protocols\"",
+        ),
+        (
+            ".github/workflows/b10x-docs-site.yml",
+            "github.repository == 'beyond10x/engineering-protocols'",
+        ),
+        (
+            ".github/workflows/b10x-docs-site.yml",
+            "repository: engineering-protocols\n",
+        ),
+        (
+            ".github/workflows/b10x-docs-site.yml",
+            "route_base: /engineering-protocols/\n",
+        ),
+        (
+            "website/docusaurus.config.ts",
+            "baseUrl: '/engineering-protocols/',",
+        ),
+        (
+            "website/docusaurus.config.ts",
+            "projectName: 'engineering-protocols',",
+        ),
+        (
+            "website/docusaurus.config.ts",
+            "activeBaseRegex: '^/engineering-protocols/docs/$'",
+        ),
+        (
+            "website/docusaurus.config.ts",
+            "https://github.com/beyond10x/engineering-protocols/tree/main/website/",
+        ),
+        (
+            "website/docs/showcase.mdx",
+            "src=\"/engineering-protocols/showcase/2026-10-04/\"",
+        ),
+        ("AGENTS.md", "# AGENTS.md — engineering-protocols\n"),
+        (
+            "AGENTS.md",
+            "/repos/beyond10x/engineering-protocols/releases",
+        ),
+    ];
+    let missing: Vec<String> = expected
+        .iter()
+        .filter(|(file, text)| !read(file).contains(text))
+        .map(|(file, text)| format!("{file}: {text:?}"))
+        .collect();
+    assert!(
+        missing.is_empty(),
+        "the repository identity is not engineering-protocols in:\n{}",
+        missing.join("\n")
     );
 }
