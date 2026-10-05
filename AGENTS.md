@@ -1,4 +1,4 @@
-# AGENTS.md — els
+# AGENTS.md — engineering-protocols
 
 What engineering protocols are and how to build them is in [README.md](README.md); this file is
 what an agent changing the repository must know. The cross-repository architecture is Atlas ADRs
@@ -89,7 +89,7 @@ release workflow. A release is:
 3. An annotated tag by `b10x-bot[bot]` on that commit: `b10x-gates bot … -- tag -a <version> -m
    "Engineering protocols <version>" <commit>`, then `-- push origin <version>`.
 4. The GitHub Release for the tag, created by the bot (`b10x-gates api --method POST --path
-   /repos/beyond10x/els/releases`), its notes taken from the CHANGELOG entry.
+   /repos/beyond10x/engineering-protocols/releases`), its notes taken from the CHANGELOG entry.
 
 Consumers pin `b10x-canon-engineering` by `tag = "<version>"`.
 

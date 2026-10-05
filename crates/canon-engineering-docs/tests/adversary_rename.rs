@@ -185,8 +185,10 @@ fn the_site_manifest_declares_engineering_protocols() {
         stdout.contains(&format!("declared as engineering-protocols at {commit}")),
         "site-manifest reports the renamed repository:\n{stdout}"
     );
+    // The site path is the caller's and may hold any word (a build dir named after a checkout).
+    let message = stdout.replace(site.to_str().expect("UTF-8 path"), "<site>");
     assert!(
-        !has_word(&stdout, "els"),
+        !has_word(&message, "els"),
         "site-manifest names ELS:\n{stdout}"
     );
     let manifest: serde_json::Value = serde_json::from_str(

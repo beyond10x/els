@@ -77,7 +77,7 @@ fn main() -> Result<()> {
         Action::SiteManifest { site, commit } => {
             manifest::write(&site, &commit)?;
             println!(
-                "canon-engineering-docs: {} declared as els at {commit}",
+                "canon-engineering-docs: {} declared as engineering-protocols at {commit}",
                 site.display()
             );
         }

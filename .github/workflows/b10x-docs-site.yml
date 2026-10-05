@@ -19,7 +19,7 @@ jobs:
     if: >-
       github.actor == 'b10x-bot[bot]'
       && github.triggering_actor == 'b10x-bot[bot]'
-      && github.repository == 'beyond10x/els'
+      && github.repository == 'beyond10x/engineering-protocols'
       && github.ref == 'refs/heads/main'
       && (github.event_name == 'workflow_dispatch'
         || (github.event.workflow_run.conclusion == 'success'
@@ -32,8 +32,8 @@ jobs:
       actions: read
     uses: beyond10x/website/.github/workflows/project-site.yml@fb4024ef7846729e5456591b9070db3d48c87e64
     with:
-      repository: els
+      repository: engineering-protocols
       control_sha: ${{ github.event.workflow_run.head_sha || github.sha }}
-      route_base: /els/
+      route_base: /engineering-protocols/
       build_workflow: pages.yml
       artifact: b10x-project-site

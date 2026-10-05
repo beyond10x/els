@@ -8,7 +8,7 @@ use anyhow::{Context, Result, ensure};
 use serde_json::json;
 
 /// Where the site is served.
-pub const BASE_URL: &str = "/els/";
+pub const BASE_URL: &str = "/engineering-protocols/";
 
 /// The manifest for a site built from `commit`.
 pub fn manifest(commit: &str) -> Result<String> {
@@ -22,7 +22,7 @@ pub fn manifest(commit: &str) -> Result<String> {
     );
     let manifest = json!({
         "schema": "b10x-project-site/v1",
-        "repository": "els",
+        "repository": "engineering-protocols",
         "commit": commit,
         "baseUrl": BASE_URL,
     });

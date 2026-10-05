@@ -156,7 +156,7 @@ pub fn page(ir: &Ir, source: &Source) -> String {
     let _ = writeln!(out, "- **Revision:** {}", header.revision);
     let _ = writeln!(
         out,
-        "- **Source:** [{}](https://github.com/beyond10x/els/blob/main/{})",
+        "- **Source:** [{}](https://github.com/beyond10x/engineering-protocols/blob/main/{})",
         code(&source.path),
         source.path
     );
