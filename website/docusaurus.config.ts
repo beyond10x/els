@@ -12,10 +12,10 @@ const config: Config = {
   },
 
   url: 'https://beyond10x.github.io',
-  baseUrl: '/els/',
+  baseUrl: '/engineering-protocols/',
 
   organizationName: 'beyond10x',
-  projectName: 'els',
+  projectName: 'engineering-protocols',
   trailingSlash: false,
 
   onBrokenLinks: 'throw',
@@ -57,7 +57,7 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           routeBasePath: 'docs',
-          editUrl: 'https://github.com/beyond10x/els/tree/main/website/',
+          editUrl: 'https://github.com/beyond10x/engineering-protocols/tree/main/website/',
         },
         blog: false,
       } satisfies Preset.Options,
@@ -68,12 +68,12 @@ const config: Config = {
     navbar: {
       title: 'Engineering protocols',
       items: [
-        {to: '/docs/', label: 'Documentation', position: 'left', activeBaseRegex: '^/els/docs/$'},
+        {to: '/docs/', label: 'Documentation', position: 'left', activeBaseRegex: '^/engineering-protocols/docs/$'},
         {to: '/docs/category/concepts', label: 'Concepts', position: 'left'},
         {to: '/docs/protocols', label: 'Protocols', position: 'left'},
         {to: '/docs/vocabulary', label: 'Vocabulary', position: 'left'},
         {to: '/docs/showcase', label: 'Showcase', position: 'left'},
-        {href: 'https://github.com/beyond10x/els', label: 'GitHub', position: 'right'},
+        {href: 'https://github.com/beyond10x/engineering-protocols', label: 'GitHub', position: 'right'},
       ],
     },
     footer: {
@@ -87,7 +87,7 @@ const config: Config = {
             {label: 'Vocabulary', to: '/docs/vocabulary'},
             {label: 'Showcase', to: '/docs/showcase'},
             {label: 'Status', to: '/docs/status'},
-            {label: 'Source', href: 'https://github.com/beyond10x/els'},
+            {label: 'Source', href: 'https://github.com/beyond10x/engineering-protocols'},
           ],
         },
       ],

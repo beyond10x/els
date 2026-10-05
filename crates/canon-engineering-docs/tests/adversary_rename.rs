@@ -1,6 +1,11 @@
 //! Adversary pass 1 on `story:crate-rename`, docs generator side: its clap surface names
 //! `canon-engineering-docs`, a drift failure tells the reader the renamed command to run, and a
 //! fresh render of every generated file names no project `ELS`.
+//!
+//! `story:repository-rename` tightened it: the repository is `beyond10x/engineering-protocols`,
+//! served under `/engineering-protocols/`, so a fresh render may no longer link
+//! `github.com/beyond10x/els` or the `/els/` route, its source links name the new repository, and
+//! the site manifest the publisher checks declares the new repository and route.
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
@@ -106,6 +111,7 @@ fn a_fresh_render_names_no_project_els() {
     assert_eq!(out.status.code(), Some(0), "generate: {out:?}");
     let mut offenders = Vec::new();
     let mut headers = 0;
+    let mut source_links = 0;
     let mut stack = vec![dir.join("website/docs"), dir.join("website/data")];
     while let Some(path) = stack.pop() {
         if path.is_dir() {
@@ -131,11 +137,11 @@ fn a_fresh_render_names_no_project_els() {
             path.display()
         );
         for (n, line) in text.lines().enumerate() {
-            if has_word(line, "els")
-                && !line.contains("github.com/beyond10x/els")
-                && !line.contains("/els/")
-            {
+            if has_word(line, "els") {
                 offenders.push(format!("{}:{}: {line}", path.display(), n + 1));
+            }
+            if line.contains("https://github.com/beyond10x/engineering-protocols/blob/main/") {
+                source_links += 1;
             }
         }
     }
@@ -144,9 +150,59 @@ fn a_fresh_render_names_no_project_els() {
         "generated pages carry the renamed header: {headers}"
     );
     assert!(
+        source_links >= 3,
+        "the vocabulary and every protocol page link their source in beyond10x/engineering-protocols: {source_links}"
+    );
+    assert!(
         offenders.is_empty(),
         "generated text names ELS:\n{}",
         offenders.join("\n")
     );
     let _ = std::fs::remove_dir_all(&dir);
+}
+
+/// The binary's `site-manifest`, as `pages.yml` runs it, declares the renamed repository and route:
+/// the project-site publisher refuses a site whose manifest disagrees with its `repository` and
+/// `route_base`.
+#[test]
+fn the_site_manifest_declares_engineering_protocols() {
+    let site = PathBuf::from(env!("CARGO_TARGET_TMPDIR"))
+        .join(format!("adversary-rename-{}-manifest", std::process::id()));
+    let _ = std::fs::remove_dir_all(&site);
+    std::fs::create_dir_all(&site).expect("mkdir");
+    std::fs::write(site.join("index.html"), "<!doctype html>\n").expect("index.html");
+    let commit = "fef049470cf8fe4ca34ad0bf3694e6c25cdc9a74";
+    let out = docs(&[
+        "site-manifest",
+        "--site",
+        site.to_str().expect("UTF-8 path"),
+        "--commit",
+        commit,
+    ]);
+    assert_eq!(out.status.code(), Some(0), "site-manifest: {out:?}");
+    let stdout = String::from_utf8(out.stdout).expect("UTF-8");
+    assert!(
+        stdout.contains(&format!("declared as engineering-protocols at {commit}")),
+        "site-manifest reports the renamed repository:\n{stdout}"
+    );
+    // The site path is the caller's and may hold any word (a build dir named after a checkout).
+    let message = stdout.replace(site.to_str().expect("UTF-8 path"), "<site>");
+    assert!(
+        !has_word(&message, "els"),
+        "site-manifest names ELS:\n{stdout}"
+    );
+    let manifest: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(site.join(".well-known/b10x-site.json")).expect("manifest"),
+    )
+    .expect("manifest is JSON");
+    assert_eq!(
+        manifest,
+        serde_json::json!({
+            "schema": "b10x-project-site/v1",
+            "repository": "engineering-protocols",
+            "commit": commit,
+            "baseUrl": "/engineering-protocols/",
+        })
+    );
+    let _ = std::fs::remove_dir_all(&site);
 }
