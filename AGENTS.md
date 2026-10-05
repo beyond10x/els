@@ -14,6 +14,9 @@ what an agent changing the repository must know. The cross-repository architectu
 - Engineering protocols own engineering-domain vocabulary and protocols (Atlas ADR 0068):
   `software.change/1`, `incident.response/1`, later investigation, ML experiment, migration and
   security response.
+- `support.triage/1` is the one protocol outside engineering, placed here by operator decision of
+  2026-10-05 as the rules half of a support triage example. Its terms stay out of the engineering
+  vocabulary, and its actions are tool-agnostic like every other protocol here.
 - Generic claim, evidence and obligation semantics belong to Canon. Do not re-implement them here.
 - Engineering protocols do not own the live engineering record (AEP, Atlas ADR 0069) or agent
   execution (Commission, Loom).

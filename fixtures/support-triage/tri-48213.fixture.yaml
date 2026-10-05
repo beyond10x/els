@@ -1,0 +1,288 @@
+format: els-fixture/1
+id: tri-48213
+protocol: protocols/support-triage/1.yaml
+at: "2026-10-05T09:30:00Z"
+
+case:
+  format: canon-case/1
+  id: TRI-48213
+  protocol: support.triage
+  artifacts:
+    ticket: {revision: c3}
+    requester: {revision: u1}
+
+states:
+  - id: initial
+    add_authority: []
+    add_evidence: []
+    expect:
+      claims:
+        ticket.current: unknown
+        sla.breached: unknown
+        requester.known: unknown
+        classification.proposed: unknown
+        classification.reviewed: unknown
+        ticket.classified: unknown
+        ticket.routed: unknown
+        escalation.requested: unknown
+        ticket.triaged: unknown
+      obligations:
+        escalate_sla_breach: open
+      actions:
+        ticket.read: admissible
+        requester.lookup: blocked
+        ticket.classify: blocked
+        classification.review: blocked
+        ticket.route: blocked
+        reply.draft: blocked
+        escalation.request: blocked
+
+  - id: ticket-read
+    add_authority: []
+    add_evidence:
+      - observed_at: "2026-10-05T09:00:00Z"
+        record:
+          format: canon-evidence/1
+          id: snapshot-c2
+          kind: ticket_snapshot
+          result: breached
+          subject: ticket
+          subject_revision: c2
+      - observed_at: "2026-10-05T09:20:00Z"
+        record:
+          format: canon-evidence/1
+          id: snapshot-c3
+          kind: ticket_snapshot
+          result: within_target
+          subject: ticket
+          subject_revision: c3
+    expect:
+      claims:
+        ticket.current: true
+        sla.breached: false
+        requester.known: unknown
+        classification.proposed: unknown
+        classification.reviewed: unknown
+        ticket.classified: unknown
+        ticket.routed: unknown
+        escalation.requested: unknown
+        ticket.triaged: unknown
+      obligations:
+        escalate_sla_breach: discharged
+      actions:
+        ticket.read: admissible
+        requester.lookup: admissible
+        ticket.classify: admissible
+        classification.review: blocked
+        ticket.route: blocked
+        reply.draft: blocked
+        escalation.request: blocked
+
+  - id: requester-identified
+    add_authority: []
+    add_evidence:
+      - observed_at: "2026-10-05T09:21:00Z"
+        record:
+          format: canon-evidence/1
+          id: requester-u1
+          kind: requester_profile
+          result: identified
+          subject: requester
+          subject_revision: u1
+    expect:
+      claims:
+        ticket.current: true
+        sla.breached: false
+        requester.known: true
+        classification.proposed: unknown
+        classification.reviewed: unknown
+        ticket.classified: unknown
+        ticket.routed: unknown
+        escalation.requested: unknown
+        ticket.triaged: unknown
+      obligations:
+        escalate_sla_breach: discharged
+      actions:
+        ticket.read: admissible
+        requester.lookup: admissible
+        ticket.classify: admissible
+        classification.review: blocked
+        ticket.route: blocked
+        reply.draft: blocked
+        escalation.request: blocked
+
+  - id: classification-proposed
+    add_authority: []
+    add_evidence:
+      - observed_at: "2026-10-05T09:22:00Z"
+        record:
+          format: canon-evidence/1
+          id: classification-c3
+          kind: classification
+          subject: ticket
+          subject_revision: c3
+    expect:
+      claims:
+        ticket.current: true
+        sla.breached: false
+        requester.known: true
+        classification.proposed: true
+        classification.reviewed: unknown
+        ticket.classified: unknown
+        ticket.routed: unknown
+        escalation.requested: unknown
+        ticket.triaged: unknown
+      obligations:
+        escalate_sla_breach: discharged
+      actions:
+        ticket.read: admissible
+        requester.lookup: admissible
+        ticket.classify: admissible
+        classification.review: approval-required
+        ticket.route: blocked
+        reply.draft: blocked
+        escalation.request: blocked
+
+  - id: review-granted
+    add_authority:
+      - {capability: classification.review, decision: granted}
+    add_evidence: []
+    expect:
+      claims:
+        ticket.current: true
+        sla.breached: false
+        requester.known: true
+        classification.proposed: true
+        classification.reviewed: unknown
+        ticket.classified: unknown
+        ticket.routed: unknown
+        escalation.requested: unknown
+        ticket.triaged: unknown
+      obligations:
+        escalate_sla_breach: discharged
+      actions:
+        ticket.read: admissible
+        requester.lookup: admissible
+        ticket.classify: admissible
+        classification.review: admissible
+        ticket.route: blocked
+        reply.draft: blocked
+        escalation.request: blocked
+
+  - id: classification-approved
+    add_authority: []
+    add_evidence:
+      - observed_at: "2026-10-05T09:24:00Z"
+        record:
+          format: canon-evidence/1
+          id: review-c3
+          kind: classification_review
+          result: approved
+          subject: ticket
+          subject_revision: c3
+    expect:
+      claims:
+        ticket.current: true
+        sla.breached: false
+        requester.known: true
+        classification.proposed: true
+        classification.reviewed: true
+        ticket.classified: true
+        ticket.routed: unknown
+        escalation.requested: unknown
+        ticket.triaged: unknown
+      obligations:
+        escalate_sla_breach: discharged
+      actions:
+        ticket.read: admissible
+        requester.lookup: admissible
+        ticket.classify: admissible
+        classification.review: admissible
+        ticket.route: approval-required
+        reply.draft: approval-required
+        escalation.request: blocked
+
+  - id: route-granted
+    add_authority:
+      - {capability: ticket.route, decision: granted}
+    add_evidence: []
+    expect:
+      claims:
+        ticket.current: true
+        sla.breached: false
+        requester.known: true
+        classification.proposed: true
+        classification.reviewed: true
+        ticket.classified: true
+        ticket.routed: unknown
+        escalation.requested: unknown
+        ticket.triaged: unknown
+      obligations:
+        escalate_sla_breach: discharged
+      actions:
+        ticket.read: admissible
+        requester.lookup: admissible
+        ticket.classify: admissible
+        classification.review: admissible
+        ticket.route: admissible
+        reply.draft: approval-required
+        escalation.request: blocked
+
+  - id: routed
+    add_authority: []
+    add_evidence:
+      - observed_at: "2026-10-05T09:26:00Z"
+        record:
+          format: canon-evidence/1
+          id: route-c3
+          kind: routing_record
+          subject: ticket
+          subject_revision: c3
+    expect:
+      claims:
+        ticket.current: true
+        sla.breached: false
+        requester.known: true
+        classification.proposed: true
+        classification.reviewed: true
+        ticket.classified: true
+        ticket.routed: true
+        escalation.requested: unknown
+        ticket.triaged: true
+      obligations:
+        escalate_sla_breach: discharged
+      actions:
+        ticket.read: admissible
+        requester.lookup: admissible
+        ticket.classify: admissible
+        classification.review: admissible
+        ticket.route: admissible
+        reply.draft: approval-required
+        escalation.request: blocked
+
+  - id: requester-wrote-again
+    set_revisions:
+      ticket: c4
+    add_authority: []
+    add_evidence: []
+    expect:
+      claims:
+        ticket.current: unknown
+        sla.breached: unknown
+        requester.known: true
+        classification.proposed: unknown
+        classification.reviewed: unknown
+        ticket.classified: unknown
+        ticket.routed: unknown
+        escalation.requested: unknown
+        ticket.triaged: unknown
+      obligations:
+        escalate_sla_breach: open
+      actions:
+        ticket.read: admissible
+        requester.lookup: blocked
+        ticket.classify: blocked
+        classification.review: blocked
+        ticket.route: blocked
+        reply.draft: blocked
+        escalation.request: blocked
