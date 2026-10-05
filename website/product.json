@@ -56,8 +56,7 @@
       "title": "Built on Canon, and beside it.",
       "tools": [
         {"id": "canon", "relation": "used-by", "via": "protocol/1"},
-        {"id": "loom", "relation": "beside"},
-        {"id": "commission", "relation": "beside"},
+        {"id": "loom", "relation": "uses", "via": "loom-governor"},
         {"id": "ess", "relation": "beside"}
       ]
     }
