@@ -2,11 +2,26 @@
 format: aep.planning-md/3
 id: story:repository-rename
 kind: story
-status: draft
+status: active
 title: The repository is beyond10x/engineering-protocols in GitHub, gates-policy and Atlas
 relations:
 - decomposes: epic:engineering-protocols-rename
-revision: 1
+- serves: vision:O2
+scope:
+- confidence: inferred
+  path: .github/workflows/b10x-docs-site.yml
+- confidence: inferred
+  path: AGENTS.md
+- confidence: inferred
+  path: Cargo.toml
+- confidence: inferred
+  path: crates/canon-engineering-docs/src/manifest.rs
+- confidence: inferred
+  path: website/docusaurus.config.ts
+revision: 8
+transitions:
+- {from: "draft", to: "proposed", at: "2026-10-05T08:31:00Z", actor: "human:timo", revision: 2}
+- {from: "proposed", to: "active", at: "2026-10-05T08:31:00Z", actor: "human:timo", revision: 3}
 ---
 ## Outcome
 
