@@ -1,0 +1,544 @@
+{
+  "edges": [
+    {
+      "from": "action:classification.review",
+      "kind": "produces",
+      "to": "evidence:classification_review"
+    },
+    {
+      "from": "action:escalation.request",
+      "kind": "produces",
+      "to": "evidence:escalation_record"
+    },
+    {
+      "from": "action:requester.lookup",
+      "kind": "produces",
+      "to": "evidence:requester_profile"
+    },
+    {
+      "from": "action:ticket.classify",
+      "kind": "produces",
+      "to": "evidence:classification"
+    },
+    {
+      "from": "action:ticket.read",
+      "kind": "produces",
+      "to": "evidence:ticket_snapshot"
+    },
+    {
+      "from": "action:ticket.route",
+      "kind": "produces",
+      "to": "evidence:routing_record"
+    },
+    {
+      "from": "evidence:classification",
+      "kind": "establishes",
+      "qualifier": "about ticket",
+      "to": "claim:classification.proposed"
+    },
+    {
+      "from": "evidence:classification_review",
+      "kind": "establishes",
+      "qualifier": "approved about ticket",
+      "to": "claim:classification.reviewed"
+    },
+    {
+      "from": "evidence:escalation_record",
+      "kind": "establishes",
+      "qualifier": "about ticket",
+      "to": "claim:escalation.requested"
+    },
+    {
+      "from": "evidence:requester_profile",
+      "kind": "establishes",
+      "qualifier": "identified about requester",
+      "to": "claim:requester.known"
+    },
+    {
+      "from": "evidence:ticket_snapshot",
+      "kind": "establishes",
+      "qualifier": "breached about ticket",
+      "to": "claim:sla.breached"
+    },
+    {
+      "from": "claim:classification.proposed",
+      "kind": "supports",
+      "to": "claim:ticket.classified"
+    },
+    {
+      "from": "claim:classification.reviewed",
+      "kind": "supports",
+      "to": "claim:ticket.classified"
+    },
+    {
+      "from": "claim:ticket.current",
+      "kind": "supports",
+      "to": "claim:ticket.classified"
+    },
+    {
+      "from": "evidence:ticket_snapshot",
+      "kind": "establishes",
+      "qualifier": "about ticket",
+      "to": "claim:ticket.current"
+    },
+    {
+      "from": "evidence:routing_record",
+      "kind": "establishes",
+      "qualifier": "about ticket",
+      "to": "claim:ticket.routed"
+    },
+    {
+      "from": "claim:requester.known",
+      "kind": "supports",
+      "to": "claim:ticket.triaged"
+    },
+    {
+      "from": "claim:ticket.classified",
+      "kind": "supports",
+      "to": "claim:ticket.triaged"
+    },
+    {
+      "from": "claim:ticket.routed",
+      "kind": "supports",
+      "to": "claim:ticket.triaged"
+    },
+    {
+      "from": "claim:escalation.requested",
+      "kind": "requires",
+      "to": "outcome:escalated"
+    },
+    {
+      "from": "claim:sla.breached",
+      "kind": "requires",
+      "to": "outcome:escalated"
+    },
+    {
+      "from": "claim:classification.reviewed",
+      "kind": "requires",
+      "qualifier": "false",
+      "to": "outcome:needs_human"
+    },
+    {
+      "from": "claim:requester.known",
+      "kind": "requires",
+      "qualifier": "false",
+      "to": "outcome:needs_human"
+    },
+    {
+      "from": "claim:sla.breached",
+      "kind": "requires",
+      "qualifier": "false",
+      "to": "outcome:triaged"
+    },
+    {
+      "from": "claim:ticket.triaged",
+      "kind": "requires",
+      "to": "outcome:triaged"
+    },
+    {
+      "from": "claim:escalation.requested",
+      "kind": "requires",
+      "to": "obligation:escalate_sla_breach"
+    },
+    {
+      "from": "claim:sla.breached",
+      "kind": "requires",
+      "qualifier": "false",
+      "to": "obligation:escalate_sla_breach"
+    },
+    {
+      "from": "claim:classification.proposed",
+      "kind": "gates",
+      "to": "action:classification.review"
+    },
+    {
+      "from": "claim:sla.breached",
+      "kind": "gates",
+      "to": "action:escalation.request"
+    },
+    {
+      "from": "claim:ticket.classified",
+      "kind": "gates",
+      "to": "action:reply.draft"
+    },
+    {
+      "from": "claim:ticket.current",
+      "kind": "gates",
+      "to": "action:requester.lookup"
+    },
+    {
+      "from": "claim:ticket.current",
+      "kind": "gates",
+      "to": "action:ticket.classify"
+    },
+    {
+      "from": "claim:requester.known",
+      "kind": "gates",
+      "to": "action:ticket.route"
+    },
+    {
+      "from": "claim:ticket.classified",
+      "kind": "gates",
+      "to": "action:ticket.route"
+    }
+  ],
+  "format": "b10x-protocol-graph/1",
+  "nodes": [
+    {
+      "capabilities": [
+        "classification.review"
+      ],
+      "description": "approve or reject the proposed classification, under authority",
+      "effect": "none",
+      "id": "action:classification.review",
+      "kind": "action",
+      "name": "classification.review",
+      "predicate": {
+        "claim": {
+          "id": "classification.proposed"
+        }
+      }
+    },
+    {
+      "capabilities": [
+        "escalation.request"
+      ],
+      "description": "request an escalation; needs a current read showing the target breached, and authority",
+      "effect": "write",
+      "id": "action:escalation.request",
+      "kind": "action",
+      "name": "escalation.request",
+      "predicate": {
+        "claim": {
+          "id": "sla.breached"
+        }
+      }
+    },
+    {
+      "capabilities": [
+        "reply.draft"
+      ],
+      "description": "draft a reply to the requester for a person to send; needs the classification decided and authority",
+      "effect": "write",
+      "id": "action:reply.draft",
+      "kind": "action",
+      "name": "reply.draft",
+      "predicate": {
+        "claim": {
+          "id": "ticket.classified"
+        }
+      }
+    },
+    {
+      "description": "look up the person who raised the ticket",
+      "effect": "read",
+      "id": "action:requester.lookup",
+      "kind": "action",
+      "name": "requester.lookup",
+      "predicate": {
+        "claim": {
+          "id": "ticket.current"
+        }
+      }
+    },
+    {
+      "description": "propose a category and priority for the ticket; changes nothing outside the case",
+      "effect": "none",
+      "id": "action:ticket.classify",
+      "kind": "action",
+      "name": "ticket.classify",
+      "predicate": {
+        "claim": {
+          "id": "ticket.current"
+        }
+      }
+    },
+    {
+      "description": "read the ticket at its current revision",
+      "effect": "read",
+      "id": "action:ticket.read",
+      "kind": "action",
+      "name": "ticket.read"
+    },
+    {
+      "capabilities": [
+        "ticket.route"
+      ],
+      "description": "route the ticket to a queue or owner; only after the classification is decided (step order, decision record 0084) and the requester is known, and only under authority",
+      "effect": "write",
+      "id": "action:ticket.route",
+      "kind": "action",
+      "name": "ticket.route",
+      "predicate": {
+        "all": [
+          {
+            "claim": {
+              "id": "requester.known"
+            }
+          },
+          {
+            "claim": {
+              "id": "ticket.classified"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "description": "a proposed category and priority for one ticket revision, each one the deployment declares",
+      "id": "evidence:classification",
+      "kind": "evidence",
+      "name": "classification"
+    },
+    {
+      "description": "a review of the proposed classification; its result is approved or rejected",
+      "id": "evidence:classification_review",
+      "kind": "evidence",
+      "name": "classification_review"
+    },
+    {
+      "description": "the record that an escalation was requested for the ticket, naming where it went",
+      "id": "evidence:escalation_record",
+      "kind": "evidence",
+      "name": "escalation_record"
+    },
+    {
+      "description": "the requester looked up; its result is identified or unidentified",
+      "id": "evidence:requester_profile",
+      "kind": "evidence",
+      "name": "requester_profile"
+    },
+    {
+      "description": "the record that the ticket was routed to a queue or owner, naming the target",
+      "id": "evidence:routing_record",
+      "kind": "evidence",
+      "name": "routing_record"
+    },
+    {
+      "description": "the ticket read at one revision: its id, revision, a digest and its service-level status when read, never its text; its result is breached or within_target. A read older than 15 minutes no longer says whether the target is breached",
+      "id": "evidence:ticket_snapshot",
+      "kind": "evidence",
+      "name": "ticket_snapshot"
+    },
+    {
+      "description": "a category and priority are proposed for the current ticket revision",
+      "id": "claim:classification.proposed",
+      "kind": "claim",
+      "name": "classification.proposed",
+      "predicate": {
+        "evidence": {
+          "kind": "classification"
+        }
+      }
+    },
+    {
+      "description": "the classification of the current ticket revision is reviewed and approved",
+      "id": "claim:classification.reviewed",
+      "kind": "claim",
+      "name": "classification.reviewed",
+      "predicate": {
+        "evidence": {
+          "kind": "classification_review",
+          "result": "approved"
+        }
+      }
+    },
+    {
+      "description": "an escalation is requested for the current ticket revision",
+      "id": "claim:escalation.requested",
+      "kind": "claim",
+      "name": "escalation.requested",
+      "predicate": {
+        "evidence": {
+          "kind": "escalation_record"
+        }
+      }
+    },
+    {
+      "description": "the requester is identified",
+      "id": "claim:requester.known",
+      "kind": "claim",
+      "name": "requester.known",
+      "predicate": {
+        "evidence": {
+          "kind": "requester_profile",
+          "result": "identified"
+        }
+      }
+    },
+    {
+      "description": "the ticket's service-level target is breached, by a current read of the ticket",
+      "id": "claim:sla.breached",
+      "kind": "claim",
+      "name": "sla.breached",
+      "predicate": {
+        "evidence": {
+          "kind": "ticket_snapshot",
+          "result": "breached"
+        }
+      }
+    },
+    {
+      "description": "category and priority are decided on current evidence: the current ticket revision is read, a classification is proposed for it and the review approved it",
+      "id": "claim:ticket.classified",
+      "kind": "claim",
+      "name": "ticket.classified",
+      "predicate": {
+        "all": [
+          {
+            "claim": {
+              "id": "classification.proposed"
+            }
+          },
+          {
+            "claim": {
+              "id": "classification.reviewed"
+            }
+          },
+          {
+            "claim": {
+              "id": "ticket.current"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "description": "the ticket has been read at its current revision, recently enough to trust",
+      "id": "claim:ticket.current",
+      "kind": "claim",
+      "name": "ticket.current",
+      "predicate": {
+        "evidence": {
+          "kind": "ticket_snapshot"
+        }
+      }
+    },
+    {
+      "description": "the current ticket revision is routed to a queue or owner",
+      "id": "claim:ticket.routed",
+      "kind": "claim",
+      "name": "ticket.routed",
+      "predicate": {
+        "evidence": {
+          "kind": "routing_record"
+        }
+      }
+    },
+    {
+      "description": "category, priority and route are decided on current evidence, for an identified requester",
+      "id": "claim:ticket.triaged",
+      "kind": "claim",
+      "name": "ticket.triaged",
+      "predicate": {
+        "all": [
+          {
+            "claim": {
+              "id": "requester.known"
+            }
+          },
+          {
+            "claim": {
+              "id": "ticket.classified"
+            }
+          },
+          {
+            "claim": {
+              "id": "ticket.routed"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "description": "the ticket's service-level target is breached and an escalation is requested",
+      "id": "outcome:escalated",
+      "kind": "outcome",
+      "name": "escalated",
+      "predicate": {
+        "all": [
+          {
+            "claim": {
+              "id": "escalation.requested"
+            }
+          },
+          {
+            "claim": {
+              "id": "sla.breached"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "description": "the ticket goes to a person: the review rejected the proposed classification, or the requester could not be identified",
+      "id": "outcome:needs_human",
+      "kind": "outcome",
+      "name": "needs_human",
+      "predicate": {
+        "any": [
+          {
+            "claim": {
+              "id": "classification.reviewed",
+              "is": "false"
+            }
+          },
+          {
+            "claim": {
+              "id": "requester.known",
+              "is": "false"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "description": "the ticket is triaged: category, priority and route decided on current evidence, with its service-level target not breached",
+      "id": "outcome:triaged",
+      "kind": "outcome",
+      "name": "triaged",
+      "predicate": {
+        "all": [
+          {
+            "claim": {
+              "id": "sla.breached",
+              "is": "false"
+            }
+          },
+          {
+            "claim": {
+              "id": "ticket.triaged"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "description": "a breached service-level target needs escalation; discharged once a current read shows the target not breached, or once an escalation is requested",
+      "id": "obligation:escalate_sla_breach",
+      "kind": "obligation",
+      "name": "escalate_sla_breach",
+      "predicate": {
+        "any": [
+          {
+            "claim": {
+              "id": "escalation.requested"
+            }
+          },
+          {
+            "claim": {
+              "id": "sla.breached",
+              "is": "false"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "protocol": {
+    "description": "Triage one support ticket: read it at its current revision, know who raised it, have a proposed classification reviewed, and route it under authority; escalate under authority when its service-level target is breached, and hand it to a person when it cannot be triaged.",
+    "id": "support.triage",
+    "revision": 1,
+    "source": "protocols/support-triage/1.yaml"
+  }
+}
