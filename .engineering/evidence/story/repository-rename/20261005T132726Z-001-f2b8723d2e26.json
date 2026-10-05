@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-05T13:27:26Z",
+  "actor": "human:timo",
+  "artifact": "story:repository-rename",
+  "kind": "story",
+  "revision": 8,
+  "change": {
+    "change": "evidence",
+    "kind": "test_result",
+    "source": "engineering-protocols main checks green (check, Documentation validation, Documentation site, Shared source gates); 139 tests passed in the wave gate; Atlas main a84fe57b Gate all jobs success",
+    "reference": "wave/2026-10-05-w35"
+  }
+}

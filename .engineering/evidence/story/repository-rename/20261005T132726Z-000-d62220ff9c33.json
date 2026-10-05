@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-05T13:27:26Z",
+  "actor": "human:timo",
+  "artifact": "story:repository-rename",
+  "kind": "story",
+  "revision": 8,
+  "change": {
+    "change": "evidence",
+    "kind": "verification",
+    "source": "GitHub repository beyond10x/engineering-protocols (beyond10x/els redirects); gates-policy names engineering-protocols; site at /engineering-protocols/; docs-system 9d35e63 family links; Atlas main a84fe57b catalog id engineering-protocols reactivated, els retired with a rename record (ADR 0091), rosters renamed",
+    "reference": "wave/2026-10-05-w35"
+  }
+}
