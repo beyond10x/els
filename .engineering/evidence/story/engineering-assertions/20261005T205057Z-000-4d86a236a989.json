@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-05T20:50:57Z",
+  "actor": "human:timo",
+  "artifact": "story:engineering-assertions",
+  "kind": "story",
+  "revision": 5,
+  "change": {
+    "change": "evidence",
+    "kind": "test_result",
+    "source": "task check: 171 tests, ESS contracts and generated docs; site build passed",
+    "reference": ".engineering/planning/verification-report/engineering-assertions.md"
+  }
+}

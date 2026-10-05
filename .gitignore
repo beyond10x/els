@@ -1,5 +1,6 @@
 /target
 /.engineering/drafts/
+/.engineering/assertions/
 /website/build/
 /website/node_modules/
 /website/.docusaurus/

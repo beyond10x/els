@@ -1,0 +1,8 @@
+format: engineering-gates/1
+language: canon-expr/1
+gates:
+  - id: repository-ready
+    text: The repository has its manifest and documents its license.
+    assertions:
+      - 'fs.file.exists("Cargo.toml")'
+      - 'text.contains("README.md", "Apache")'

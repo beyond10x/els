@@ -8,6 +8,12 @@ releases at bare-version tags.
 
 ### Added
 
+- Typed assertion catalog and `gates validate/run/evaluate/explain`, backed by Canon's pure
+  expression core. Collection retains source/context/implementation-bound observations for
+  offline replay. Recipes and explicitly admitted Rust providers extend the catalog.
+- File/document/schema, process/test, generated-tree, ESS/Codegate report, DNS and TCP providers;
+  generated catalog reference and an assertion guide. AEP acceptance and Kubernetes remain planned.
+
 - `support.triage/1`: triage one support ticket with tool-agnostic actions, step order by
   precondition (classify, review, then route) and outcomes `triaged`, `escalated` and `needs_human`;
   three fixtures, a `canon check` test and a concept page.

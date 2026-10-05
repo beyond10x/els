@@ -1,0 +1,63 @@
+{
+  "$defs": {
+    "engineering.gates.Document": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "type": "string"
+        },
+        "gates": {
+          "items": {
+            "$ref": "#/$defs/engineering.gates.Gate"
+          },
+          "type": "array"
+        },
+        "language": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "format",
+        "language",
+        "gates"
+      ],
+      "title": "Document",
+      "type": "object",
+      "x-ess-kind": "struct",
+      "x-ess-name": "engineering.gates.Document"
+    },
+    "engineering.gates.Gate": {
+      "additionalProperties": false,
+      "properties": {
+        "assertions": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "id": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "assertions"
+      ],
+      "title": "Gate",
+      "type": "object",
+      "x-ess-kind": "struct",
+      "x-ess-name": "engineering.gates.Gate"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "x-ess-provenance": {
+    "contract_digest": "slice-sha256/2:9073b3e089b79b6efa0eeff8706e781c3d9d47dc32f3d7abcb95d88970c570da",
+    "source_digest": "61181687abd327d242aa5f9927430793128152146bf26830f0ea6ac55af84bac",
+    "specification_version": "v1",
+    "system": "engineering"
+  }
+}

@@ -62,6 +62,7 @@ fn fresh_root(name: &str) -> PathBuf {
         .join(format!("adversary-rename-{}-{name}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     copy_tree(&root().join("protocols"), &dir.join("protocols"));
+    copy_tree(&root().join("ess"), &dir.join("ess"));
     copy_tree(&root().join("website"), &dir.join("website"));
     dir
 }

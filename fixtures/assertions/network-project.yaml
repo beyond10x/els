@@ -1,0 +1,8 @@
+format: engineering-assertions-project/1
+variables:
+  resolver: {kind: string, value: '192.0.2.53:53'}
+  network: {kind: string, value: example}
+networks:
+  example:
+    hosts:
+      api.example.org: 192.0.2.10

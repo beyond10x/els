@@ -87,11 +87,25 @@ protocol:
 
 A malformed `<name>@<major>` exits 2; a well-formed one that names no built-in exits 1.
 
+## Assertion gates (unreleased)
+
+The source CLI also checks `.engineering/gates.yaml` using typed assertions. `canon-engineering
+assertions list` discovers the catalog; `gates validate`, `gates run` and `gates evaluate` validate
+checks, collect observations and replay retained evidence. See the [assertion guide](website/docs/guides/assertions.md)
+for a complete gate and commands. These commands are not included in release 0.1.0.
+
+The generic expression core lives in Canon. This repository supplies files/documents, explicit
+process bindings, test reports, ESS and Codegate dependency reports, DNS and TCP observations,
+recipes and typed external Rust providers. Collection performs IO; retained evaluation is pure.
+Kubernetes providers and AEP acceptance integration remain planned.
+
 ## Crates
 
 | Crate | Holds |
 |---|---|
 | `b10x-canon-engineering` | Library `canon_engineering` (protocol registry, engineering vocabulary) and the `canon-engineering` binary |
+| `b10x-canon-engineering-assertions` | Typed catalog, gate CLI, collection planning and retained replay |
+| `b10x-assertion-providers` | Bounded engineering observation collectors and external-provider transport |
 | `canon-engineering-docs` | Generator for the site's protocol pages, protocol graphs, vocabulary page and status record; not released |
 
 ## Documentation

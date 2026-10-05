@@ -1,0 +1,60 @@
+domain: engineering.gates
+summary: Gates declare assertions which must all evaluate true against bound observations.
+types:
+  - name: engineering.gates.Gate
+    kind: struct
+    fields:
+      - name: id
+        type: String
+      - name: text
+        type: String
+      - name: assertions
+        type: List<String>
+  - name: engineering.gates.Document
+    kind: struct
+    fields:
+      - name: format
+        type: String
+      - name: language
+        type: String
+      - name: gates
+        type: List<engineering.gates.Gate>
+  - name: engineering.gates.CommandBinding
+    kind: struct
+    fields:
+      - {name: executable, type: String}
+      - {name: args, type: List<String>}
+      - {name: env, type: 'Map<String, String>'}
+  - name: engineering.gates.ExternalProvider
+    kind: struct
+    fields:
+      - {name: identity, type: String}
+      - {name: sha256, type: String}
+      - {name: command, type: engineering.gates.CommandBinding}
+  - name: engineering.gates.NetworkBinding
+    kind: struct
+    fields:
+      - {name: hosts, type: 'Map<String, String>'}
+  - name: engineering.gates.Project
+    kind: struct
+    fields:
+      - {name: format, type: String}
+      - {name: variables, type: 'Map<String, engineering.expr.Value>'}
+      - {name: catalogs, type: List<String>}
+      - {name: inputs, type: List<String>}
+      - {name: commands, type: 'Map<String, engineering.gates.CommandBinding>'}
+      - {name: providers, type: 'Map<String, engineering.gates.ExternalProvider>'}
+      - {name: networks, type: 'Map<String, engineering.gates.NetworkBinding>'}
+      - {name: timeout_seconds, type: Integer}
+      - {name: max_output_bytes, type: Integer}
+      - {name: freshness_seconds, type: Integer}
+  - name: engineering.gates.Bundle
+    kind: struct
+    fields:
+      - {name: format, type: String}
+      - {name: document, type: engineering.gates.Document}
+      - {name: plan, type: engineering.expr.PlanDocument}
+      - {name: source_identity, type: String}
+      - {name: context_identity, type: String}
+      - {name: evaluated_at, type: Integer}
+      - {name: observations, type: List<engineering.expr.Observation>}

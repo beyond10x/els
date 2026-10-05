@@ -25,6 +25,12 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
+    /// Discover typed assertion functions and recipes.
+    #[command(subcommand)]
+    Assertions(canon_engineering_assertions::cli::Assertions),
+    /// Validate, collect, explain and replay deterministic engineering gates.
+    #[command(subcommand)]
+    Gates(canon_engineering_assertions::cli::Gates),
     /// The built-in protocols.
     #[command(subcommand)]
     Protocols(Protocols),
@@ -60,6 +66,12 @@ fn protocol_reference(text: &str) -> Result<Reference, String> {
 
 fn main() -> ExitCode {
     match Cli::parse().command {
+        Command::Assertions(command) => {
+            assertion_result(canon_engineering_assertions::cli::assertions(command))
+        }
+        Command::Gates(command) => {
+            assertion_result(canon_engineering_assertions::cli::gates(command))
+        }
         Command::Protocols(Protocols::List) => {
             let mut out = String::new();
             for (name, major) in registry::list() {
@@ -75,6 +87,23 @@ fn main() -> ExitCode {
                     ExitCode::FAILURE
                 }
             }
+        }
+    }
+}
+
+fn assertion_result(result: Result<(String, u8), impl std::fmt::Display>) -> ExitCode {
+    match result {
+        Ok((text, code)) => {
+            let status = print(text.as_bytes());
+            if status == ExitCode::SUCCESS {
+                ExitCode::from(code)
+            } else {
+                status
+            }
+        }
+        Err(error) => {
+            eprintln!("canon-engineering: {error}");
+            ExitCode::from(2)
         }
     }
 }

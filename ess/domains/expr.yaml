@@ -1,0 +1,208 @@
+# Generated from the pinned b10x-canon-expr MODEL_SPEC; do not edit.
+domain: engineering.expr
+summary: Typed expression programs, catalog contracts, collected observations and pure evaluation reports.
+naming:
+  wire: expr
+  display: Expression
+
+types:
+  # read from: docs/design/assertion-api.md (Scalar)
+  - name: engineering.expr.Scalar
+    kind: enum
+    variants: ["bool", "string", "integer", "decimal"]
+
+  # read from: docs/design/assertion-api.md (Type)
+  - name: engineering.expr.Type
+    kind: union
+    tag: kind
+    variants:
+      scalar: engineering.expr.Scalar
+      list: engineering.expr.Type
+      map: engineering.expr.Type
+      record: Map<String, engineering.expr.Type>
+      optional: engineering.expr.Type
+
+  # read from: docs/design/assertion-api.md (Exact)
+  - name: engineering.expr.Exact
+    kind: struct
+    fields:
+      - name: coefficient
+        type: String
+      - name: scale
+        type: Integer
+
+  # read from: docs/design/assertion-api.md (Value)
+  - name: engineering.expr.Value
+    kind: union
+    tag: kind
+    variants:
+      bool: Boolean
+      string: String
+      integer: String
+      decimal: engineering.expr.Exact
+      list: List<engineering.expr.Value>
+      record: Map<String, engineering.expr.Value>
+      map: Map<String, engineering.expr.Value>
+      optional: Optional<engineering.expr.Value>
+
+  # read from: docs/design/assertion-api.md (Builtin)
+  - name: engineering.expr.Builtin
+    kind: enum
+    variants: ["length", "contains", "starts_with", "ends_with", "present"]
+
+  # read from: docs/design/assertion-api.md (Provider)
+  - name: engineering.expr.Provider
+    kind: struct
+    fields:
+      - name: provider
+        type: String
+      - name: operation
+        type: String
+      - name: digest
+        type: String
+
+  # read from: docs/design/assertion-api.md (Implementation)
+  - name: engineering.expr.Implementation
+    kind: union
+    tag: kind
+    variants:
+      observation: engineering.expr.Provider
+      recipe: String
+      pure: engineering.expr.Builtin
+
+  # read from: docs/design/assertion-api.md (Parameter)
+  - name: engineering.expr.Parameter
+    kind: struct
+    fields:
+      - name: name
+        type: String
+      - name: value_type
+        type: engineering.expr.Type
+      - name: default
+        type: Optional<engineering.expr.Value>
+
+  # read from: docs/design/assertion-api.md (Function)
+  - name: engineering.expr.Function
+    kind: struct
+    fields:
+      - name: parameters
+        type: List<engineering.expr.Parameter>
+      - name: returns
+        type: engineering.expr.Type
+      - name: implementation
+        type: engineering.expr.Implementation
+
+  # read from: docs/design/assertion-api.md (Catalog)
+  - name: engineering.expr.Catalog
+    kind: struct
+    fields:
+      - name: format
+        type: String
+      - name: functions
+        type: Map<String, engineering.expr.Function>
+
+  # read from: docs/design/assertion-api.md (Bindings)
+  - name: engineering.expr.Bindings
+    kind: struct
+    fields:
+      - name: values
+        type: Map<String, engineering.expr.Value>
+      - name: source_identity
+        type: String
+      - name: context_identity
+        type: String
+
+  # read from: docs/design/assertion-api.md (Request)
+  - name: engineering.expr.Request
+    kind: struct
+    fields:
+      - name: id
+        type: String
+      - name: provider
+        type: String
+      - name: operation
+        type: String
+      - name: digest
+        type: String
+      - name: arguments
+        type: Map<String, engineering.expr.Value>
+      - name: result_type
+        type: engineering.expr.Type
+
+  # read from: docs/design/assertion-api.md (Outcome)
+  - name: engineering.expr.Outcome
+    kind: union
+    tag: kind
+    variants:
+      known: engineering.expr.Value
+      unavailable: String
+
+  # read from: docs/design/assertion-api.md (Observation)
+  - name: engineering.expr.Observation
+    kind: struct
+    fields:
+      - name: request_id
+        type: String
+      - name: plan_id
+        type: String
+      - name: observed_at
+        type: Integer
+      - name: valid_until
+        type: Optional<Integer>
+      - name: outcome
+        type: engineering.expr.Outcome
+
+  # read from: docs/design/assertion-api.md (EvalContext)
+  - name: engineering.expr.EvalContext
+    kind: struct
+    fields:
+      - name: now
+        type: Integer
+      - name: source_identity
+        type: String
+      - name: context_identity
+        type: String
+
+  # read from: docs/design/assertion-api.md (Truth)
+  - name: engineering.expr.Truth
+    kind: enum
+    variants: ["true", "false", "unknown"]
+
+  # read from: docs/design/assertion-api.md (Evaluation)
+  - name: engineering.expr.Evaluation
+    kind: struct
+    fields:
+      - name: expression
+        type: String
+      - name: truth
+        type: engineering.expr.Truth
+      - name: reasons
+        type: List<String>
+
+  # read from: docs/design/assertion-api.md (Report)
+  - name: engineering.expr.Report
+    kind: struct
+    fields:
+      - name: plan_id
+        type: String
+      - name: truth
+        type: engineering.expr.Truth
+      - name: assertions
+        type: List<engineering.expr.Evaluation>
+
+  # read from: docs/design/assertion-api.md (PlanDocument)
+  - name: engineering.expr.PlanDocument
+    kind: struct
+    fields:
+      - name: id
+        type: String
+      - name: sources
+        type: List<String>
+      - name: catalog
+        type: engineering.expr.Catalog
+      - name: bindings
+        type: engineering.expr.Bindings
+      - name: context_types
+        type: Map<String, engineering.expr.Type>
+      - name: requests
+        type: List<engineering.expr.Request>
