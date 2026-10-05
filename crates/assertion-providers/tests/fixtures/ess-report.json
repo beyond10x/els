@@ -1,0 +1,78 @@
+{
+  "completed_at": 1791026744215,
+  "conformance_status": "passed",
+  "counts": {
+    "error": 0,
+    "failed": 0,
+    "passed": 27,
+    "skipped": 0,
+    "total": 27,
+    "unsupported": 0
+  },
+  "coverage": {
+    "counts": {
+      "authored": 26,
+      "generated": 1,
+      "outside": 0,
+      "refused": 0
+    },
+    "knowledge": "complete_inventory",
+    "refused": [],
+    "selection": {
+      "filter": {
+        "kind": "all"
+      },
+      "origins": "generated_and_authored",
+      "scope": {
+        "kind": "system"
+      }
+    }
+  },
+  "execution_status": "passed",
+  "format": "ess-conformance-report/2",
+  "implementation": "codegate-offline 0.3.0",
+  "outcomes": {
+    "error": [],
+    "failed": [],
+    "passed": [
+      "codegate.dependency.Evaluate/outcome/evaluated",
+      "codegate.dependency/authored/canonical-order",
+      "codegate.dependency/authored/complete-empty-graph",
+      "codegate.dependency/authored/complete-isolated-units",
+      "codegate.dependency/authored/configuration-mismatch",
+      "codegate.dependency/authored/dangling-source",
+      "codegate.dependency/authored/dangling-target",
+      "codegate.dependency/authored/dependency-kind-selection",
+      "codegate.dependency/authored/duplicate-edge",
+      "codegate.dependency/authored/duplicate-unit",
+      "codegate.dependency/authored/empty-identity",
+      "codegate.dependency/authored/explicit-unresolved-target",
+      "codegate.dependency/authored/failed-collection",
+      "codegate.dependency/authored/forbidden-runtime-edge",
+      "codegate.dependency/authored/go-facts-same-checker",
+      "codegate.dependency/authored/invalid-policy-reference",
+      "codegate.dependency/authored/invalid-target",
+      "codegate.dependency/authored/one-runtime-edge",
+      "codegate.dependency/authored/parallel-imports-count-once",
+      "codegate.dependency/authored/partial-is-not-empty",
+      "codegate.dependency/authored/polyglot-no-inferred-edge",
+      "codegate.dependency/authored/source-mismatch",
+      "codegate.dependency/authored/unknown-ir-version",
+      "codegate.dependency/authored/unresolved-cannot-claim-complete",
+      "codegate.dependency/authored/unsupported-is-not-empty",
+      "codegate.dependency/authored/unsupported-with-observations",
+      "codegate.dependency/authored/witnessed-violation-with-gaps"
+    ],
+    "skipped": [],
+    "unsupported": []
+  },
+  "policy": "complete-selection/1",
+  "producer_profile": "rust-scenario-status/1",
+  "spec_digest": "e27ccc45957cf4fe2ef83d9362e81d867eb46bff9a72f1fd28e43b69bf53ec93",
+  "specification": "codegate/v1",
+  "suite": {
+    "digest": "sha256:2a9dbfefefb93ab95151c290d37cdc270effb0541e2e2e384cae403205d66755",
+    "digest_profile": "sha256-json-bytes/1",
+    "version": "ess-conformance/29"
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "format": "ess-types-report/3",
+  "source_digest": "66b16367aebe9dff6baa9f3cd630a0374ff4e03a08174741ebe4443b9a10ec4e",
+  "input": {
+    "kind": "model",
+    "system": "engineering",
+    "specification_version": "v1",
+    "contract_digest": "slice-sha256/2:8e1786aff641266d93dd09d02d6769ebc995544596f9a0b498e0b8ef0b76ec8a",
+    "projection_digest": "f6a890728e12a73e2d6ff361c91d9ad7047fd47fd61d63f6abb1b51d82c3a197"
+  },
+  "generator_version": "0.53.0",
+  "target": "rust",
+  "configuration": {
+    "language": "rust",
+    "package": "b10x-assertion-provider-contract"
+  },
+  "roots": [
+    "engineering.assertion.provider.ProcessResult",
+    "engineering.assertion.provider.Request",
+    "engineering.assertion.provider.Response",
+    "engineering.assertion.provider.Status",
+    "engineering.assertion.provider.TestReport"
+  ],
+  "declarations": {
+    "engineering.assertion.provider.ProcessResult": "ProcessResult",
+    "engineering.assertion.provider.Request": "Request",
+    "engineering.assertion.provider.Response": "Response",
+    "engineering.assertion.provider.Status": "Status",
+    "engineering.assertion.provider.TestReport": "TestReport"
+  },
+  "annotations": [
+    {
+      "pointer": "/$defs/engineering.assertion.provider.ProcessResult/title",
+      "rule": "title",
+      "detail": "retained in source.schema.json; no decoder behavior inferred"
+    },
+    {
+      "pointer": "/$defs/engineering.assertion.provider.ProcessResult/x-ess-kind",
+      "rule": "x-ess-kind",
+      "detail": "model identity and wire mapping retained in source.schema.json"
+    },
+    {
+      "pointer": "/$defs/engineering.assertion.provider.ProcessResult/x-ess-name",
+      "rule": "x-ess-name",
+      "detail": "model identity and wire mapping retained in source.schema.json"
+    },
+    {
+      "pointer": "/$defs/engineering.assertion.provider.Request/title",
+      "rule": "title",
+      "detail": "retained in source.schema.json; no decoder behavior inferred"
+    },
+    {
+      "pointer": "/$defs/engineering.assertion.provider.Request/x-ess-kind",
+      "rule": "x-ess-kind",
+      "detail": "model identity and wire mapping retained in source.schema.json"
+    },
+    {
+      "pointer": "/$defs/engineering.assertion.provider.Request/x-ess-name",
+      "rule": "x-ess-name",
+      "detail": "model identity and wire mapping retained in source.schema.json"
+    },
+    {
+      "pointer": "/$defs/engineering.assertion.provider.Response/title",
+      "rule": "title",
+      "detail": "retained in source.schema.json; no decoder behavior inferred"
+    },
+    {
+      "pointer": "/$defs/engineering.assertion.provider.Response/x-ess-kind",
+      "rule": "x-ess-kind",
+      "detail": "model identity and wire mapping retained in source.schema.json"
+    },
+    {
+      "pointer": "/$defs/engineering.assertion.provider.Response/x-ess-name",
+      "rule": "x-ess-name",
+      "detail": "model identity and wire mapping retained in source.schema.json"
+    },
+    {
+      "pointer": "/$defs/engineering.assertion.provider.Status/title",
+      "rule": "title",
+      "detail": "retained in source.schema.json; no decoder behavior inferred"
+    },
+    {
+      "pointer": "/$defs/engineering.assertion.provider.Status/x-ess-kind",
+      "rule": "x-ess-kind",
+      "detail": "model identity and wire mapping retained in source.schema.json"
+    },
+    {
+      "pointer": "/$defs/engineering.assertion.provider.Status/x-ess-name",
+      "rule": "x-ess-name",
+      "detail": "model identity and wire mapping retained in source.schema.json"
+    },
+    {
+      "pointer": "/$defs/engineering.assertion.provider.TestReport/title",
+      "rule": "title",
+      "detail": "retained in source.schema.json; no decoder behavior inferred"
+    },
+    {
+      "pointer": "/$defs/engineering.assertion.provider.TestReport/x-ess-kind",
+      "rule": "x-ess-kind",
+      "detail": "model identity and wire mapping retained in source.schema.json"
+    },
+    {
+      "pointer": "/$defs/engineering.assertion.provider.TestReport/x-ess-name",
+      "rule": "x-ess-name",
+      "detail": "model identity and wire mapping retained in source.schema.json"
+    }
+  ],
+  "obligations": [
+    {
+      "pointer": "/$defs/engineering.assertion.provider.ProcessResult/properties/exit_code",
+      "rule": "integer",
+      "detail": "serde_json::Number retains exact JSON numbers but does not enforce integrality; validate the source constraint"
+    },
+    {
+      "pointer": "/$defs/engineering.assertion.provider.TestReport/properties/failed",
+      "rule": "integer",
+      "detail": "serde_json::Number retains exact JSON numbers but does not enforce integrality; validate the source constraint"
+    },
+    {
+      "pointer": "/$defs/engineering.assertion.provider.TestReport/properties/passed",
+      "rule": "integer",
+      "detail": "serde_json::Number retains exact JSON numbers but does not enforce integrality; validate the source constraint"
+    },
+    {
+      "pointer": "/$defs/engineering.assertion.provider.TestReport/properties/skipped",
+      "rule": "integer",
+      "detail": "serde_json::Number retains exact JSON numbers but does not enforce integrality; validate the source constraint"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "checker_id": "dependency.forbidden-edge/1",
+  "configuration_id": "default",
+  "coverage": "Complete",
+  "diagnostics": [],
+  "fan_out": [],
+  "findings": [],
+  "format": "codegate-dependency-report/0.1",
+  "metric_id": "dependency.unique-fan-out/1",
+  "policy": {
+    "dependency_kind": "Runtime",
+    "expected_configuration_id": "default",
+    "expected_source_id": "fixture-source",
+    "forbidden": [],
+    "format": "codegate-dependency-policy/0.1"
+  },
+  "source_id": "fixture-source",
+  "verdict": "Pass"
+}
