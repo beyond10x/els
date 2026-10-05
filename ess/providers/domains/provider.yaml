@@ -1,0 +1,37 @@
+domain: engineering.assertion.provider
+summary: >-
+  Explicitly registered observation processes exchange one bounded JSON request and response.
+  Arguments and result are opaque JSON transport strings; the calling catalog owns their types
+  and validates the decoded JSON before collection and before evaluation. Provider identity and
+  executable SHA-256 are checked before launch. No environment or shell is inherited.
+types:
+  - name: engineering.assertion.provider.Request
+    kind: struct
+    fields:
+      - {name: format, type: String}
+      - {name: operation, type: String}
+      - {name: arguments_json, type: String}
+  - name: engineering.assertion.provider.Response
+    kind: struct
+    fields:
+      - {name: format, type: String}
+      - {name: status, type: engineering.assertion.provider.Status}
+      - {name: value_json, type: Optional<String>}
+      - {name: reason, type: Optional<String>}
+  - name: engineering.assertion.provider.Status
+    kind: enum
+    variants: [known, unavailable]
+  - name: engineering.assertion.provider.ProcessResult
+    kind: struct
+    fields:
+      - {name: exit_code, type: Optional<Integer>}
+      - {name: stdout, type: String}
+      - {name: stderr, type: String}
+  - name: engineering.assertion.provider.TestReport
+    kind: struct
+    fields:
+      - {name: format, type: String}
+      - {name: inventory, type: List<String>}
+      - {name: passed, type: Integer}
+      - {name: failed, type: Integer}
+      - {name: skipped, type: Integer}
