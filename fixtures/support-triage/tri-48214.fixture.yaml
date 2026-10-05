@@ -1,0 +1,104 @@
+format: els-fixture/1
+id: tri-48214
+protocol: protocols/support-triage/1.yaml
+at: "2026-10-05T10:00:00Z"
+
+case:
+  format: canon-case/1
+  id: TRI-48214
+  protocol: support.triage
+  artifacts:
+    ticket: {revision: c1}
+    requester: {revision: u7}
+
+states:
+  - id: breach-read
+    add_authority: []
+    add_evidence:
+      - observed_at: "2026-10-05T09:55:00Z"
+        record:
+          format: canon-evidence/1
+          id: snapshot-c1
+          kind: ticket_snapshot
+          result: breached
+          subject: ticket
+          subject_revision: c1
+    expect:
+      claims:
+        ticket.current: true
+        sla.breached: true
+        requester.known: unknown
+        classification.proposed: unknown
+        classification.reviewed: unknown
+        ticket.classified: unknown
+        ticket.routed: unknown
+        escalation.requested: unknown
+        ticket.triaged: unknown
+      obligations:
+        escalate_sla_breach: open
+      actions:
+        ticket.read: admissible
+        requester.lookup: admissible
+        ticket.classify: admissible
+        classification.review: blocked
+        ticket.route: blocked
+        reply.draft: blocked
+        escalation.request: approval-required
+
+  - id: escalation-granted
+    add_authority:
+      - {capability: escalation.request, decision: granted}
+    add_evidence: []
+    expect:
+      claims:
+        ticket.current: true
+        sla.breached: true
+        requester.known: unknown
+        classification.proposed: unknown
+        classification.reviewed: unknown
+        ticket.classified: unknown
+        ticket.routed: unknown
+        escalation.requested: unknown
+        ticket.triaged: unknown
+      obligations:
+        escalate_sla_breach: open
+      actions:
+        ticket.read: admissible
+        requester.lookup: admissible
+        ticket.classify: admissible
+        classification.review: blocked
+        ticket.route: blocked
+        reply.draft: blocked
+        escalation.request: admissible
+
+  - id: escalated
+    add_authority: []
+    add_evidence:
+      - observed_at: "2026-10-05T09:58:00Z"
+        record:
+          format: canon-evidence/1
+          id: escalation-c1
+          kind: escalation_record
+          subject: ticket
+          subject_revision: c1
+    expect:
+      claims:
+        ticket.current: true
+        sla.breached: true
+        requester.known: unknown
+        classification.proposed: unknown
+        classification.reviewed: unknown
+        ticket.classified: unknown
+        ticket.routed: unknown
+        escalation.requested: true
+        ticket.triaged: unknown
+      obligations:
+        escalate_sla_breach: discharged
+      actions:
+        ticket.read: admissible
+        requester.lookup: admissible
+        ticket.classify: admissible
+        classification.review: blocked
+        ticket.route: blocked
+        reply.draft: blocked
+        escalation.request: admissible

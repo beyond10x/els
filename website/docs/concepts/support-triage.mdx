@@ -1,0 +1,66 @@
+---
+title: Support triage
+sidebar_position: 6
+description: support.triage/1 triages one support ticket with tool-agnostic actions. What it says today, and what Canon cannot say yet.
+lede: support.triage/1 triages one support ticket with tool-agnostic actions. What it says today, and what Canon cannot say yet.
+source: protocols/support-triage/1.yaml and decision records 0081, 0083, 0084 and 0087, with each status checked against Canon and engineering protocols code
+---
+
+`support.triage/1` is the rules half of a support triage case: one ticket, read at its current
+revision, ends `triaged`, `escalated` or `needs_human`. It is the first protocol here outside
+software delivery and incident response. Its actions name what is done to a ticket, never the
+tracker that holds it; which connection serves `ticket.read` or `ticket.route` is a runtime binding
+outside the protocol ([Capabilities and bindings](./capabilities-and-bindings.mdx)). The generated
+page, with its graph, is [support.triage/1](../protocols/support-triage/1.mdx).
+
+<StatusStrip items={[
+  {label: 'Protocol and three fixtures', status: 'shipped', detail: 'protocols/support-triage/1.yaml; fixtures tri-48213, tri-48214 and tri-48215; canon check clean.'},
+  {label: 'Classify before route', status: 'shipped', detail: 'By precondition: ticket.route is blocked until the classification is proposed, reviewed and approved for the current revision.'},
+  {label: 'Current revision and a fresh read', status: 'shipped', detail: 'Evidence is bound to the ticket revision; a ticket read expires after 15 minutes.'},
+  {label: 'Review by someone other than the proposer', status: 'planned', detail: 'Evidence independence; not in Canon.'},
+  {label: 'Capabilities scoped to one ticket or queue', status: 'planned', detail: 'The scope field of decision record 0083; not in Canon.'},
+  {label: 'Escalation opens an incident case', status: 'planned', detail: 'case.open and case_outcome, decision record 0081; not in Canon.'},
+]} />
+
+## What it says
+
+| Step | Action | Effect | Needs |
+|---|---|---|---|
+| read | `ticket.read` | read | nothing |
+| know who asks | `requester.lookup` | read | a current read |
+| propose | `ticket.classify` | none | a current read |
+| review | `classification.review` | none | a proposal, and authority |
+| route | `ticket.route` | write | an approved classification, a known requester, and authority |
+| draft a reply | `reply.draft` | write | an approved classification, and authority |
+| escalate | `escalation.request` | write | a current read showing the target breached, and authority |
+
+- **Triaged** means category, priority and route are decided on current evidence, for an
+  identified requester, with the service-level target not breached.
+- **Escalated** means the target is breached and an escalation is requested. The obligation
+  `escalate_sla_breach` stays open until a current read shows the target not breached or an
+  escalation is requested.
+- **Needs human** means the review rejected the classification or the requester could not be
+  identified.
+
+The ticket's revision moves when the requester's side of the request changes, not when routing
+fields or internal notes change; otherwise the protocol's own writes would make its evidence stale.
+When the requester writes again, everything bound to the ticket is `UNKNOWN` until it is read,
+classified and reviewed again.
+
+Whether `ticket.route` or `reply.draft` needs a person's approval is policy on the capability in a
+composition (decision record 0087), not part of the protocol. Sending a reply to the requester is not
+an action of this protocol.
+
+## What Canon cannot say yet
+
+| Gap | What the protocol does instead | Status |
+|---|---|---|
+| The review must come from someone other than the proposer | nothing; the reviewer holds the `classification.review` capability, which a composition grants | planned |
+| The review approves *this* classification record, made before it | both are bound to the current ticket revision; Canon has no evidence-order predicate and no reference from one record to another | planned |
+| A category and a priority from the deployment's own lists | a classification is a record; Canon matches one result text and reads no structured value | planned |
+| Routing only to queues the case may use | the capability is unscoped; the scope of decision record 0083 is not in Canon | planned |
+| An escalation opens an `incident.response` case whose outcome counts here | the escalation is a record; `case.open` and `case_outcome` of decision record 0081 are not in Canon | planned |
+| A second classification after a rejection, on the same revision | a rejecting and an approving review of one revision make `classification.reviewed` `UNKNOWN`; the case goes to a person | planned |
+
+The 15-minute expiry of a ticket read is Canon freshness and is shipped. The fixture harness passes
+no evaluation instant, so the expiry is tested with Canon's evaluator directly rather than in a fixture.
