@@ -1,0 +1,21 @@
+domain: engineering.gates
+summary: Gates declare assertions which must all evaluate true against bound observations.
+types:
+  - name: engineering.gates.Gate
+    kind: struct
+    fields:
+      - name: id
+        type: String
+      - name: text
+        type: String
+      - name: assertions
+        type: List<String>
+  - name: engineering.gates.Document
+    kind: struct
+    fields:
+      - name: format
+        type: String
+      - name: language
+        type: String
+      - name: gates
+        type: List<engineering.gates.Gate>
