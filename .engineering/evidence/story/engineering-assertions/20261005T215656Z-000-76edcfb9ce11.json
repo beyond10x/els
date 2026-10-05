@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-05T21:56:56Z",
+  "actor": "human:timo",
+  "artifact": "story:engineering-assertions",
+  "kind": "story",
+  "revision": 6,
+  "change": {
+    "change": "evidence",
+    "kind": "test_result",
+    "source": "GREEN: focused malformed-provider conformance test passed 50 consecutive executions with a Rust fixture that consumes the request before responding. All three malformed envelope assertions retained."
+  }
+}

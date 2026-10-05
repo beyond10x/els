@@ -6,6 +6,10 @@ releases at bare-version tags.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-05
+
+Source release using Canon 0.1.0. Existing protocol formats remain unchanged.
+
 ### Added
 
 - Typed assertion catalog and `gates validate/run/evaluate/explain`, backed by Canon's pure

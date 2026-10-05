@@ -29,7 +29,7 @@ blocked until evidence for R2 exists.
 |---|---|---|---|
 | `software.change/1` | [`protocols/software-change/1.yaml`](protocols/software-change/1.yaml) | [software change](https://beyond10x.github.io/engineering-protocols/docs/protocols/software-change/1/) | 0.1.0 |
 | `incident.response/1` | [`protocols/incident-response/1.yaml`](protocols/incident-response/1.yaml) | [incident response](https://beyond10x.github.io/engineering-protocols/docs/protocols/incident-response/1/) | 0.1.0 |
-| `support.triage/1` | [`protocols/support-triage/1.yaml`](protocols/support-triage/1.yaml) | [support triage](https://beyond10x.github.io/engineering-protocols/docs/protocols/support-triage/1/) | unreleased, on `main` |
+| `support.triage/1` | [`protocols/support-triage/1.yaml`](protocols/support-triage/1.yaml) | [support triage](https://beyond10x.github.io/engineering-protocols/docs/protocols/support-triage/1/) | 0.2.0 |
 
 The terms they are written in are [`protocols/vocabulary.yaml`](protocols/vocabulary.yaml),
 rendered as the [vocabulary page](https://beyond10x.github.io/engineering-protocols/docs/vocabulary/).
@@ -40,13 +40,13 @@ As a library (crate `b10x-canon-engineering`, imported as `canon_engineering`):
 
 ```toml
 [dependencies]
-b10x-canon-engineering = { git = "https://github.com/beyond10x/engineering-protocols", tag = "0.1.0" }
+b10x-canon-engineering = { git = "https://github.com/beyond10x/engineering-protocols", tag = "0.2.0" }
 ```
 
 As a command:
 
 ```console
-cargo install --locked --git https://github.com/beyond10x/engineering-protocols --tag 0.1.0 b10x-canon-engineering
+cargo install --locked --git https://github.com/beyond10x/engineering-protocols --tag 0.2.0 b10x-canon-engineering
 ```
 
 Nothing is published to crates.io; releases are Git tags.
@@ -65,7 +65,7 @@ fn main() {
 }
 ```
 
-Against tag 0.1.0 this prints `incident-response@1` and `software-change@1`.
+Against tag 0.2.0 this prints `incident-response@1`, `software-change@1` and `support-triage@1`.
 `registry::get(name, major)` returns one protocol's YAML as released together with Canon's
 validated model of it.
 
@@ -87,12 +87,12 @@ protocol:
 
 A malformed `<name>@<major>` exits 2; a well-formed one that names no built-in exits 1.
 
-## Assertion gates (unreleased)
+## Assertion gates
 
-The source CLI also checks `.engineering/gates.yaml` using typed assertions. `canon-engineering
+The CLI also checks `.engineering/gates.yaml` using typed assertions. `canon-engineering
 assertions list` discovers the catalog; `gates validate`, `gates run` and `gates evaluate` validate
 checks, collect observations and replay retained evidence. See the [assertion guide](website/docs/guides/assertions.md)
-for a complete gate and commands. These commands are not included in release 0.1.0.
+for a complete gate and commands. These commands are included in release 0.2.0.
 
 The generic expression core lives in Canon. This repository supplies files/documents, explicit
 process bindings, test reports, ESS and Codegate dependency reports, DNS and TCP observations,
@@ -132,7 +132,7 @@ Changing the repository: read [AGENTS.md](AGENTS.md).
 
 ## Status
 
-Bootstrap. Latest release 0.1.0 (2026-10-05); see [CHANGELOG.md](CHANGELOG.md).
+Latest source release 0.2.0 (2026-10-05), using Canon 0.1.0; see [CHANGELOG.md](CHANGELOG.md).
 
 ## Licence
 

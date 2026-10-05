@@ -457,12 +457,38 @@ fn success_boolean_and_malformed_external_envelopes_are_checked() {
             Collected::Known(json!(expected))
         );
     }
-    let executable = std::path::PathBuf::from("/usr/bin/printf");
+    // Consume the request before replying. A printf fixture can exit before the
+    // parent writes stdin, testing broken-pipe unavailability instead of parsing.
+    let source = root.path().join("malformed_provider.rs");
+    std::fs::write(
+        &source,
+        r#"use std::io::{Read, Write};
+fn main() {
+    let mut request = String::new();
+    std::io::stdin().read_to_string(&mut request).unwrap();
+    assert!(request.contains("engineering-provider-request/1"));
+    let response = std::fs::read("response.json").unwrap();
+    std::io::stdout().write_all(&response).unwrap();
+}"#,
+    )
+    .unwrap();
+    let executable = root.path().join("malformed-provider");
+    assert!(
+        std::process::Command::new("rustc")
+            .args(["--edition=2024", "--crate-name", "malformed_provider"])
+            .arg(&source)
+            .arg("-o")
+            .arg(&executable)
+            .status()
+            .unwrap()
+            .success()
+    );
     for response in [
         json!({"format":"engineering-provider-response/1","status":"known","value_json":"true","reason":"also unknown"}),
         json!({"format":"engineering-provider-response/1","status":"known","value_json":"true","extra":1}),
         json!({"format":"engineering-provider-response/1","status":"known","value_json":true}),
     ] {
+        std::fs::write(root.path().join("response.json"), response.to_string()).unwrap();
         context.providers.insert(
             "bad.reply".into(),
             ExternalProvider {
@@ -470,11 +496,12 @@ fn success_boolean_and_malformed_external_envelopes_are_checked() {
                 sha256: executable_digest(&executable).unwrap(),
                 command: CommandBinding {
                     executable: executable.clone(),
-                    args: vec!["%s".into(), response.to_string()],
+                    args: vec![],
                     env: BTreeMap::new(),
                 },
             },
         );
-        assert!(collect("bad.reply", &BTreeMap::new(), &context).is_err());
+        let result = collect("bad.reply", &BTreeMap::new(), &context);
+        assert!(result.is_err(), "malformed response {response}: {result:?}");
     }
 }

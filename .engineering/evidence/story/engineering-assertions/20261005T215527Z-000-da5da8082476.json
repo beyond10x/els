@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-05T21:55:27Z",
+  "actor": "human:timo",
+  "artifact": "story:engineering-assertions",
+  "kind": "story",
+  "revision": 6,
+  "change": {
+    "change": "evidence",
+    "kind": "test_result",
+    "source": "RED: repeated cargo test -p b10x-assertion-providers --test conformance success_boolean_and_malformed_external_envelopes_are_checked reproduced Ok(Unavailable(Broken pipe)) before malformed response validation; printf exits without consuming the request."
+  }
+}

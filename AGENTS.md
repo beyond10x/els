@@ -61,9 +61,9 @@ There is no `rust-toolchain.toml`; CI installs the current `stable` through
 `Documentation validation` (`pages.yml`: the docs crate's tests, `generate --check`, the site
 build) and `Shared source gates` (`shared-gates.yml`: the common Gates checks).
 
-`b10x-canon` and `b10x-canon-expr` are Git dependencies on the same exact Canon revision in the
-crate manifests and `Cargo.lock`. A Canon change reaches this repository through an explicit
-revision and lockfile update, which is a change to gate like any other.
+`b10x-canon` and `b10x-canon-expr` are Git dependencies on the same Canon release tag in the
+crate manifests; `Cargo.lock` records its exact commit. A Canon change reaches this repository
+through an explicit tag and lockfile update, which is a change to gate like any other.
 
 ## Generated files
 
