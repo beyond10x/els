@@ -3,6 +3,20 @@
   "items": [
     {
       "area": "Foundations",
+      "detail": "Typed file, process, report and network checks retain source-bound evidence for offline replay. Recipes and explicitly admitted Rust providers extend the catalog.",
+      "href": "/docs/guides/assertions",
+      "label": "Typed assertion gates and replay",
+      "status": "shipped"
+    },
+    {
+      "area": "Foundations",
+      "detail": "Future consumers can reuse typed assertions; this version does not change AEP lifecycles or query clusters.",
+      "href": "/docs/guides/assertions",
+      "label": "AEP acceptance and Kubernetes providers",
+      "status": "planned"
+    },
+    {
+      "area": "Foundations",
       "detail": "35 terms, each with its category, marking and meaning, in protocols/vocabulary.yaml.",
       "href": "/docs/vocabulary",
       "label": "Engineering vocabulary",

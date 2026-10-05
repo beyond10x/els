@@ -96,6 +96,22 @@ fn listing(counts: &[(usize, &str, &str)]) -> String {
 pub fn document(vocabulary: &Vocabulary, protocols: &[(&Source, &Ir)]) -> Value {
     let mut items = vec![
         Item {
+            label: "Typed assertion gates and replay".to_owned(),
+            status: "shipped",
+            area: FOUNDATIONS,
+            // Held by assertion_replay::retained_evidence_replays_without_reading_sources_and_expires
+            // and extensions::registered_rust_provider_extends_namespace_and_replay_does_not_execute_it.
+            detail: "Typed file, process, report and network checks retain source-bound evidence for offline replay. Recipes and explicitly admitted Rust providers extend the catalog.".to_owned(),
+            href: Some("/docs/guides/assertions".to_owned()),
+        },
+        Item {
+            label: "AEP acceptance and Kubernetes providers".to_owned(),
+            status: "planned",
+            area: FOUNDATIONS,
+            detail: "Future consumers can reuse typed assertions; this version does not change AEP lifecycles or query clusters.".to_owned(),
+            href: Some("/docs/guides/assertions".to_owned()),
+        },
+        Item {
             label: "Engineering vocabulary".to_owned(),
             status: "shipped",
             area: FOUNDATIONS,

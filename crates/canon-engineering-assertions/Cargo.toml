@@ -1,0 +1,25 @@
+[package]
+name = "b10x-canon-engineering-assertions"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Typed engineering gates, observation collection and offline replay"
+
+[lib]
+name = "canon_engineering_assertions"
+
+[dependencies]
+anyhow = "1"
+b10x-canon-expr = { git = "https://github.com/beyond10x/canon", rev = "cf2ae40c2284c86d05b33c3003c45c7351f1150b" }
+b10x-assertion-providers = { path = "../assertion-providers" }
+clap = { version = "4.5", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["arbitrary_precision"] }
+serde_yaml_ng = "0.10"
+sha2 = "0.10"
+rustix = { version = "1.1", features = ["fs"] }
+
+[dev-dependencies]
+tempfile = "3"
+syn = { version = "2", features = ["full"] }

@@ -3,4 +3,5 @@ requires: ess 0.53.0
 specification:
   - system.yaml
   - domains/gates.yaml
+  - domains/expr.yaml
 scenarios: []

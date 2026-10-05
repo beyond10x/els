@@ -39,6 +39,21 @@ tested by Canon conformance (Atlas ADR 0067). ESS conformance reports are an evi
 engineering protocols may admit (story E-007); that is a use of ESS output, not a specification of
 this repository.
 
+Assertion collection and its CLI are not part of that opt-out. Their wire model lives in `ess/`;
+provider envelopes live in `ess/providers/`, both pinned to ESS 0.53.0. The gate document is a
+generated Rust data library. The Canon expression schema is vendored by `canon-engineering-docs`
+from the pinned core's `MODEL_SPEC`, with only the namespace remapped. Do not edit generated
+contracts or `.ess-output` ownership state. `crates/canon-engineering-assertions/tests/ess_contract.rs`
+validates/compiles/synthesizes ESS, regenerates gate types and compares native envelope fields.
+
+`b10x-canon-engineering-assertions` owns the edge and `b10x-assertion-providers` collects observations;
+all generic parsing/checking/planning/evaluation is supplied by `b10x-canon-expr` from Canon.
+Keep evaluate free of provider calls (`crates/canon-engineering-assertions/tests/extensions.rs::registered_rust_provider_extends_namespace_and_replay_does_not_execute_it`).
+Typed provider responses may report known values or unavailability; malformed data must fail.
+Retained output stays under `.engineering/assertions/` and uses no-follow directory handles.
+Explicit inputs include ignored files and generated output; a changed command executable or
+source snapshot invalidates collection. Adversarial cases live in the runner's `tests/adversary.rs`.
+
 Protocol first (Atlas ADR 0080): a unit that changes behaviour lands its protocol YAML and fixture
 expectations in its first commit, a named test (a Canon fixture test under
 `crates/canon-engineering/tests/`) fails on that commit and the failing run is recorded, and only

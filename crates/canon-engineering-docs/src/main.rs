@@ -50,6 +50,17 @@ enum Action {
 fn main() -> Result<()> {
     match Cli::parse().command {
         Action::Generate { root, check } => {
+            let model = canon_engineering_assertions::documentation::expression_model();
+            let model_path = root.join("ess/domains/expr.yaml");
+            if check {
+                ensure!(
+                    std::fs::read_to_string(&model_path).ok().as_deref() == Some(model.as_str()),
+                    "vendored assertion ESS model drift; run `canon-engineering-docs generate`"
+                );
+            } else {
+                std::fs::create_dir_all(model_path.parent().expect("model has parent"))?;
+                std::fs::write(&model_path, model)?;
+            }
             let inputs = generate::Inputs::read(&root)?;
             let files = generate::render(&inputs)?;
             let drift = generate::apply(&root.join(generate::SITE), &files, check)?;

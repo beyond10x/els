@@ -1,0 +1,8 @@
+format: engineering-gates/1
+language: canon-expr/1
+gates:
+  - id: endpoint-observed
+    text: The endpoint resolves and accepts a TCP connection in the selected network.
+    assertions:
+      - 'net.host.resolves("api.example.org", resolver: $resolver)'
+      - 'net.tcp.reachable("api.example.org", port: 443, network: $network)'

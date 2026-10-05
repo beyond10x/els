@@ -1,0 +1,863 @@
+{
+  "format": "canon-catalog/1",
+  "functions": {
+    "fs.file.exists": {
+      "parameters": [
+        {
+          "name": "path",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        }
+      ],
+      "returns": {
+        "kind": "scalar",
+        "value": "bool"
+      },
+      "implementation": {
+        "kind": "observation",
+        "value": {
+          "provider": "engineering.builtin/1",
+          "operation": "fs.file.exists",
+          "digest": "locked-at-collection"
+        }
+      }
+    },
+    "fs.dir.exists": {
+      "parameters": [
+        {
+          "name": "path",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        }
+      ],
+      "returns": {
+        "kind": "scalar",
+        "value": "bool"
+      },
+      "implementation": {
+        "kind": "observation",
+        "value": {
+          "provider": "engineering.builtin/1",
+          "operation": "fs.dir.exists",
+          "digest": "locked-at-collection"
+        }
+      }
+    },
+    "text.contains": {
+      "parameters": [
+        {
+          "name": "path",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        },
+        {
+          "name": "needle",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        }
+      ],
+      "returns": {
+        "kind": "scalar",
+        "value": "bool"
+      },
+      "implementation": {
+        "kind": "observation",
+        "value": {
+          "provider": "engineering.builtin/1",
+          "operation": "text.contains",
+          "digest": "locked-at-collection"
+        }
+      }
+    },
+    "doc.string": {
+      "parameters": [
+        {
+          "name": "path",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        },
+        {
+          "name": "pointer",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        },
+        {
+          "name": "format",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": {
+            "kind": "string",
+            "value": "json"
+          }
+        }
+      ],
+      "returns": {
+        "kind": "scalar",
+        "value": "string"
+      },
+      "implementation": {
+        "kind": "observation",
+        "value": {
+          "provider": "engineering.builtin/1",
+          "operation": "document.get",
+          "digest": "locked-at-collection"
+        }
+      }
+    },
+    "doc.integer": {
+      "parameters": [
+        {
+          "name": "path",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        },
+        {
+          "name": "pointer",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        },
+        {
+          "name": "format",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": {
+            "kind": "string",
+            "value": "json"
+          }
+        }
+      ],
+      "returns": {
+        "kind": "scalar",
+        "value": "integer"
+      },
+      "implementation": {
+        "kind": "observation",
+        "value": {
+          "provider": "engineering.builtin/1",
+          "operation": "document.get",
+          "digest": "locked-at-collection"
+        }
+      }
+    },
+    "doc.boolean": {
+      "parameters": [
+        {
+          "name": "path",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        },
+        {
+          "name": "pointer",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        },
+        {
+          "name": "format",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": {
+            "kind": "string",
+            "value": "json"
+          }
+        }
+      ],
+      "returns": {
+        "kind": "scalar",
+        "value": "bool"
+      },
+      "implementation": {
+        "kind": "observation",
+        "value": {
+          "provider": "engineering.builtin/1",
+          "operation": "document.get",
+          "digest": "locked-at-collection"
+        }
+      }
+    },
+    "schema.valid": {
+      "parameters": [
+        {
+          "name": "path",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        },
+        {
+          "name": "schema",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        }
+      ],
+      "returns": {
+        "kind": "scalar",
+        "value": "bool"
+      },
+      "implementation": {
+        "kind": "observation",
+        "value": {
+          "provider": "engineering.builtin/1",
+          "operation": "document.validates",
+          "digest": "locked-at-collection"
+        }
+      }
+    },
+    "process.run": {
+      "parameters": [
+        {
+          "name": "binding",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        }
+      ],
+      "returns": {
+        "kind": "record",
+        "value": {
+          "exit_code": {
+            "kind": "optional",
+            "value": {
+              "kind": "scalar",
+              "value": "integer"
+            }
+          },
+          "stderr": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "stdout": {
+            "kind": "scalar",
+            "value": "string"
+          }
+        }
+      },
+      "implementation": {
+        "kind": "observation",
+        "value": {
+          "provider": "engineering.builtin/1",
+          "operation": "process.run",
+          "digest": "locked-at-collection"
+        }
+      }
+    },
+    "ess.run": {
+      "parameters": [
+        {
+          "name": "binding",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        }
+      ],
+      "returns": {
+        "kind": "record",
+        "value": {
+          "exit_code": {
+            "kind": "optional",
+            "value": {
+              "kind": "scalar",
+              "value": "integer"
+            }
+          },
+          "stderr": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "stdout": {
+            "kind": "scalar",
+            "value": "string"
+          }
+        }
+      },
+      "implementation": {
+        "kind": "observation",
+        "value": {
+          "provider": "engineering.builtin/1",
+          "operation": "ess.run",
+          "digest": "locked-at-collection"
+        }
+      }
+    },
+    "tests.report": {
+      "parameters": [
+        {
+          "name": "path",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        }
+      ],
+      "returns": {
+        "kind": "record",
+        "value": {
+          "inventory": {
+            "kind": "list",
+            "value": {
+              "kind": "scalar",
+              "value": "string"
+            }
+          },
+          "passed": {
+            "kind": "scalar",
+            "value": "integer"
+          },
+          "failed": {
+            "kind": "scalar",
+            "value": "integer"
+          },
+          "skipped": {
+            "kind": "scalar",
+            "value": "integer"
+          },
+          "total": {
+            "kind": "scalar",
+            "value": "integer"
+          },
+          "executed": {
+            "kind": "scalar",
+            "value": "integer"
+          }
+        }
+      },
+      "implementation": {
+        "kind": "observation",
+        "value": {
+          "provider": "engineering.builtin/1",
+          "operation": "tests.report",
+          "digest": "locked-at-collection"
+        }
+      }
+    },
+    "proj.tests.run": {
+      "parameters": [
+        {
+          "name": "binding",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        }
+      ],
+      "returns": {
+        "kind": "record",
+        "value": {
+          "inventory": {
+            "kind": "list",
+            "value": {
+              "kind": "scalar",
+              "value": "string"
+            }
+          },
+          "passed": {
+            "kind": "scalar",
+            "value": "integer"
+          },
+          "failed": {
+            "kind": "scalar",
+            "value": "integer"
+          },
+          "skipped": {
+            "kind": "scalar",
+            "value": "integer"
+          },
+          "total": {
+            "kind": "scalar",
+            "value": "integer"
+          },
+          "executed": {
+            "kind": "scalar",
+            "value": "integer"
+          }
+        }
+      },
+      "implementation": {
+        "kind": "observation",
+        "value": {
+          "provider": "engineering.builtin/1",
+          "operation": "tests.run",
+          "digest": "locked-at-collection"
+        }
+      }
+    },
+    "tests.passed": {
+      "parameters": [
+        {
+          "name": "path",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        }
+      ],
+      "returns": {
+        "kind": "scalar",
+        "value": "bool"
+      },
+      "implementation": {
+        "kind": "recipe",
+        "value": "tests.report($path).failed == 0 and tests.report($path).executed > 0 and tests.report($path).skipped == 0"
+      }
+    },
+    "generated.matches": {
+      "parameters": [
+        {
+          "name": "expected",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        },
+        {
+          "name": "actual",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        }
+      ],
+      "returns": {
+        "kind": "scalar",
+        "value": "bool"
+      },
+      "implementation": {
+        "kind": "observation",
+        "value": {
+          "provider": "engineering.builtin/1",
+          "operation": "generated.matches",
+          "digest": "locked-at-collection"
+        }
+      }
+    },
+    "codegate.dependencies": {
+      "parameters": [
+        {
+          "name": "path",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        }
+      ],
+      "returns": {
+        "kind": "record",
+        "value": {
+          "verdict": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "coverage": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "findings_count": {
+            "kind": "scalar",
+            "value": "integer"
+          },
+          "fan_out_max": {
+            "kind": "scalar",
+            "value": "integer"
+          },
+          "source_id": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "configuration_id": {
+            "kind": "scalar",
+            "value": "string"
+          }
+        }
+      },
+      "implementation": {
+        "kind": "observation",
+        "value": {
+          "provider": "engineering.builtin/1",
+          "operation": "codegate.dependencies",
+          "digest": "locked-at-collection"
+        }
+      }
+    },
+    "codegate.dependencies.clean": {
+      "parameters": [
+        {
+          "name": "path",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        },
+        {
+          "name": "source_id",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        },
+        {
+          "name": "configuration_id",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        }
+      ],
+      "returns": {
+        "kind": "scalar",
+        "value": "bool"
+      },
+      "implementation": {
+        "kind": "recipe",
+        "value": "codegate.dependencies($path).verdict == \"pass\" and codegate.dependencies($path).findings_count == 0 and codegate.dependencies($path).source_id == $source_id and codegate.dependencies($path).configuration_id == $configuration_id"
+      }
+    },
+    "ess.report": {
+      "parameters": [
+        {
+          "name": "path",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        }
+      ],
+      "returns": {
+        "kind": "record",
+        "value": {
+          "passed": {
+            "kind": "scalar",
+            "value": "integer"
+          },
+          "failed": {
+            "kind": "scalar",
+            "value": "integer"
+          },
+          "unsupported": {
+            "kind": "scalar",
+            "value": "integer"
+          },
+          "errors": {
+            "kind": "scalar",
+            "value": "integer"
+          },
+          "total": {
+            "kind": "scalar",
+            "value": "integer"
+          },
+          "conformance_status": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "skipped": {
+            "kind": "scalar",
+            "value": "integer"
+          },
+          "inventory": {
+            "kind": "list",
+            "value": {
+              "kind": "scalar",
+              "value": "string"
+            }
+          },
+          "spec_digest": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "implementation": {
+            "kind": "scalar",
+            "value": "string"
+          }
+        }
+      },
+      "implementation": {
+        "kind": "observation",
+        "value": {
+          "provider": "engineering.builtin/1",
+          "operation": "ess.report",
+          "digest": "locked-at-collection"
+        }
+      }
+    },
+    "ess.conformance.passed": {
+      "parameters": [
+        {
+          "name": "path",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        },
+        {
+          "name": "spec_digest",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        },
+        {
+          "name": "implementation",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        }
+      ],
+      "returns": {
+        "kind": "scalar",
+        "value": "bool"
+      },
+      "implementation": {
+        "kind": "recipe",
+        "value": "ess.report($path).passed > 0 and ess.report($path).failed == 0 and ess.report($path).unsupported == 0 and ess.report($path).errors == 0 and ess.report($path).skipped == 0 and ess.report($path).conformance_status == \"passed\" and ess.report($path).spec_digest == $spec_digest and ess.report($path).implementation == $implementation"
+      }
+    },
+    "net.dns.lookup": {
+      "parameters": [
+        {
+          "name": "host",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        },
+        {
+          "name": "resolver",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        }
+      ],
+      "returns": {
+        "kind": "record",
+        "value": {
+          "resolves": {
+            "kind": "scalar",
+            "value": "bool"
+          },
+          "ttl_seconds": {
+            "kind": "scalar",
+            "value": "integer"
+          },
+          "resolver": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "addresses": {
+            "kind": "list",
+            "value": {
+              "kind": "scalar",
+              "value": "string"
+            }
+          }
+        }
+      },
+      "implementation": {
+        "kind": "observation",
+        "value": {
+          "provider": "engineering.builtin/1",
+          "operation": "net.host.resolves",
+          "digest": "locked-at-collection"
+        }
+      }
+    },
+    "net.host.resolves": {
+      "parameters": [
+        {
+          "name": "host",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        },
+        {
+          "name": "resolver",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        }
+      ],
+      "returns": {
+        "kind": "scalar",
+        "value": "bool"
+      },
+      "implementation": {
+        "kind": "recipe",
+        "value": "net.dns.lookup($host, $resolver).resolves"
+      }
+    },
+    "net.tcp.reachable": {
+      "parameters": [
+        {
+          "name": "host",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        },
+        {
+          "name": "port",
+          "value_type": {
+            "kind": "scalar",
+            "value": "integer"
+          },
+          "default": null
+        },
+        {
+          "name": "network",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        }
+      ],
+      "returns": {
+        "kind": "scalar",
+        "value": "bool"
+      },
+      "implementation": {
+        "kind": "observation",
+        "value": {
+          "provider": "engineering.builtin/1",
+          "operation": "net.tcp.reachable",
+          "digest": "locked-at-collection"
+        }
+      }
+    },
+    "file_exists": {
+      "parameters": [
+        {
+          "name": "path",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        }
+      ],
+      "returns": {
+        "kind": "scalar",
+        "value": "bool"
+      },
+      "implementation": {
+        "kind": "recipe",
+        "value": "fs.file.exists($path)"
+      }
+    },
+    "nodejs.package.named": {
+      "parameters": [
+        {
+          "name": "path",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        },
+        {
+          "name": "name",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        }
+      ],
+      "returns": {
+        "kind": "scalar",
+        "value": "bool"
+      },
+      "implementation": {
+        "kind": "recipe",
+        "value": "doc.string($path, \"/name\") == $name"
+      }
+    },
+    "process.succeeded": {
+      "parameters": [
+        {
+          "name": "binding",
+          "value_type": {
+            "kind": "scalar",
+            "value": "string"
+          },
+          "default": null
+        }
+      ],
+      "returns": {
+        "kind": "scalar",
+        "value": "bool"
+      },
+      "implementation": {
+        "kind": "observation",
+        "value": {
+          "provider": "engineering.builtin/1",
+          "operation": "process.succeeded",
+          "digest": "locked-at-collection"
+        }
+      }
+    }
+  }
+}

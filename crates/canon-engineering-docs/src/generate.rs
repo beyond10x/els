@@ -217,6 +217,10 @@ pub fn render(inputs: &Inputs) -> Result<BTreeMap<String, String>> {
     let vocabulary = Vocabulary::from_yaml(&inputs.vocabulary)
         .map_err(|error| anyhow!("protocols/vocabulary.yaml: {error}"))?;
     let mut files = BTreeMap::new();
+    files.insert(
+        "docs/reference/assertions.md".into(),
+        canon_engineering_assertions::documentation::reference()?,
+    );
     let mut shipped = Vec::new();
     let mut statuses = Vec::new();
     for source in &inputs.protocols {
@@ -452,6 +456,7 @@ mod tests {
                 "data/status.json",
                 "docs/protocols/_category_.yml",
                 "docs/protocols/index.md",
+                "docs/reference/assertions.md",
                 "docs/status.mdx",
                 "docs/vocabulary.md"
             ]
