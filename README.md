@@ -1,32 +1,125 @@
 # Engineering protocols
 
-The engineering domain built on [Canon](https://github.com/beyond10x/canon): engineering vocabulary
-and protocols such as `software.change/1` and `incident.response/1`.
+Engineering protocols write down, as data, what makes engineering work legitimate: which claims
+must hold, which evidence counts and for which revision, which actions need authority, and which
+outcomes a case can end in. Each protocol is a [Canon](https://beyond10x.github.io/canon/)
+([GitHub](https://github.com/beyond10x/canon)) `protocol/1` document; Canon validates, compiles
+and evaluates it, and this repository ships the protocols with the engineering vocabulary they use.
 
-Engineering protocols state what makes engineering work legitimate: which claims must hold, which
-evidence counts and for which revision, which actions need authority, and which outcomes a case can
-end in. A software change whose tests passed on revision R1 but whose implementation is now R2 has
-`tests.pass = UNKNOWN`, and merge stays blocked until evidence for R2 exists. An incident can leave
-emergency mode while its cause is still `UNKNOWN`.
+**Documentation: <https://beyond10x.github.io/engineering-protocols/>**
 
-The library is the crate `b10x-canon-engineering` (`canon_engineering`), and the command line is
-`canon-engineering`: `canon-engineering protocols list` names the built-in protocols.
+The rule that runs through every protocol is that `UNKNOWN` is not `FALSE`. Tests that passed on
+revision R1 say nothing about R2, so a change now at R2 has `tests.pass = UNKNOWN` and merge stays
+blocked until evidence for R2 exists.
 
-The project does not hold the live engineering record (that is AEP) and does not run agents (that is
-Commission and Loom).
+## What it is not
 
-## Status
+- Not the meaning of a claim, an evidence item or an obligation, nor the evaluator. That is Canon.
+- Not the live engineering record. That is [AEP](https://beyond10x.github.io/ecosystem/aep/)
+  ([GitHub](https://github.com/beyond10x/aep)).
+- Not an agent runtime. [Loom](https://beyond10x.github.io/loom/)
+  ([GitHub](https://github.com/beyond10x/loom)) runs agents, and its `loom-governor` crate depends
+  on this one.
+- Not a source of time, network or model input: a protocol adds no clock, network or model call
+  to Canon's evaluation.
 
-Bootstrap. The design, written under the project's earlier name, is
-[`docs/design/engineering-lifecycle-specification-design.md`](docs/design/engineering-lifecycle-specification-design.md);
-worked examples are in [`docs/examples/`](docs/examples/).
+## Protocols
+
+| Protocol | Source | Page | Released in |
+|---|---|---|---|
+| `software.change/1` | [`protocols/software-change/1.yaml`](protocols/software-change/1.yaml) | [software change](https://beyond10x.github.io/engineering-protocols/docs/protocols/software-change/1/) | 0.1.0 |
+| `incident.response/1` | [`protocols/incident-response/1.yaml`](protocols/incident-response/1.yaml) | [incident response](https://beyond10x.github.io/engineering-protocols/docs/protocols/incident-response/1/) | 0.1.0 |
+| `support.triage/1` | [`protocols/support-triage/1.yaml`](protocols/support-triage/1.yaml) | [support triage](https://beyond10x.github.io/engineering-protocols/docs/protocols/support-triage/1/) | unreleased, on `main` |
+
+The terms they are written in are [`protocols/vocabulary.yaml`](protocols/vocabulary.yaml),
+rendered as the [vocabulary page](https://beyond10x.github.io/engineering-protocols/docs/vocabulary/).
+
+## Install
+
+As a library (crate `b10x-canon-engineering`, imported as `canon_engineering`):
+
+```toml
+[dependencies]
+b10x-canon-engineering = { git = "https://github.com/beyond10x/engineering-protocols", tag = "0.1.0" }
+```
+
+As a command:
+
+```console
+cargo install --locked --git https://github.com/beyond10x/engineering-protocols --tag 0.1.0 b10x-canon-engineering
+```
+
+Nothing is published to crates.io; releases are Git tags.
+
+## Smallest example
+
+The built-in protocols are embedded in the crate at build time. Listing them from a dependent crate:
+
+```rust
+use canon_engineering::registry;
+
+fn main() {
+    for (name, major) in registry::list() {
+        println!("{name}@{major}");
+    }
+}
+```
+
+Against tag 0.1.0 this prints `incident-response@1` and `software-change@1`.
+`registry::get(name, major)` returns one protocol's YAML as released together with Canon's
+validated model of it.
+
+From a checkout, the command line does the same:
+
+```console
+$ cargo run -q -p b10x-canon-engineering -- protocols list
+incident-response@1
+software-change@1
+support-triage@1
+$ cargo run -q -p b10x-canon-engineering -- protocols show software-change@1
+format: protocol/1
+
+protocol:
+  id: software.change
+  revision: 1
+...
+```
+
+A malformed `<name>@<major>` exits 2; a well-formed one that names no built-in exits 1.
+
+## Crates
+
+| Crate | Holds |
+|---|---|
+| `b10x-canon-engineering` | Library `canon_engineering` (protocol registry, engineering vocabulary) and the `canon-engineering` binary |
+| `canon-engineering-docs` | Generator for the site's protocol pages, protocol graphs, vocabulary page and status record; not released |
+
+## Documentation
+
+The site at <https://beyond10x.github.io/engineering-protocols/> has the
+[overview](https://beyond10x.github.io/engineering-protocols/docs/), one page per
+[protocol](https://beyond10x.github.io/engineering-protocols/docs/protocols/), concept pages
+(protocols and compositions, step order, capabilities and bindings, profiles) and the
+[status table](https://beyond10x.github.io/engineering-protocols/docs/status/). In this tree,
+[`docs/examples/`](docs/examples/) holds two worked cases, and
+[`docs/design/`](docs/design/engineering-lifecycle-specification-design.md) holds the original
+design, written under the project's earlier name.
 
 ## Build
 
+Needs Rust stable and [Task](https://taskfile.dev/).
+
 ```console
-task check
+task check        # fmt, clippy, tests, generated-page drift check
+task site-build   # also needs Node 22; builds website/build
 ```
+
+Changing the repository: read [AGENTS.md](AGENTS.md).
+
+## Status
+
+Bootstrap. Latest release 0.1.0 (2026-10-05); see [CHANGELOG.md](CHANGELOG.md).
 
 ## Licence
 
-Apache-2.0.
+Apache-2.0, see [LICENSE](LICENSE).
