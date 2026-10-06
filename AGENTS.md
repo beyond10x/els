@@ -139,11 +139,14 @@ story's `## Protocol first`.
 - Waves run as `aep:implementing` describes: one `impl/<story-id>` branch per unit, merged into
   `wave/<date>-w<N>`, closed by a `plan: close wave …` commit. Smaller changes go through a bot
   pull request.
-- Use a managed worktree: `worktree create --repo ~/beyond10x/engineering-protocols --purpose …`.
-- Build with the `CARGO_TARGET_DIR` the Taskfile sets, under `$HOME/.cache/b10x-target/`.
-  `crates/canon-engineering/build.rs` embeds `protocols/`, so a target directory shared between
-  checkouts can embed another checkout's protocol files: give each worktree its own
-  `CARGO_TARGET_DIR` before trusting a gate run there.
+- Use a managed worktree: `worktree create --repo ~/beyond10x/engineering-protocols --purpose …`,
+  and end it with `worktree finish --discard-cache --archive <tree>`.
+- Build into the checkout's own `target/`. The Taskfile sets no `CARGO_TARGET_DIR`; do not set
+  one. `crates/canon-engineering/build.rs` embeds `protocols/` by absolute path, so a target
+  directory shared between checkouts can embed another checkout's protocol files, and cargo can
+  judge another checkout's test binary fresh and run it. Before a gate run counts as evidence,
+  check with `cargo test --workspace --locked -- --list` that the tests the run printed exist in
+  the gated tree.
 - Every commit and push is `b10x-bot[bot]`'s, through `b10x-gates bot`; check both author and
   committer before pushing. Every other GitHub write (pull request, comment, release, workflow
   dispatch, re-run) goes through `b10x-gates api`. `gh` is for reading only.

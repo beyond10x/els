@@ -4,7 +4,7 @@
 #[allow(dead_code)] // uses part of the harness; fixture_harness.rs uses all of it
 mod support;
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use support::{CompileError, Fixture};
 
@@ -151,6 +151,15 @@ impl Drop for Links {
     }
 }
 
+/// Removes the directory this test made outside the repository.
+struct Outside(PathBuf);
+
+impl Drop for Outside {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
 /// A path without `..` that leaves the repository through a symbolic link — to a file, or
 /// through a linked directory — is refused; a link that stays inside loads.
 /// Kills: dropping the `resolved.starts_with(&root)` check in `read_confined`.
@@ -160,8 +169,20 @@ fn adversary_harness_refuses_paths_that_leave_through_a_symlink() {
     use std::os::unix::fs::symlink;
 
     let root = support::repo_root();
-    let outside = Path::new(env!("CARGO_TARGET_TMPDIR")).join("adversary-harness-outside");
-    std::fs::create_dir_all(&outside).expect("scratch directory");
+    // The target directory, and with it `CARGO_TARGET_TMPDIR`, is inside the repository, so the
+    // far end of each link goes under the system temporary directory.
+    let scratch = Outside(
+        std::env::temp_dir().join(format!("adversary-harness-outside-{}", std::process::id())),
+    );
+    let outside = scratch.0.as_path();
+    std::fs::create_dir_all(outside).expect("scratch directory");
+    let resolved = outside.canonicalize().expect("scratch directory resolves");
+    assert!(
+        !resolved.starts_with(&root),
+        "{} must be outside the repository {}",
+        resolved.display(),
+        root.display()
+    );
     std::fs::write(outside.join("smoke.fixture.yaml"), smoke_text()).expect("outside copy");
 
     let name = format!("adversary-harness-{}", std::process::id());
@@ -172,7 +193,7 @@ fn adversary_harness_refuses_paths_that_leave_through_a_symlink() {
         links.0.join("file.yaml"),
     )
     .expect("file link");
-    symlink(&outside, links.0.join("dir")).expect("directory link");
+    symlink(outside, links.0.join("dir")).expect("directory link");
     symlink(root.join(SMOKE), links.0.join("inside.yaml")).expect("inside link");
 
     for leaf in ["file.yaml", "dir/smoke.fixture.yaml"] {
