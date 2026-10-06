@@ -48,8 +48,8 @@ jobs:
 
       - name: Install ess
         env:
-          ESS_VERSION: "0.53.0"
-          ESS_SHA256: 40e8c9acd9bb5016387215cb5461090eb4765805ce7c8858d4b02284e6908914
+          ESS_VERSION: "0.55.0"
+          ESS_SHA256: 1d2c0f0ad6871eafa452d738d2bc978e748349683f77667371cefebc7f646a8c
         run: |
           set -euo pipefail
           asset="ess-$ESS_VERSION-x86_64-unknown-linux-gnu.tar.gz"

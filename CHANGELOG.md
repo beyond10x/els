@@ -6,6 +6,18 @@ releases at bare-version tags.
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-07
+
+Source release using Canon 0.1.0 and ESS 0.55.0. Protocol formats and the generated gate and
+provider contracts are unchanged.
+
+### Changed
+
+- The ESS pin moves from 0.53.0 to 0.55.0 in `ess/` and `ess/providers/`, and CI installs 0.55.0.
+  The regenerated contracts differ only in their generator stamp; source, contract and projection
+  digests are unchanged.
+- Builds go into each checkout's own `target/`: the Taskfile no longer sets `CARGO_TARGET_DIR`.
+
 ## [0.2.0] - 2026-10-05
 
 Source release using Canon 0.1.0. Existing protocol formats remain unchanged.
