@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-07T00:41:58Z",
+  "actor": "human:timo",
+  "artifact": "story:project-routes",
+  "kind": "story",
+  "revision": 12,
+  "change": {
+    "change": "evidence",
+    "kind": "verification",
+    "source": "site-manifest on a real Docusaurus build of impl/project-routes: 42 HTML files = 19 pages + 5 refresh redirects + 17 trailing-slash copies + 404.html; inventory lists 19 routes, landing present, all /x/ form, commit equals b10x-site.json; parse5 7.3.0 finds the same anchors on all 19 routes. Baseline 5d28957 writes no inventory (manifest.rs writes only b10x-site.json). Verdict VERIFIED",
+    "reference": "commit 72e42a6; inventory sha256 c3208b598aa7677316c9ac2c33f3c1f46a89380cd88cc70ad2c6ea9a1b197b00"
+  }
+}

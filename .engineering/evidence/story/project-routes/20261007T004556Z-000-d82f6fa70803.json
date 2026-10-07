@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-07T00:45:56Z",
+  "actor": "human:timo",
+  "artifact": "story:project-routes",
+  "kind": "story",
+  "revision": 12,
+  "change": {
+    "change": "evidence",
+    "kind": "test_result",
+    "source": "task check steps on wave/2026-10-07-w1 at fa3ea07: fmt 0, clippy 0, cargo test --workspace --locked --no-fail-fast 0 (52 binaries, 189 passed, 0 failed; --list 189), generate --check 0 (16 files fresh), aep plan artifact validate 0",
+    "reference": "commit fa3ea078392bf35cefe64d4addb3f0fcd8f3aa2a"
+  }
+}

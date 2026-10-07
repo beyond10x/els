@@ -2,7 +2,7 @@
 format: aep.planning-md/3
 id: story:project-routes
 kind: story
-status: active
+status: implemented
 title: The Pages site publishes its route inventory at .well-known/b10x-routes.json
 summary: 'canon-engineering-docs site-manifest also writes b10x-project-routes/v1 into the built site: every canonical page route under /engineering-protocols/ with its element IDs, stamped with the commit b10x-site.json carries.'
 relations:
@@ -18,10 +18,17 @@ scope:
   path: crates/canon-engineering-docs/src/manifest.rs
 - confidence: cited
   path: crates/canon-engineering-docs/src/routes.rs
-revision: 8
+- confidence: cited
+  path: crates/canon-engineering-docs/tests/adversary_project_routes.rs
+- confidence: cited
+  path: crates/canon-engineering-docs/tests/adversary_project_routes_pass2.rs
+- confidence: cited
+  path: crates/canon-engineering-docs/tests/project_routes.rs
+revision: 13
 transitions:
 - {from: "draft", to: "proposed", at: "2026-10-07T00:04:49Z", actor: "human:timo", revision: 7}
 - {from: "proposed", to: "active", at: "2026-10-07T00:04:49Z", actor: "human:timo", revision: 8}
+- {from: "active", to: "implemented", at: "2026-10-07T00:45:57Z", actor: "human:timo", revision: 13, decided_on: {"recorded":{"test_result":1,"review_outcome":2,"verification":1}}}
 ---
 ## Outcome
 
@@ -61,15 +68,22 @@ The document is written by `canon-engineering-docs site-manifest`, which `pages.
 
 ## Scope
 
-- `crates/canon-engineering-docs/src/routes.rs` (new): the inventory. Cited: the request names
-  `canon-engineering-docs site-manifest` as the place.
-- `crates/canon-engineering-docs/src/manifest.rs`: `write` writes the inventory with the manifest,
-  from the same `commit`. Cited (`manifest.rs:33-45`).
-- `crates/canon-engineering-docs/src/main.rs`: the `SiteManifest` doc comment and `mod routes`.
-  Inferred.
-- `AGENTS.md`: line 98 states the site publishes no `.well-known/b10x-routes.json`. Cited.
-- `.github/workflows/pages.yml`: no change expected; the step already runs `site-manifest` and
-  uploads with `include-hidden-files: true`. Inferred.
+Confirmed by the unit's implementor against the change it made (wave 2026-10-07-w1, unit commit
+`72e42a6`). Corrections are marked.
+
+- `crates/canon-engineering-docs/src/routes.rs` (new): the inventory and the start-tag scanner.
+  Cited; confirmed.
+- `crates/canon-engineering-docs/src/manifest.rs`: `write` computes the inventory before writing,
+  writes it first and `b10x-site.json` last. Cited; confirmed.
+- `crates/canon-engineering-docs/src/main.rs`: `mod routes`, the `SiteManifest` doc comment and the
+  route count in its output. Was inferred; confirmed.
+- `AGENTS.md`: the sentence saying the site publishes no route inventory, replaced. Cited; confirmed.
+- `.github/workflows/pages.yml`: was inferred as "no change expected". **Corrected:** the coordinator
+  removed the `if:` on the "Declare what was built" step, so pull requests run `site-manifest` too
+  and a refusal shows before merge; the upload step stays main-only.
+- **Added:** `crates/canon-engineering-docs/tests/project_routes.rs`,
+  `tests/adversary_project_routes.rs` (adversary pass 1) and
+  `tests/adversary_project_routes_pass2.rs` (adversary pass 2).
 
 ## Producer
 
