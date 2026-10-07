@@ -18,6 +18,7 @@ relations:
 - serves: vision:O2
 - serves: vision:governed-autonomy
 - depends_on: story:vocabulary-yaml-source
+- depends_on: story:software-change-negative-outcomes
 scope:
 - confidence: inferred
   path: crates/canon-engineering/src/vocabulary.rs
@@ -37,7 +38,7 @@ scope:
   path: protocols/software-change/1.yaml
 - confidence: cited
   path: protocols/vocabulary.yaml
-revision: 21
+revision: 23
 ---
 ## Outcome
 
@@ -73,9 +74,9 @@ Atlas ADR 0084 (accepted 2026-10-04, option C; on Atlas branch `plan/ga-adrs-008
 
 ## Shared surface
 
-This story is the second link of the `software.change/1` chain: `story:software-change-protocol` → `story:software-change-profiles` → `story:software-change-negative-outcomes` → `story:ess-conformance-evidence` → `story:security-independence-rules` → `story:stale-evidence-fixtures`. Every story on it edits `protocols/software-change/1.yaml` and `fixtures/software-change/`, and Canon has no composition that would let a profile live in its own file. This story depends on `story:software-change-protocol` and runs before `story:software-change-negative-outcomes`.
+This story is the third link of the `software.change/1` chain: `story:software-change-protocol` → `story:software-change-negative-outcomes` → `story:software-change-profiles` → `story:ess-conformance-evidence` → `story:security-independence-rules` → `story:stale-evidence-fixtures`. Every story on it edits `protocols/software-change/1.yaml` and `fixtures/software-change/`, and Canon has no composition that would let a profile live in its own file. This story depends on `story:software-change-negative-outcomes` and runs before `story:ess-conformance-evidence`, which needs the case-input category this story adds to the reader.
 
-It is also the first story after `story:vocabulary-yaml-source` to edit `protocols/vocabulary.yaml` and `crates/canon-engineering/src/vocabulary.rs`, and it depends on that story, which creates the YAML and the reader. It runs beside `story:protocol-registry`, which touches neither file.
+It also depends on `story:vocabulary-yaml-source`, which creates `protocols/vocabulary.yaml` and the reader `crates/canon-engineering/src/vocabulary.rs`. It edits both after `story:software-change-negative-outcomes`, which adds the reader's decision category. It runs beside `story:protocol-registry`, which touches neither file.
 
 ## Protocol first
 
@@ -113,3 +114,7 @@ The test `profiles_nest_open_obligations` in `crates/canon-engineering/tests/sof
 ## Source
 
 TASKBOARD E-003; Atlas ADR 0084 § Decision 1 and § Also needed; aep `principles/development/test-driven.yaml:18-20,26`; Atlas ADR 0077 point 3 (draft); `docs/design/engineering-lifecycle-specification-design.md` § 6.6, § 9, § 10, § 27; round-1 review `review-result:els-first-domain-parallel-safety-r1`.
+
+## Order
+
+Third of the three stories https://github.com/beyond10x/engineering-protocols/issues/7 asks to order: `story:software-change-negative-outcomes`, then `story:ml-experiment-protocol`, then this story. It is last because Canon has no case inputs and no derived obligations, and nothing in Canon plans them yet: `blocker:canon-case-inputs` blocks this story until a Canon release ships both.

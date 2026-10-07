@@ -28,7 +28,7 @@ scope:
   path: protocols/software-change/1.yaml
 - confidence: cited
   path: protocols/vocabulary.yaml
-revision: 14
+revision: 15
 ---
 ## Outcome
 
@@ -55,7 +55,7 @@ What stays out: the rollback-verification rule in `incident.response/1`. `story:
 
 ## Shared surface
 
-`protocols/software-change/1.yaml`, `fixtures/software-change/` and `protocols/vocabulary.yaml` are edited by every story on the `software.change/1` chain, and this story is its fifth link: `story:software-change-protocol` → `story:software-change-profiles` → `story:software-change-negative-outcomes` → `story:ess-conformance-evidence` → `story:security-independence-rules` → `story:stale-evidence-fixtures`. It depends on `story:ess-conformance-evidence`, which edits the same `implementation.verified` definition before it. It edits neither `protocols/incident-response/1.yaml` nor `fixtures/incident-response/`.
+`protocols/software-change/1.yaml`, `fixtures/software-change/` and `protocols/vocabulary.yaml` are edited by every story on the `software.change/1` chain, and this story is its fifth link: `story:software-change-protocol` → `story:software-change-negative-outcomes` → `story:software-change-profiles` → `story:ess-conformance-evidence` → `story:security-independence-rules` → `story:stale-evidence-fixtures`. It depends on `story:ess-conformance-evidence`, which edits the same `implementation.verified` definition before it. It edits neither `protocols/incident-response/1.yaml` nor `fixtures/incident-response/`.
 
 `story:rollback-verification-rule` depends on this story for two reasons. It uses `different_principal` and the independence-dimension category this story adds, and both stories edit `protocols/vocabulary.yaml`. `story:stale-evidence-fixtures` depends on both.
 

@@ -7,7 +7,8 @@ title: Ship the ml.experiment/1 protocol as data
 relations:
 - decomposes: epic:els-first-domain
 - depends_on: story:ml-protocol-shape-decision
-revision: 1
+- depends_on: story:software-change-negative-outcomes
+revision: 2
 ---
 ## Outcome
 
@@ -29,3 +30,11 @@ Per Atlas ADR 0080 for data-only changes: the fixture expectations first (red), 
 ## Source
 
 `architecture-decision-record:ml-protocol-shape` (wave 2026-10-04-w3); TASKBOARD E-009.
+
+## Order
+
+Second of the three stories https://github.com/beyond10x/engineering-protocols/issues/7 asks to order: `story:software-change-negative-outcomes`, then this story, then `story:software-change-profiles`.
+
+It depends on `story:software-change-negative-outcomes`. Both add outcome terms to `protocols/vocabulary.yaml`, `superseded` among them, and that story adds the reader's decision category to `crates/canon-engineering/src/vocabulary.rs`.
+
+The four Canon capabilities § Not yet scoped names are `implemented` in the canon store (read 2026-10-07): C-003 (`story:three-valued-claims`), C-004 (`story:evidence-revision-binding`), C-007 (`story:outcomes`, `story:decision-outcomes`) and C-008 (`story:evidence-freshness`, `story:invalidation-rules`). It can be scoped now. The Canon gaps `architecture-decision-record:ml-protocol-shape` names stay open; revision 1 of the protocol does without them.
