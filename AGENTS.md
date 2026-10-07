@@ -95,7 +95,9 @@ against Canon and this repository. `task site-build` builds the site into `websi
 The site is independent. A bot push to `main` that passes `Documentation validation` uploads
 `website/build` (bound to its commit by `canon-engineering-docs site-manifest`) and triggers
 `Documentation site` (`b10x-docs-site.yml`), which deploys through Website's `project-site.yml`.
-The site publishes no `.well-known/b10x-routes.json`.
+`site-manifest` also writes `.well-known/b10x-routes.json` (`b10x-project-routes/v1`, same
+commit): every built page route with its element IDs; redirects, trailing-slash copies and
+`404.html` are no route (`crates/canon-engineering-docs/src/routes.rs`).
 
 In `website/docusaurus.config.ts`, `product: 'els'` stays as it is: it is a fixed Docs System
 palette key, not the repository name, and any other value fails the build. For any change to the
