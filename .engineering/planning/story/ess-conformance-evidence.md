@@ -14,7 +14,7 @@ relations:
 - decomposes: epic:els-first-domain
 - serves: vision:O2
 - serves: vision:governed-autonomy
-- depends_on: story:software-change-negative-outcomes
+- depends_on: story:software-change-profiles
 scope:
 - confidence: cited
   path: crates/canon-engineering/tests/ess_conformance_evidence.rs
@@ -24,7 +24,7 @@ scope:
   path: protocols/software-change/1.yaml
 - confidence: cited
   path: protocols/vocabulary.yaml
-revision: 8
+revision: 9
 ---
 ## Outcome
 
@@ -52,7 +52,7 @@ This is a use of ESS output, not an ESS specification of ELS (`AGENTS.md` § ESS
 
 ## Shared surface
 
-`protocols/software-change/1.yaml`, `fixtures/software-change/` and `protocols/vocabulary.yaml` are edited by every story on the `software.change/1` chain, and this story is its fourth link: `story:software-change-protocol` → `story:software-change-profiles` → `story:software-change-negative-outcomes` → `story:ess-conformance-evidence` → `story:security-independence-rules` → `story:stale-evidence-fixtures`. This story depends on `story:software-change-negative-outcomes`. It runs before `story:security-independence-rules`, which edits the same `implementation.verified` definition.
+`protocols/software-change/1.yaml`, `fixtures/software-change/` and `protocols/vocabulary.yaml` are edited by every story on the `software.change/1` chain, and this story is its fourth link: `story:software-change-protocol` → `story:software-change-negative-outcomes` → `story:software-change-profiles` → `story:ess-conformance-evidence` → `story:security-independence-rules` → `story:stale-evidence-fixtures`. This story depends on `story:software-change-profiles`, which adds the case-input category it uses. It runs before `story:security-independence-rules`, which edits the same `implementation.verified` definition.
 
 ## Protocol first
 

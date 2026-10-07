@@ -31,7 +31,7 @@ scope:
   path: protocols/incident-response/1.yaml
 - confidence: cited
   path: protocols/software-change/1.yaml
-revision: 9
+revision: 10
 ---
 ## Outcome
 
@@ -58,7 +58,7 @@ The fixtures exercise Canon behaviour through ELS protocols; ELS does not implem
 
 This story edits both protocol documents and both fixture trees, so it is the last link of both chains:
 
-- on `protocols/software-change/1.yaml` and `fixtures/software-change/`: `story:software-change-protocol` → `story:software-change-profiles` → `story:software-change-negative-outcomes` → `story:ess-conformance-evidence` → `story:security-independence-rules` → `story:stale-evidence-fixtures`;
+- on `protocols/software-change/1.yaml` and `fixtures/software-change/`: `story:software-change-protocol` → `story:software-change-negative-outcomes` → `story:software-change-profiles` → `story:ess-conformance-evidence` → `story:security-independence-rules` → `story:stale-evidence-fixtures`;
 - on `protocols/incident-response/1.yaml` and `fixtures/incident-response/`: `story:incident-response-protocol` → `story:rollback-verification-rule` → `story:stale-evidence-fixtures`.
 
 It depends on `story:software-change-protocol`, `story:incident-response-protocol`, `story:security-independence-rules` and `story:rollback-verification-rule`. `story:protocol-docs-render` depends on it, because it is the last story that changes either built-in protocol.
