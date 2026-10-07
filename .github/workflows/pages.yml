@@ -37,7 +37,6 @@ jobs:
           npm --prefix website ci
           npm --prefix website run build
       - name: Declare what was built
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: cargo run --locked -p canon-engineering-docs -- site-manifest --site website/build --commit "$GITHUB_SHA"
       - name: Upload the exact built site
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'

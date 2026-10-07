@@ -11,6 +11,7 @@ mod lint;
 mod manifest;
 mod markdown;
 mod protocol;
+mod routes;
 mod status;
 
 use std::path::PathBuf;
@@ -36,7 +37,8 @@ enum Action {
         #[arg(long)]
         check: bool,
     },
-    /// Declare what a built site is: write `.well-known/b10x-site.json` (and `.nojekyll`) into it.
+    /// Declare what a built site is: write `.well-known/b10x-site.json`, its route inventory
+    /// `.well-known/b10x-routes.json` from the same commit (and `.nojekyll`) into it.
     SiteManifest {
         /// The built site, normally `website/build`.
         #[arg(long)]
@@ -86,9 +88,9 @@ fn main() -> Result<()> {
             }
         }
         Action::SiteManifest { site, commit } => {
-            manifest::write(&site, &commit)?;
+            let routes = manifest::write(&site, &commit)?;
             println!(
-                "canon-engineering-docs: {} declared as engineering-protocols at {commit}",
+                "canon-engineering-docs: {} declared as engineering-protocols at {commit}, {routes} routes",
                 site.display()
             );
         }
