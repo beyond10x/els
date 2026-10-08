@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-08T19:20:06Z",
+  "actor": "human:timo",
+  "artifact": "story:agents-serves-section",
+  "kind": "story",
+  "revision": 6,
+  "change": {
+    "change": "evidence",
+    "kind": "test_result",
+    "source": "grep -c Serves heading in AGENTS.md is 1 on e7ae441; package gates on e7ae441 all exit 0"
+  }
+}

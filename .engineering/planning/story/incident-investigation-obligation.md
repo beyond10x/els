@@ -2,7 +2,7 @@
 format: aep.planning-md/3
 id: story:incident-investigation-obligation
 kind: story
-status: active
+status: implemented
 title: incident.response/1 keeps the cause investigation open after emergency.leave
 summary: Obligation investigate_cause, discharged by cause.identified, stays open after emergency mode ends; inc-492 shows it.
 relations:
@@ -11,6 +11,16 @@ relations:
 - serves: vision:O2
 - serves: vision:governed-autonomy
 scope:
+- confidence: cited
+  path: crates/canon-engineering-docs/src/generate.rs
+- confidence: cited
+  path: crates/canon-engineering/tests/adversary2_incident_harness.rs
+- confidence: cited
+  path: crates/canon-engineering/tests/adversary2_incident_subject.rs
+- confidence: cited
+  path: crates/canon-engineering/tests/adversary2_investigation_obligation.rs
+- confidence: cited
+  path: crates/canon-engineering/tests/adversary_investigation_obligation.rs
 - confidence: cited
   path: crates/canon-engineering/tests/incident_response_protocol.rs
 - confidence: cited
@@ -24,21 +34,28 @@ scope:
 - confidence: cited
   path: website/data/protocol-graphs/
 - confidence: cited
+  path: website/data/status.json
+- confidence: cited
   path: website/docs/protocols/incident-response/1.mdx
 - confidence: cited
+  path: website/docs/protocols/index.md
+- confidence: cited
   path: website/docs/vocabulary.md
-revision: 6
+revision: 9
 transitions:
 - {from: "draft", to: "proposed", at: "2026-10-08T18:53:46Z", actor: "human:timo", revision: 3}
 - {from: "proposed", to: "active", at: "2026-10-08T18:53:47Z", actor: "human:timo", revision: 4}
+- {from: "active", to: "implemented", at: "2026-10-08T19:20:11Z", actor: "human:timo", revision: 9, decided_on: {"recorded":{"test_result":1,"review_outcome":2}}}
 ---
 ## Outcome
 
 `incident.response/1` declares the investigation of an incident's cause as an obligation of its own,
 `investigate_cause`, discharged when `cause.identified` is `TRUE`. Restoration and investigation are
 two obligations that progress independently: `emergency.leave` stays admissible on restoration
-evidence alone, and `investigate_cause` stays open after it, until a cause analysis of the current
-service revision exists.
+evidence alone, and `investigate_cause` stays open after it, until a cause analysis of a current
+revision of the service or the release identifies the cause. `cause.identified` keeps no subject
+binding: a cause analysis of the release counts, because the cause can be in the release (adversary
+pass 1 asked; the binding stays as it was decided for `story:incident-response-subject-binding`).
 
 Today the protocol declares one obligation, `restore_service`
 (`protocols/incident-response/1.yaml`, `obligations:`). Its description says the investigation
@@ -60,8 +77,15 @@ incident-investigation work needs that item from the protocol, not from its own 
 - `protocols/vocabulary.yaml`
 - `fixtures/incident-response/inc-492.fixture.yaml`
 - `crates/canon-engineering/tests/incident_response_protocol.rs`
-- `website/docs/protocols/incident-response/1.mdx`, `website/data/protocol-graphs/`,
-  `website/docs/vocabulary.md` (generated)
+- tests that count inc-492's states or the vocabulary's terms:
+  `crates/canon-engineering/tests/adversary2_incident_harness.rs`,
+  `crates/canon-engineering/tests/adversary2_incident_subject.rs`,
+  `crates/canon-engineering-docs/src/generate.rs` (found when the unit ran; scope extended)
+- adversary cases: `crates/canon-engineering/tests/adversary_investigation_obligation.rs`,
+  `crates/canon-engineering/tests/adversary2_investigation_obligation.rs`
+- `website/docs/protocols/incident-response/1.mdx`, `website/docs/protocols/index.md`,
+  `website/data/protocol-graphs/`, `website/data/status.json`, `website/docs/vocabulary.md`
+  (generated)
 - `docs/examples/incident-response.md` (the worked example names the open investigation)
 
 `CHANGELOG.md` is not edited by this unit; the release commit records the change.

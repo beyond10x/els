@@ -2,7 +2,7 @@
 format: aep.planning-md/3
 id: story:agents-serves-section
 kind: story
-status: active
+status: implemented
 title: AGENTS.md names the Atlas objectives the repository serves
 summary: 'A ## Serves section naming O1 and O2 grounds the repository in the Atlas map.'
 relations:
@@ -10,10 +10,11 @@ relations:
 scope:
 - confidence: cited
   path: AGENTS.md
-revision: 6
+revision: 7
 transitions:
 - {from: "draft", to: "proposed", at: "2026-10-08T18:53:47Z", actor: "human:timo", revision: 3}
 - {from: "proposed", to: "active", at: "2026-10-08T18:53:47Z", actor: "human:timo", revision: 4}
+- {from: "active", to: "implemented", at: "2026-10-08T19:20:11Z", actor: "human:timo", revision: 7, decided_on: {"recorded":{"test_result":1}}}
 ---
 ## Outcome
 
