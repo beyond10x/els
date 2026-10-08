@@ -379,11 +379,17 @@ fn inc_492_investigation_stays_open_after_emergency_leave() {
         .expect("the protocol declares `investigate_cause`");
     assert_eq!(
         reached(ir, &investigate.discharged_when),
-        (vec!["cause.identified".to_owned()], vec!["cause_analysis".to_owned()])
+        (
+            vec!["cause.identified".to_owned()],
+            vec!["cause_analysis".to_owned()]
+        )
     );
 
     // Leaving emergency mode still never rests on the cause.
-    let (claims, kinds) = reached(ir, &ir.actions[&ActionId::new("emergency.leave")].precondition);
+    let (claims, kinds) = reached(
+        ir,
+        &ir.actions[&ActionId::new("emergency.leave")].precondition,
+    );
     assert_eq!(claims, ["impact.bounded", "service.healthy"]);
     assert_eq!(kinds, ["impact_assessment", "operational_observation"]);
 

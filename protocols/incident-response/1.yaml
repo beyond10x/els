@@ -4,8 +4,9 @@ protocol:
   id: incident.response
   revision: 1
   description: >-
-    Respond to an incident: restore the service and leave emergency mode on restoration evidence,
-    while the investigation of its cause progresses on its own.
+    Respond to an incident through two obligations that progress independently: restore_service,
+    on which emergency mode is left, and investigate_cause, which stays open after emergency mode
+    ends until the cause of the service's current revision is identified.
 
 artifacts:
   service:
@@ -48,6 +49,11 @@ obligations:
     description: urgent; bring the affected service back to health
     discharged_when:
       claim: service.healthy
+      is: true
+  investigate_cause:
+    description: establish why the incident happened; stays open after emergency mode ends
+    discharged_when:
+      claim: cause.identified
       is: true
 
 actions:
