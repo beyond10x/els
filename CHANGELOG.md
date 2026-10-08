@@ -6,6 +6,23 @@ releases at bare-version tags.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-08
+
+Source release using Canon 0.1.0 and ESS 0.55.0. `incident.response/1` gains an obligation, so
+its decisions list one more entry; the gate and provider contracts are unchanged.
+
+### Added
+
+- `incident.response/1` declares obligation `investigate_cause`, discharged when
+  `cause.identified` is `TRUE`. It stays open after `emergency.leave` becomes admissible, until a
+  cause analysis of a current revision of the service or the release identifies the cause.
+  `emergency.leave` still rests on restoration evidence only.
+- Fixture `inc-492` expects `investigate_cause` in every state, open again after the rollback
+  makes the earlier analysis stale, and adds state `cause-identified-after-restore`.
+- Vocabulary term `investigate_cause` (`obligation_id`); the generated protocol, index, graph,
+  vocabulary and status pages follow.
+- `AGENTS.md` names the Atlas objectives the repository serves (O2, O1).
+
 ## [0.2.1] - 2026-10-07
 
 Source release using Canon 0.1.0 and ESS 0.55.0. Protocol formats and the generated gate and
