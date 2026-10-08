@@ -6,7 +6,7 @@ description: "The names the engineering protocols use, each with its category, m
 custom_edit_url: null
 ---
 
-The 35 names the engineering protocols use, each declared once in [`protocols/vocabulary.yaml`](https://github.com/beyond10x/engineering-protocols/blob/main/protocols/vocabulary.yaml) with its category, its marking and its meaning. The vocabulary holds names and what they mean; what a claim, a piece of evidence or an obligation is, and how one is decided, belongs to Canon.
+The 36 names the engineering protocols use, each declared once in [`protocols/vocabulary.yaml`](https://github.com/beyond10x/engineering-protocols/blob/main/protocols/vocabulary.yaml) with its category, its marking and its meaning. The vocabulary holds names and what they mean; what a claim, a piece of evidence or an obligation is, and how one is decided, belongs to Canon.
 
 - **`core`**: not specific to Git, pull requests or code; usable by every engineering protocol.
 - **`software.change`**: only makes sense for Git, pull requests or code.
@@ -79,6 +79,7 @@ Category `obligation_id`.
 | Term | Marking | Meaning |
 |---|---|---|
 | `restore_service` | `core` | bring the affected service back to health |
+| `investigate_cause` | `core` | establish why the incident happened |
 
 ## Outcomes
 

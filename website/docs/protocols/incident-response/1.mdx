@@ -3,7 +3,7 @@
 id: "1"
 title: "incident.response/1"
 sidebar_label: "incident.response/1"
-description: "Respond to an incident: restore the service and leave emergency mode on restoration evidence, while the investigation of its cause progresses on its own."
+description: "Respond to an incident through two obligations that progress independently: restore_service, on which emergency mode is left, and investigate_cause, which stays open after emergency mode ends until the cause of the service's current revision is identified."
 slug: /protocols/incident-response/1
 hide_table_of_contents: true
 custom_edit_url: null
@@ -11,7 +11,7 @@ custom_edit_url: null
 
 import graph from '@site/data/protocol-graphs/incident-response-1.json';
 
-Respond to an incident: restore the service and leave emergency mode on restoration evidence, while the investigation of its cause progresses on its own.
+Respond to an incident through two obligations that progress independently: restore\_service, on which emergency mode is left, and investigate\_cause, which stays open after emergency mode ends until the cause of the service's current revision is identified.
 
 - **Id:** `incident.response`
 - **Revision:** 1
@@ -62,6 +62,7 @@ What must be done before a case can be complete, and what discharges it. An obli
 
 | Obligation | Description | Discharged when |
 |---|---|---|
+| `investigate_cause` | establish why the incident happened; stays open after emergency mode ends | `cause.identified` is **TRUE** |
 | `restore_service` | urgent; bring the affected service back to health | `service.healthy` is **TRUE** |
 
 ## Outcomes

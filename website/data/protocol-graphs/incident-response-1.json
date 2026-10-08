@@ -39,6 +39,11 @@
       "to": "claim:service.healthy"
     },
     {
+      "from": "claim:cause.identified",
+      "kind": "requires",
+      "to": "obligation:investigate_cause"
+    },
+    {
       "from": "claim:service.healthy",
       "kind": "requires",
       "to": "obligation:restore_service"
@@ -172,6 +177,17 @@
       }
     },
     {
+      "description": "establish why the incident happened; stays open after emergency mode ends",
+      "id": "obligation:investigate_cause",
+      "kind": "obligation",
+      "name": "investigate_cause",
+      "predicate": {
+        "claim": {
+          "id": "cause.identified"
+        }
+      }
+    },
+    {
       "description": "urgent; bring the affected service back to health",
       "id": "obligation:restore_service",
       "kind": "obligation",
@@ -184,7 +200,7 @@
     }
   ],
   "protocol": {
-    "description": "Respond to an incident: restore the service and leave emergency mode on restoration evidence, while the investigation of its cause progresses on its own.",
+    "description": "Respond to an incident through two obligations that progress independently: restore_service, on which emergency mode is left, and investigate_cause, which stays open after emergency mode ends until the cause of the service's current revision is identified.",
     "id": "incident.response",
     "revision": 1,
     "source": "protocols/incident-response/1.yaml"
