@@ -177,7 +177,7 @@
       }
     },
     {
-      "description": "establish why the incident happened; stays open after emergency mode ends",
+      "description": "establish why the incident happened; stays open after emergency mode ends until a cause analysis of a current revision of the service or the release identifies the cause",
       "id": "obligation:investigate_cause",
       "kind": "obligation",
       "name": "investigate_cause",
@@ -200,7 +200,7 @@
     }
   ],
   "protocol": {
-    "description": "Respond to an incident through two obligations that progress independently: restore_service, on which emergency mode is left, and investigate_cause, which stays open after emergency mode ends until the cause of the service's current revision is identified.",
+    "description": "Respond to an incident through two obligations that progress independently: restore_service, on which emergency mode is left, and investigate_cause, which stays open after emergency mode ends until a cause analysis of a current revision of the service or the release identifies the cause.",
     "id": "incident.response",
     "revision": 1,
     "source": "protocols/incident-response/1.yaml"

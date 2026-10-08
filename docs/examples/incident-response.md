@@ -28,7 +28,7 @@ cause.identified = UNKNOWN
 ```
 
 The operational incident can leave emergency mode while the investigation remains open:
-`restore_service` is discharged, and `investigate_cause` stays open until a cause analysis of the
-restored service revision identifies the cause.
+`restore_service` is discharged, and `investigate_cause` stays open until a cause analysis of a
+current revision of the service or the release identifies the cause.
 
 This demonstrates why a protocol is richer than one scalar workflow state.

@@ -61,13 +61,13 @@ fn cause(decision: &Decision) -> Truth {
         .value
 }
 
-/// The protocol's own description: `investigate_cause` stays open "until the cause of the
-/// service's current revision is identified". The service is at `s2`; the release, which the
-/// rollback did not move, is at `r42`. A cause analysis of the release — what `release.inspect`
-/// declares it may produce — says nothing about the service at `s2`, and must leave the
-/// investigation open.
+/// The protocol's own description: `investigate_cause` stays open "until a cause analysis of a
+/// current revision of the service or the release identifies the cause". `cause.identified`
+/// carries no subject binding, because the cause can be in the release. The release, which the
+/// rollback did not move, is at `r42`; a cause analysis of it — what `release.inspect` declares
+/// it may produce — identifies the cause and discharges the investigation.
 #[test]
-fn a_cause_analysis_of_the_release_leaves_the_service_investigation_open() {
+fn a_cause_analysis_of_the_release_discharges_the_investigation() {
     let decision = last_state_with(
         "          id: cause-2
           kind: cause_analysis
@@ -76,14 +76,9 @@ fn a_cause_analysis_of_the_release_leaves_the_service_investigation_open() {
           subject_revision: r42
 ",
     );
+    assert_eq!(cause(&decision), Truth::True);
+    assert_eq!(obligation(&decision, "investigate_cause"), "discharged");
     assert_eq!(action(&decision, "emergency.leave"), "admissible");
-    assert_eq!(
-        obligation(&decision, "investigate_cause"),
-        "open",
-        "a cause analysis of release r42 discharged the investigation of service s2 \
-         (cause.identified = {:?})",
-        cause(&decision)
-    );
 }
 
 /// The claim under attack, stated directly: a cause analysis of the stale revision `s1`, observed
