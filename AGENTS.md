@@ -5,6 +5,14 @@ them and how to run them is in [README.md](README.md); the public site is
 <https://beyond10x.github.io/engineering-protocols/>. The cross-repository architecture is Atlas
 ADRs 0066–0075 and Atlas `docs/design/governed-autonomy/`.
 
+## Serves
+
+- **O2 — decisions as data, with evidence.** Engineering rules are Canon protocols declared as
+  data and evaluated against cited, revision-bound evidence, with `UNKNOWN` kept apart from `FALSE`.
+- **O1 — governed reach.** Every write action a protocol declares names the capability that
+  authorises it, except `software.change/1`'s `repository.edit`, and Loom's `loom-governor`
+  consumes these protocols.
+
 ## Boundary
 
 This repository owns engineering-domain vocabulary and the protocols written in it (Atlas ADR
