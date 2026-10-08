@@ -106,8 +106,7 @@ fn inc_492_leaves_emergency_while_cause_unknown() {
     let ir = compiled.ir();
     assert_eq!(ir.protocol.id.as_str(), "incident.response");
 
-    // Every name the protocol declares is a term of the vocabulary, in its category; this story
-    // adds none.
+    // Every name the protocol declares is a term of the vocabulary, in its category.
     let declared = |category: Category, names: Vec<&str>| {
         for name in names {
             let term = vocabulary::lookup(name).unwrap_or_else(|error| panic!("{error}"));
@@ -148,7 +147,7 @@ fn inc_492_leaves_emergency_while_cause_unknown() {
     );
     assert_eq!(
         names(ir.obligations.keys().map(|id| id.as_str()).collect()),
-        ["restore_service"]
+        ["investigate_cause", "restore_service"]
     );
     assert_eq!(
         names(ir.actions.keys().map(|id| id.as_str()).collect()),
@@ -204,6 +203,7 @@ fn inc_492_leaves_emergency_while_cause_unknown() {
             "rolled-back",
             "release-observed",
             "service-restored",
+            "cause-identified-after-restore",
         ]
     );
     let decide = |state: &str| {
@@ -339,6 +339,120 @@ fn inc_492_leaves_emergency_while_cause_unknown() {
     assert_eq!(fixture.check(&compiled), Ok(()));
 }
 
+/// The ids of the obligations Canon's decision lists, in the order it lists them.
+fn obligation_ids(decision: &Decision) -> Vec<String> {
+    decision
+        .obligations
+        .as_ref()
+        .expect("the decision has an obligations section")
+        .as_array()
+        .expect("obligations is an array")
+        .iter()
+        .map(|entry| {
+            entry["id"]
+                .as_str()
+                .expect("an obligation's id is text")
+                .to_owned()
+        })
+        .collect()
+}
+
+/// Acceptance for `story:incident-investigation-obligation`: the investigation of the cause is an
+/// obligation of its own, `investigate_cause`, discharged when `cause.identified` is TRUE. It
+/// progresses independently of `restore_service`, and stays open after emergency mode may be left,
+/// until a cause analysis of the service's current revision exists.
+#[test]
+fn inc_492_investigation_stays_open_after_emergency_leave() {
+    let compiled = support::compile_protocol(&support::protocol_path("incident-response", 1))
+        .unwrap_or_else(|error| panic!("{error}"));
+    let ir = compiled.ir();
+
+    // The obligation is a vocabulary term in the obligation category, and the protocol declares
+    // it with its own discharge condition: `cause.identified` is TRUE.
+    let term = vocabulary::lookup("investigate_cause").unwrap_or_else(|error| panic!("{error}"));
+    assert_eq!(term.category, Category::ObligationId);
+    let investigate = ir
+        .obligations
+        .iter()
+        .find(|(id, _)| id.as_str() == "investigate_cause")
+        .map(|(_, obligation)| obligation)
+        .expect("the protocol declares `investigate_cause`");
+    assert_eq!(
+        reached(ir, &investigate.discharged_when),
+        (
+            vec!["cause.identified".to_owned()],
+            vec!["cause_analysis".to_owned()]
+        )
+    );
+
+    // Leaving emergency mode still never rests on the cause.
+    let (claims, kinds) = reached(
+        ir,
+        &ir.actions[&ActionId::new("emergency.leave")].precondition,
+    );
+    assert_eq!(claims, ["impact.bounded", "service.healthy"]);
+    assert_eq!(kinds, ["impact_assessment", "operational_observation"]);
+
+    let fixture = Fixture::load(INC_492).unwrap_or_else(|error| panic!("{INC_492}: {error}"));
+    let decide = |state: &str| {
+        let decision = fixture
+            .evaluate(&compiled, state)
+            .unwrap_or_else(|refusal| panic!("state `{state}` evaluates: {refusal}"));
+        // Every state's decision lists exactly the two obligations.
+        let mut ids = obligation_ids(&decision);
+        ids.sort();
+        assert_eq!(ids, ["investigate_cause", "restore_service"], "{state}");
+        decision
+    };
+
+    // 1. Nothing is known of the cause: both obligations are open.
+    let initial = decide("initial");
+    assert_eq!(claim(&initial, "cause.identified"), Truth::Unknown);
+    assert_eq!(obligation(&initial, "investigate_cause"), "open");
+    assert_eq!(obligation(&initial, "restore_service"), "open");
+
+    // 2. A cause analysis of revision s1 discharges the investigation and nothing else: the
+    //    restoration stays open and emergency mode holds.
+    let cause = decide("cause-identified");
+    assert_eq!(claim(&cause, "cause.identified"), Truth::True);
+    assert_eq!(obligation(&cause, "investigate_cause"), "discharged");
+    assert_eq!(obligation(&cause, "restore_service"), "open");
+    assert_eq!(action(&cause, "emergency.leave"), "blocked");
+
+    // 3. The rollback moves the service to s2. The analysis of s1 no longer applies, so the cause
+    //    is UNKNOWN again and the investigation reopens.
+    let rolled_back = decide("rolled-back");
+    assert_eq!(claim(&rolled_back, "cause.identified"), Truth::Unknown);
+    assert_eq!(
+        excluded(&rolled_back, "cause.identified"),
+        [("cause-1".to_owned(), ExclusionReason::RevisionMismatch)]
+    );
+    assert_eq!(obligation(&rolled_back, "investigate_cause"), "open");
+
+    // 4. The service is restored on s2: the restoration is discharged and emergency mode may be
+    //    left, while the investigation stays open.
+    let restored = decide("service-restored");
+    assert_eq!(claim(&restored, "cause.identified"), Truth::Unknown);
+    assert_eq!(obligation(&restored, "restore_service"), "discharged");
+    assert_eq!(action(&restored, "emergency.leave"), "admissible");
+    assert_eq!(obligation(&restored, "investigate_cause"), "open");
+
+    // 5. A cause analysis of the service at s2 arrives after the restoration: the investigation is
+    //    discharged, and the restoration and the admissible exit are unchanged.
+    let after = decide("cause-identified-after-restore");
+    assert_eq!(claim(&after, "cause.identified"), Truth::True);
+    assert_eq!(
+        excluded(&after, "cause.identified"),
+        [("cause-1".to_owned(), ExclusionReason::RevisionMismatch)]
+    );
+    assert_eq!(obligation(&after, "investigate_cause"), "discharged");
+    assert_eq!(obligation(&after, "restore_service"), "discharged");
+    assert_eq!(action(&after, "emergency.leave"), "admissible");
+
+    // The fixture's own expectations agree.
+    assert_eq!(fixture.check(&compiled), Ok(()));
+}
+
 /// The fixture's text with `from` replaced by `to` once; `from` must occur in it.
 fn inc_492_with(from: &str, to: &str) -> String {
     let text = std::fs::read_to_string(support::repo_root().join(INC_492)).expect("inc-492 reads");
@@ -386,6 +500,7 @@ fn inc_492_harness_reports_obligation_and_action_differences() {
                 "state `rolled-back`: evaluation refused: malformed-input: ",
                 "state `release-observed`: evaluation refused: malformed-input: ",
                 "state `service-restored`: evaluation refused: malformed-input: ",
+                "state `cause-identified-after-restore`: evaluation refused: malformed-input: ",
             ],
         ),
     ] {

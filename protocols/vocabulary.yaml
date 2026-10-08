@@ -141,3 +141,7 @@ terms:
     category: outcome_id
     marking: core
     meaning: the case closed with its result accepted
+  - id: investigate_cause
+    category: obligation_id
+    marking: core
+    meaning: establish why the incident happened

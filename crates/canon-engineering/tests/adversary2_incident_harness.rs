@@ -109,6 +109,8 @@ fn a_later_denial_of_a_granted_capability_is_refused_by_canon_at_check() {
              decides capability `release.rollback` more than once",
             "state `service-restored`: evaluation refused: duplicate-identifier: `--authority` \
              decides capability `release.rollback` more than once",
+            "state `cause-identified-after-restore`: evaluation refused: duplicate-identifier: \
+             `--authority` decides capability `release.rollback` more than once",
         ]
     );
 }
@@ -148,11 +150,11 @@ fn the_order_of_authority_entries_does_not_matter() {
 fn an_artifact_the_case_omits() {
     // `incident.response/1` declares `release` again (story:incident-response-subject-binding),
     // so the probe runs on the shipped protocol: inc-492's case without the release, at each of
-    // its six states.
+    // its seven states.
     let without = inc_492_with("    release: {revision: r42}\n", "");
     let fixture = Fixture::from_yaml(&without).expect("loads");
     let differences = fixture.check(&compiled()).expect_err("differs");
-    assert_eq!(differences.len(), 6, "{differences:?}");
+    assert_eq!(differences.len(), 7, "{differences:?}");
     assert!(
         differences
             .iter()
