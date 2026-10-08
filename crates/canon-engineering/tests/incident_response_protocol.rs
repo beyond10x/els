@@ -360,7 +360,7 @@ fn obligation_ids(decision: &Decision) -> Vec<String> {
 /// Acceptance for `story:incident-investigation-obligation`: the investigation of the cause is an
 /// obligation of its own, `investigate_cause`, discharged when `cause.identified` is TRUE. It
 /// progresses independently of `restore_service`, and stays open after emergency mode may be left,
-/// until a cause analysis of the service's current revision exists.
+/// until a cause analysis of a current revision of the service or the release identifies the cause.
 #[test]
 fn inc_492_investigation_stays_open_after_emergency_leave() {
     let compiled = support::compile_protocol(&support::protocol_path("incident-response", 1))
