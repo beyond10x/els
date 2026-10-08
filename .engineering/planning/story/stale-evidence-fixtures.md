@@ -20,6 +20,7 @@ relations:
 - serves: vision:governed-autonomy
 - depends_on: story:security-independence-rules
 - depends_on: story:rollback-verification-rule
+- depends_on: story:incident-investigation-obligation
 scope:
 - confidence: cited
   path: crates/canon-engineering/tests/stale_evidence.rs
