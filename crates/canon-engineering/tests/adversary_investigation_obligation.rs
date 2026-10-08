@@ -1,8 +1,7 @@
 //! Adversary pass on `story:incident-investigation-obligation`: `investigate_cause` read against
 //! the documents the unit wrote about it. The protocol's description says the obligation "stays
-//! open after emergency mode ends until the cause of the service's current revision is
-//! identified", and `docs/examples/incident-response.md` says it "stays open until a cause
-//! analysis of the restored service revision identifies the cause".
+//! open after emergency mode ends until a cause analysis of a current revision of the service or
+//! the release identifies the cause", and `docs/examples/incident-response.md` says the same.
 //!
 //! Each case starts from `inc-492` and changes only the cause analysis its last state adds. No file
 //! in the repository is written.
