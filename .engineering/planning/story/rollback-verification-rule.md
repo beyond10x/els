@@ -19,6 +19,7 @@ relations:
 - depends_on: story:security-independence-rules
 - serves: vision:O2
 - serves: vision:governed-autonomy
+- depends_on: story:incident-investigation-obligation
 scope:
 - confidence: cited
   path: crates/canon-engineering/tests/rollback_verification_rule.rs

@@ -136,7 +136,10 @@ fn the_incident_example_is_what_canon_decides_for_inc_492() {
     let compiled = fixture.compile().unwrap_or_else(|error| panic!("{error}"));
     let states = fixture.states();
     let first = states.first().expect("a first state").to_string();
-    let last = states.last().expect("a last state").to_string();
+    // The second block is the state after the rollback and fresh health evidence, before any
+    // cause analysis of the new revision: `service-restored`, not the fixture's last state.
+    let last = "service-restored".to_owned();
+    assert!(states.contains(&last.as_str()), "inc-492 has `{last}`");
     let decide = |state: &str| {
         fixture
             .evaluate(&compiled, state)
@@ -171,6 +174,7 @@ fn the_incident_example_is_what_canon_decides_for_inc_492() {
     );
     assert_eq!(actions(&after)["emergency.leave"], "admissible");
     assert_eq!(obligation(&after, "restore_service"), "discharged");
+    assert_eq!(obligation(&after, "investigate_cause"), "open");
 }
 
 /// Every artifact `incident.response/1` and `inc-492` name — the protocol's declarations, the
@@ -398,7 +402,7 @@ fn a_case_without_the_release_is_refused_for_the_release_at_every_state() {
         Fixture::from_yaml(&text.replacen(line, "", 1)).unwrap_or_else(|error| panic!("{error}"));
     let compiled = fixture.compile().unwrap_or_else(|error| panic!("{error}"));
     let states: Vec<String> = fixture.states().into_iter().map(str::to_owned).collect();
-    assert_eq!(states.len(), 6);
+    assert_eq!(states.len(), 7);
     for state in states {
         let refusal = fixture
             .evaluate(&compiled, &state)

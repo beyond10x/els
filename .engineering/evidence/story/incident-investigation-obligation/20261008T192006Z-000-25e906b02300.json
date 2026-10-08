@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-08T19:20:06Z",
+  "actor": "human:timo",
+  "artifact": "story:incident-investigation-obligation",
+  "kind": "story",
+  "revision": 8,
+  "change": {
+    "change": "evidence",
+    "kind": "test_result",
+    "source": "package gates on e7ae441, all exit 0: fmt; clippy and test b10x-canon-engineering (121 passed, 0 failed); clippy and test canon-engineering-docs (51 passed); generate --check"
+  }
+}
